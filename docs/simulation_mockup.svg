@@ -1,0 +1,19 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1400" height="900" viewBox="0 0 1400 900">
+  <rect width="1400" height="900" fill="#101820"/>
+  <text x="40" y="55" fill="white" font-size="28" font-family="sans-serif" font-weight="bold">シミュレーション — 約10秒に加速した確認表示</text>
+  <rect x="35" y="90" width="900" height="690" rx="10" fill="#e9eef3"/>
+  <text x="70" y="135" fill="#26364a" font-size="23" font-family="sans-serif" font-weight="bold">横面図：ピッチ角・X・Y</text>
+  <rect x="60" y="155" width="850" height="270" fill="#f9fbfd" stroke="#b8c4d0"/>
+  <line x1="110" y1="370" x2="850" y2="370" stroke="#657587" stroke-width="3"/><line x1="480" y1="175" x2="480" y2="405" stroke="#657587" stroke-width="3" stroke-dasharray="8 8"/>
+  <circle cx="480" cy="300" r="11" fill="#e34e4e"/><path d="M480 300 L735 220" stroke="#1f5fa8" stroke-width="15" stroke-linecap="round"/><text x="500" y="290" fill="#26364a" font-size="16" font-family="sans-serif">風洞中心</text><text x="690" y="205" fill="#a35d16" font-size="18" font-family="sans-serif">ピッチ角</text>
+  <text x="80" y="455" fill="#26364a" font-size="23" font-family="sans-serif" font-weight="bold">正面図：ピトー管ロール角</text>
+  <rect x="60" y="475" width="850" height="270" fill="#f9fbfd" stroke="#b8c4d0"/>
+  <circle cx="480" cy="610" r="80" fill="none" stroke="#657587" stroke-width="3"/><line x1="480" y1="610" x2="560" y2="560" stroke="#1f5fa8" stroke-width="14" stroke-linecap="round"/><path d="M500 600 A35 35 0 0 1 520 575" fill="none" stroke="#9b4eb5" stroke-width="5"/><text x="570" y="555" fill="#7b3d91" font-size="18" font-family="sans-serif">ロール角</text>
+  <rect x="980" y="90" width="380" height="690" rx="10" fill="#1f2b38" stroke="#405266"/>
+  <text x="1010" y="135" fill="white" font-size="23" font-family="sans-serif" font-weight="bold">現在の較正点</text>
+  <g font-family="sans-serif" font-size="19" fill="#dce6f0"><text x="1010" y="190">点番号：87 / 200</text><text x="1010" y="235">AoA：+8.42 deg</text><text x="1010" y="275">AoS：-3.33 deg</text><text x="1010" y="335">X：+6.8 mm</text><text x="1010" y="375">Y：-2.1 mm</text><text x="1010" y="415">Z（ピッチ）：+9.04 deg</text><text x="1010" y="455">A（ロール）：-21.6 deg</text></g>
+  <line x1="1010" y1="500" x2="1325" y2="500" stroke="#405266"/>
+  <text x="1010" y="545" fill="#dce6f0" font-size="19" font-family="sans-serif">移動状態</text><text x="1010" y="585" fill="#68d391" font-size="18" font-family="sans-serif">可動範囲内</text>
+  <rect x="1010" y="650" width="315" height="18" rx="9" fill="#415365"/><rect x="1010" y="650" width="138" height="18" rx="9" fill="#4c9be8"/><text x="1010" y="710" fill="#b8c6d4" font-size="16" font-family="Arial,sans-serif">Playback: 00:04.35 / 00:10.00</text>
+  <rect x="1010" y="735" width="145" height="34" rx="5" fill="#4c8ed9"/><text x="1047" y="759" fill="white" font-size="16" font-family="Arial,sans-serif">Pause</text><rect x="1175" y="735" width="145" height="34" rx="5" fill="#687789"/><text x="1210" y="759" fill="white" font-size="16" font-family="Arial,sans-serif">Close</text>
+</svg>
