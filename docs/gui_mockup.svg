@@ -29,11 +29,11 @@
   </g>
   <text x="50" y="810" fill="#2d3748" font-size="18" font-family="sans-serif" font-weight="bold">オプション</text>
   <g font-family="Arial,sans-serif" font-size="16" fill="#374151">
-    <rect x="55" y="830" width="19" height="19" fill="#2d72c8"/><text x="84" y="846">実軸移動量を最小化</text>
+    <text x="55" y="842" font-weight="bold">較正モード</text>
+    <circle cx="170" cy="837" r="9" fill="#fff" stroke="#2d72c8" stroke-width="2"/><circle cx="170" cy="837" r="5" fill="#2d72c8"/><text x="188" y="843">ピッチ可変</text>
+    <circle cx="300" cy="837" r="9" fill="#fff" stroke="#2d72c8" stroke-width="2"/><text x="318" y="843">ピッチ固定</text>
     <rect x="55" y="865" width="19" height="19" fill="#2d72c8"/><text x="84" y="881">蛇行走査を使用</text>
     <rect x="55" y="900" width="19" height="19" fill="#2d72c8"/><text x="84" y="916">Gコードにコメントを付加</text>
-    <rect x="245" y="830" width="19" height="19" fill="#2d72c8"/><text x="274" y="846">正確なAoA/AoSで較正</text>
-    <rect x="245" y="865" width="19" height="19" fill="#e2a329"/><text x="274" y="881">非正確モード：実AoA/AoSを表示</text>
   </g>
 
   <rect x="520" y="100" width="1055" height="850" rx="8" fill="white" stroke="#c8d0da"/>
@@ -48,19 +48,19 @@
     <circle cx="650" cy="400" r="7"/><circle cx="705" cy="400" r="7"/><circle cx="760" cy="400" r="7"/><circle cx="815" cy="400" r="7"/><circle cx="870" cy="400" r="7"/><circle cx="925" cy="400" r="7"/><circle cx="980" cy="400" r="7"/><circle cx="1035" cy="400" r="7"/><circle cx="1090" cy="400" r="7" fill="#e45b5b"/><circle cx="1145" cy="400" r="7"/>
     <circle cx="650" cy="330" r="7"/><circle cx="705" cy="330" r="7"/><circle cx="760" cy="330" r="7"/><circle cx="815" cy="330" r="7"/><circle cx="870" cy="330" r="7"/><circle cx="925" cy="330" r="7"/><circle cx="980" cy="330" r="7"/><circle cx="1035" cy="330" r="7"/><circle cx="1090" cy="330" r="7"/><circle cx="1145" cy="330" r="7"/>
   </g>
-  <text x="585" y="725" fill="#374151" font-size="16" font-family="sans-serif">青：範囲内</text><circle cx="575" cy="719" r="7" fill="#3a82d4"/><text x="755" y="725" fill="#374151" font-size="16" font-family="sans-serif">赤：飽和</text><circle cx="745" cy="719" r="7" fill="#e45b5b"/>
+  <text x="585" y="725" fill="#374151" font-size="16" font-family="sans-serif">青：範囲内</text><circle cx="575" cy="719" r="7" fill="#3a82d4"/><text x="755" y="725" fill="#374151" font-size="16" font-family="sans-serif">赤：範囲警告/エラー</text><circle cx="745" cy="719" r="7" fill="#e45b5b"/>
 
   <rect x="1240" y="175" width="300" height="520" fill="#f7f9fb" stroke="#d1d9e2"/>
   <text x="1260" y="215" fill="#26364a" font-size="20" font-family="Arial,sans-serif" font-weight="bold">Summary</text>
   <g font-family="Arial,sans-serif" font-size="16" fill="#374151">
     <text x="1260" y="260">Points: 200</text><text x="1260" y="295">Estimated time: 12:36</text><text x="1260" y="330">Z range: -20.0 ... 20.0 deg</text><text x="1260" y="365">A range: -45.0 ... 45.0 deg</text>
-    <text x="1260" y="425" fill="#c23b3b" font-weight="bold">Warnings: 1 axis saturated</text><text x="1260" y="460">X deviation max: 12.4 mm</text><text x="1260" y="495">Y deviation max: 0.0 mm</text>
+    <text x="1260" y="425" fill="#c23b3b" font-weight="bold">Warnings: X axis saturated</text><text x="1260" y="460">X deviation max: 12.4 mm</text><text x="1260" y="495">Y deviation max: 0.0 mm</text>
   </g>
   <rect x="550" y="760" width="230" height="55" rx="6" fill="#4c8ed9"/><text x="620" y="795" fill="white" font-size="19" font-family="sans-serif" font-weight="bold">シミュレーション</text>
   <rect x="800" y="760" width="230" height="55" rx="6" fill="#2f9b69"/><text x="860" y="795" fill="white" font-size="19" font-family="sans-serif" font-weight="bold">Gコード生成</text>
   <rect x="1050" y="760" width="230" height="55" rx="6" fill="#6b7280"/><text x="1115" y="795" fill="white" font-size="19" font-family="sans-serif" font-weight="bold">設定保存</text>
   <rect x="1300" y="760" width="230" height="55" rx="6" fill="#6b7280"/><text x="1365" y="795" fill="white" font-size="19" font-family="sans-serif" font-weight="bold">設定読込</text>
-  <rect x="550" y="830" width="960" height="45" fill="#fff4d6" stroke="#e2a329"/><text x="570" y="858" fill="#9a6b00" font-size="16" font-family="sans-serif">警告：AoA/AoSの入力範囲が±30°を超えるため、生成できません</text>
+  <rect x="550" y="830" width="960" height="45" fill="#fff4d6" stroke="#e2a329"/><text x="570" y="858" fill="#9a6b00" font-size="16" font-family="sans-serif">警告：X軸が可動範囲を超えるため、範囲端に飽和して生成します</text>
   <text x="550" y="900" fill="#596579" font-size="16" font-family="sans-serif">初期化Gコード：テキストファイルを読み込む</text>
   <rect x="550" y="915" width="960" height="25" fill="#f8fafc" stroke="#c8d0da"/>
   <rect x="550" y="895" width="960" height="35" fill="#f8fafc" stroke="#c8d0da"/>
