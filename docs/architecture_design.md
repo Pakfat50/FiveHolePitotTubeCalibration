@@ -15,6 +15,7 @@
 - 単体テストは標準ライブラリの `unittest` を使用する。
 - 各実装関数・メソッドには対応要求IDをコメントまたはdocstringで明記する。
 - 既存要求IDは変更しない。削除要求が将来発生した場合もIDを再利用・再採番しない。
+- GitHub上で直接レビューできるよう、設計図はMermaidで記述する。
 
 ---
 
@@ -31,35 +32,36 @@
 | UC-05 | シミュレーションする | 有効な較正計画を約10秒で可視化する |
 | UC-06 | Gコードを生成する | 有効な較正計画から `.nc` Gコードを生成・保存する |
 
-## 2.2 PlantUML
+## 2.2 Mermaid
 
-```plantuml
-@startuml
-left to right direction
-actor "ユーザー" as User
-rectangle "5孔ピトー管較正Gコード生成GUI" {
-  usecase "UC-01\n較正条件を入力・更新する" as UC01
-  usecase "UC-02\n初期化Gコードを読み込む" as UC02
-  usecase "UC-03\n設定を保存する" as UC03
-  usecase "UC-04\n設定を読み込む" as UC04
-  usecase "UC-05\nシミュレーションする" as UC05
-  usecase "UC-06\nGコードを生成する" as UC06
-  usecase "入力値を検証する" as Validate
-  usecase "較正計画を再計算する" as Recalc
-}
-User --> UC01
-User --> UC02
-User --> UC03
-User --> UC04
-User --> UC05
-User --> UC06
-UC01 .> Validate : <<include>>
-UC01 .> Recalc : <<include>>
-UC04 .> Validate : <<include>>
-UC04 .> Recalc : <<include>>
-UC05 .> Validate : <<include>>
-UC06 .> Validate : <<include>>
-@enduml
+```mermaid
+flowchart LR
+    User([ユーザー])
+
+    subgraph System[5孔ピトー管較正Gコード生成GUI]
+        UC01([UC-01<br/>較正条件を入力・更新する])
+        UC02([UC-02<br/>初期化Gコードを読み込む])
+        UC03([UC-03<br/>設定を保存する])
+        UC04([UC-04<br/>設定を読み込む])
+        UC05([UC-05<br/>シミュレーションする])
+        UC06([UC-06<br/>Gコードを生成する])
+        Validate([入力値を検証する])
+        Recalc([較正計画を再計算する])
+    end
+
+    User --> UC01
+    User --> UC02
+    User --> UC03
+    User --> UC04
+    User --> UC05
+    User --> UC06
+
+    UC01 -. include .-> Validate
+    UC01 -. include .-> Recalc
+    UC04 -. include .-> Validate
+    UC04 -. include .-> Recalc
+    UC05 -. include .-> Validate
+    UC06 -. include .-> Validate
 ```
 
 ---
@@ -68,425 +70,420 @@ UC06 .> Validate : <<include>>
 
 ## 3.1 UC-01 較正条件を入力・更新する
 
-```plantuml
-@startuml
-actor User
-participant MainWindow
-participant CalibrationController
-participant InputValidator
-participant CalibrationService
-participant ScanPlanner
-participant AngleTransformer
-participant PositionCompensator
-participant LimitEvaluator
-participant CalibrationMapView
+```mermaid
+sequenceDiagram
+    actor User as ユーザー
+    participant MainWindow
+    participant Controller as CalibrationController
+    participant Validator as InputValidator
+    participant Service as CalibrationService
+    participant Scan as ScanPlanner
+    participant Transform as AngleTransformer
+    participant Position as PositionCompensator
+    participant Limit as LimitEvaluator
+    participant Map as CalibrationMapView
 
-User -> MainWindow : 入力フィールドを変更
-MainWindow -> CalibrationController : on_settings_changed(raw_input)
-CalibrationController -> InputValidator : parse_and_validate(raw_input)
-InputValidator --> CalibrationController : ValidationResult
-alt 入力エラーあり
-  CalibrationController -> MainWindow : show_validation_issues()
-  CalibrationController -> MainWindow : disable_simulation_and_gcode()
-else 入力有効
-  CalibrationController -> CalibrationService : build_plan(settings)
-  CalibrationService -> ScanPlanner : generate_points(settings)
-  ScanPlanner --> CalibrationService : CalibrationPoint[]
-  loop 各較正点
-    CalibrationService -> AngleTransformer : transform(point, previous_axis)
-    AngleTransformer --> CalibrationService : AxisAngles
-    CalibrationService -> PositionCompensator : compensate(theta, geometry)
-    PositionCompensator --> CalibrationService : X,Y
-    CalibrationService -> LimitEvaluator : evaluate(command, limits)
-    LimitEvaluator --> CalibrationService : PointEvaluation
-  end
-  CalibrationService --> CalibrationController : CalibrationPlan
-  CalibrationController -> CalibrationMapView : render(plan)
-  CalibrationController -> MainWindow : show_warnings_errors(plan)
-  alt Z/A範囲エラーあり
-    CalibrationController -> MainWindow : disable_simulation_and_gcode()
-  else 生成可能
-    CalibrationController -> MainWindow : enable_simulation_and_gcode()
-  end
-end
-@enduml
+    User->>MainWindow: 入力フィールドを変更
+    MainWindow->>Controller: on_settings_changed(raw_input)
+    Controller->>Validator: parse_and_validate(raw_input)
+    Validator-->>Controller: ValidationResult
+
+    alt 入力エラーあり
+        Controller->>MainWindow: show_validation_issues()
+        Controller->>MainWindow: disable_simulation_and_gcode()
+    else 入力有効
+        Controller->>Service: build_plan(settings)
+        Service->>Scan: generate_points(settings)
+        Scan-->>Service: CalibrationPoint[]
+        loop 各較正点
+            Service->>Transform: transform(point, previous_axis)
+            Transform-->>Service: AxisAngles
+            Service->>Position: compensate(theta, geometry)
+            Position-->>Service: X, Y
+            Service->>Limit: evaluate(command, limits)
+            Limit-->>Service: PointEvaluation
+        end
+        Service-->>Controller: CalibrationPlan
+        Controller->>Map: render(plan)
+        Controller->>MainWindow: show_warnings_errors(plan)
+        alt Z/A範囲エラーあり
+            Controller->>MainWindow: disable_simulation_and_gcode()
+        else 生成可能
+            Controller->>MainWindow: enable_simulation_and_gcode()
+        end
+    end
 ```
 
 ## 3.2 UC-02 初期化Gコードを読み込む
 
-```plantuml
-@startuml
-actor User
-participant MainWindow
-participant InitializationGCodeRepository
+```mermaid
+sequenceDiagram
+    actor User as ユーザー
+    participant MainWindow
+    participant InitRepo as InitializationGCodeRepository
 
-User -> MainWindow : 初期化Gコード読込
-MainWindow -> MainWindow : ファイル選択ダイアログ
-User --> MainWindow : ファイル選択
-MainWindow -> InitializationGCodeRepository : load(path)
-InitializationGCodeRepository --> MainWindow : text / IOError
-alt 読込成功
-  MainWindow -> MainWindow : 初期化Gコードを保持・表示
-else 読込失敗
-  MainWindow -> MainWindow : 非モーダルエラー表示
-end
-@enduml
+    User->>MainWindow: 初期化Gコード読込
+    MainWindow->>MainWindow: ファイル選択ダイアログ
+    User-->>MainWindow: ファイル選択
+    MainWindow->>InitRepo: load(path)
+    InitRepo-->>MainWindow: text / IOError
+    alt 読込成功
+        MainWindow->>MainWindow: 初期化Gコードを保持・表示
+    else 読込失敗
+        MainWindow->>MainWindow: 非モーダルエラー表示
+    end
 ```
 
 ## 3.3 UC-03 設定を保存する
 
-```plantuml
-@startuml
-actor User
-participant MainWindow
-participant CalibrationController
-participant SettingsRepository
+```mermaid
+sequenceDiagram
+    actor User as ユーザー
+    participant MainWindow
+    participant Controller as CalibrationController
+    participant SettingsRepo as SettingsRepository
 
-User -> MainWindow : 設定保存
-MainWindow -> MainWindow : 保存先ダイアログ
-User --> MainWindow : 保存先選択
-MainWindow -> CalibrationController : get_current_settings()
-CalibrationController --> MainWindow : CalibrationSettings
-MainWindow -> SettingsRepository : save(path, settings)
-SettingsRepository --> MainWindow : success / IOError
-MainWindow -> MainWindow : ステータス表示
-@enduml
+    User->>MainWindow: 設定保存
+    MainWindow->>MainWindow: 保存先ダイアログ
+    User-->>MainWindow: 保存先選択
+    MainWindow->>Controller: get_current_settings()
+    Controller-->>MainWindow: CalibrationSettings
+    MainWindow->>SettingsRepo: save(path, settings)
+    SettingsRepo-->>MainWindow: success / IOError
+    MainWindow->>MainWindow: ステータス表示
 ```
 
 ## 3.4 UC-04 設定を読み込む
 
-```plantuml
-@startuml
-actor User
-participant MainWindow
-participant SettingsRepository
-participant CalibrationController
-participant InputValidator
-participant CalibrationService
+```mermaid
+sequenceDiagram
+    actor User as ユーザー
+    participant MainWindow
+    participant SettingsRepo as SettingsRepository
+    participant Controller as CalibrationController
+    participant Validator as InputValidator
+    participant Service as CalibrationService
 
-User -> MainWindow : 設定読込
-MainWindow -> MainWindow : ファイル選択ダイアログ
-User --> MainWindow : 設定ファイル選択
-MainWindow -> SettingsRepository : load(path)
-SettingsRepository --> MainWindow : CalibrationSettings / Error
-alt 読込成功
-  MainWindow -> MainWindow : 入力フィールドへ反映
-  MainWindow -> CalibrationController : apply_settings(settings)
-  CalibrationController -> InputValidator : validate(settings)
-  alt 有効
-    CalibrationController -> CalibrationService : build_plan(settings)
-    CalibrationService --> CalibrationController : CalibrationPlan
-    CalibrationController -> MainWindow : 更新結果表示
-  else 無効
-    CalibrationController -> MainWindow : 入力エラー表示
-  end
-else 読込失敗
-  MainWindow -> MainWindow : 非モーダルエラー表示
-end
-@enduml
+    User->>MainWindow: 設定読込
+    MainWindow->>MainWindow: ファイル選択ダイアログ
+    User-->>MainWindow: 設定ファイル選択
+    MainWindow->>SettingsRepo: load(path)
+    SettingsRepo-->>MainWindow: CalibrationSettings / Error
+    alt 読込成功
+        MainWindow->>MainWindow: 入力フィールドへ反映
+        MainWindow->>Controller: apply_settings(settings)
+        Controller->>Validator: validate(settings)
+        alt 有効
+            Controller->>Service: build_plan(settings)
+            Service-->>Controller: CalibrationPlan
+            Controller->>MainWindow: 更新結果表示
+        else 無効
+            Controller->>MainWindow: 入力エラー表示
+        end
+    else 読込失敗
+        MainWindow->>MainWindow: 非モーダルエラー表示
+    end
 ```
 
 ## 3.5 UC-05 シミュレーションする
 
-```plantuml
-@startuml
-actor User
-participant MainWindow
-participant CalibrationController
-participant SimulationController
-participant SimulationView
+```mermaid
+sequenceDiagram
+    actor User as ユーザー
+    participant MainWindow
+    participant Controller as CalibrationController
+    participant SimController as SimulationController
+    participant SimView as SimulationView
 
-User -> MainWindow : シミュレーション
-MainWindow -> CalibrationController : get_current_plan()
-CalibrationController --> MainWindow : CalibrationPlan
-alt 生成禁止エラーあり
-  MainWindow -> MainWindow : ボタン無効状態を維持
-else 実行可能
-  MainWindow -> SimulationController : start(plan, duration=10s)
-  SimulationController -> SimulationView : initialize(plan)
-  loop フレーム更新
-    SimulationController -> SimulationView : render_frame(point, progress)
-  end
-  SimulationController -> SimulationView : show_final_state()
-end
-@enduml
+    User->>MainWindow: シミュレーション
+    MainWindow->>Controller: get_current_plan()
+    Controller-->>MainWindow: CalibrationPlan
+    alt 生成禁止エラーあり
+        MainWindow->>MainWindow: ボタン無効状態を維持
+    else 実行可能
+        MainWindow->>SimController: start(plan, duration=10s)
+        SimController->>SimView: initialize(plan)
+        loop フレーム更新
+            SimController->>SimView: render_frame(point, progress)
+        end
+        SimController->>SimView: show_final_state()
+    end
 ```
 
 ## 3.6 UC-06 Gコードを生成する
 
-```plantuml
-@startuml
-actor User
-participant MainWindow
-participant CalibrationController
-participant GCodeGenerator
-participant GCodeRepository
+```mermaid
+sequenceDiagram
+    actor User as ユーザー
+    participant MainWindow
+    participant Controller as CalibrationController
+    participant Generator as GCodeGenerator
+    participant GCodeRepo as GCodeRepository
 
-User -> MainWindow : Gコード生成
-MainWindow -> CalibrationController : get_current_plan()
-CalibrationController --> MainWindow : CalibrationPlan
-alt 生成禁止エラーあり
-  MainWindow -> MainWindow : ボタン無効状態を維持
-else 生成可能
-  MainWindow -> MainWindow : 保存先ダイアログ
-  User --> MainWindow : .nc保存先
-  MainWindow -> GCodeGenerator : generate(plan, settings, initialization_text)
-  GCodeGenerator --> MainWindow : gcode_text
-  MainWindow -> GCodeRepository : save(path, gcode_text)
-  GCodeRepository --> MainWindow : success / IOError
-  MainWindow -> MainWindow : ステータス表示
-end
-@enduml
+    User->>MainWindow: Gコード生成
+    MainWindow->>Controller: get_current_plan()
+    Controller-->>MainWindow: CalibrationPlan
+    alt 生成禁止エラーあり
+        MainWindow->>MainWindow: ボタン無効状態を維持
+    else 生成可能
+        MainWindow->>MainWindow: 保存先ダイアログ
+        User-->>MainWindow: .nc保存先
+        MainWindow->>Generator: generate(plan, settings, initialization_text)
+        Generator-->>MainWindow: gcode_text
+        MainWindow->>GCodeRepo: save(path, gcode_text)
+        GCodeRepo-->>MainWindow: success / IOError
+        MainWindow->>MainWindow: ステータス表示
+    end
 ```
 
 ---
 
 # 4. クラス図
 
-```plantuml
-@startuml
-skinparam classAttributeIconSize 0
+```mermaid
+classDiagram
+    class CalibrationSettings {
+        +float aoa_min
+        +float aoa_max
+        +float aos_min
+        +float aos_max
+        +int aoa_points
+        +int aos_points
+        +float tip_offset_x
+        +float tip_offset_y
+        +float hold_time_s
+        +float feed_rate
+        +AxisLimits axis_limits
+        +bool serpentine
+        +bool output_comments
+    }
 
-package "Domain / Model" {
-  class CalibrationSettings <<dataclass>> {
-    +aoa_min: float
-    +aoa_max: float
-    +aos_min: float
-    +aos_max: float
-    +aoa_points: int
-    +aos_points: int
-    +tip_offset_x: float
-    +tip_offset_y: float
-    +hold_time_s: float
-    +feed_rate: float
-    +axis_limits: AxisLimits
-    +serpentine: bool
-    +output_comments: bool
-  }
+    class AxisRange {
+        +float minimum
+        +float maximum
+    }
 
-  class AxisRange <<dataclass>> {
-    +minimum: float
-    +maximum: float
-  }
+    class AxisLimits {
+        +AxisRange x
+        +AxisRange y
+        +AxisRange z
+        +AxisRange a
+    }
 
-  class AxisLimits <<dataclass>> {
-    +x: AxisRange
-    +y: AxisRange
-    +z: AxisRange
-    +a: AxisRange
-  }
+    class CalibrationPoint {
+        +int index
+        +float aoa
+        +float aos
+    }
 
-  class CalibrationPoint <<dataclass>> {
-    +index: int
-    +aoa: float
-    +aos: float
-  }
+    class AxisCommand {
+        +float x
+        +float y
+        +float z
+        +float a
+    }
 
-  class AxisCommand <<dataclass>> {
-    +x: float
-    +y: float
-    +z: float
-    +a: float
-  }
+    class PointEvaluation {
+        +CalibrationPoint point
+        +AxisCommand ideal_command
+        +AxisCommand command
+        +bool x_saturated
+        +bool y_saturated
+        +float x_deviation
+        +float y_deviation
+        +bool rotational_error
+    }
 
-  class PointEvaluation <<dataclass>> {
-    +point: CalibrationPoint
-    +ideal_command: AxisCommand
-    +command: AxisCommand
-    +x_saturated: bool
-    +y_saturated: bool
-    +x_deviation: float
-    +y_deviation: float
-    +rotational_error: bool
-  }
+    class ValidationIssue {
+        +str field
+        +Severity severity
+        +str message
+    }
 
-  class ValidationIssue <<dataclass>> {
-    +field: str
-    +severity: Severity
-    +message: str
-  }
+    class ValidationResult {
+        +list issues
+        +bool is_valid
+    }
 
-  class ValidationResult <<dataclass>> {
-    +issues: list[ValidationIssue]
-    +is_valid: bool
-  }
+    class CalibrationPlan {
+        +CalibrationSettings settings
+        +list points
+        +float max_x_deviation
+        +float max_y_deviation
+        +bool has_generation_error
+    }
 
-  class CalibrationPlan <<dataclass>> {
-    +settings: CalibrationSettings
-    +points: list[PointEvaluation]
-    +max_x_deviation: float
-    +max_y_deviation: float
-    +has_generation_error: bool
-  }
+    class Severity {
+        <<enumeration>>
+        ERROR
+        WARNING
+    }
 
-  enum Severity {
-    ERROR
-    WARNING
-  }
-}
+    class InputValidator {
+        +validate(settings) ValidationResult
+    }
 
-package "Core" {
-  class InputValidator {
-    +validate(settings): ValidationResult
-  }
-  class ScanPlanner {
-    +generate_points(settings): list[CalibrationPoint]
-  }
-  class AngleTransformer {
-    +transform(aoa, aos, previous, limits): tuple[float,float]
-    -generate_equivalent_solutions(theta, phi): list
-    -select_solution(candidates, previous, limits): tuple
-    -unwrap_angle(angle, previous): float
-  }
-  class PositionCompensator {
-    +calculate_xy(theta, lx, ly): tuple[float,float]
-  }
-  class LimitEvaluator {
-    +evaluate(command, limits): PointEvaluation
-    -saturate_translation(value, range): tuple
-    -rotation_in_range(value, range): bool
-  }
-}
+    class ScanPlanner {
+        +generate_points(settings) list
+    }
 
-package "Application" {
-  class CalibrationService {
-    +build_plan(settings): CalibrationPlan
-  }
-  class CalibrationController {
-    +on_settings_changed(raw_input)
-    +apply_settings(settings)
-    +get_current_settings(): CalibrationSettings
-    +get_current_plan(): CalibrationPlan
-    +can_generate(): bool
-  }
-}
+    class AngleTransformer {
+        +transform(aoa, aos, previous, limits) tuple
+        -generate_equivalent_solutions(theta, phi) list
+        -select_solution(candidates, previous, limits) tuple
+        -unwrap_angle(angle, previous) float
+    }
 
-package "Infrastructure" {
-  class SettingsRepository {
-    +save(path, settings)
-    +load(path): CalibrationSettings
-  }
-  class InitializationGCodeRepository {
-    +load(path): str
-  }
-  class GCodeGenerator {
-    +generate(plan, settings, initialization_text): str
-    -format_header(initialization_text): list[str]
-    -format_point(point_eval, settings): list[str]
-  }
-  class GCodeRepository {
-    +save(path, text)
-  }
-}
+    class PositionCompensator {
+        +calculate_xy(theta, lx, ly) tuple
+    }
 
-package "Presentation" {
-  class MainWindow {
-    +run()
-    -build_widgets()
-    -collect_raw_input()
-    -on_input_changed()
-    -update_validation_display()
-    -update_action_state()
-    -on_load_initialization()
-    -on_save_settings()
-    -on_load_settings()
-    -on_simulate()
-    -on_generate_gcode()
-  }
-  class CalibrationMapView {
-    +render(plan)
-  }
-  class SimulationController {
-    +start(plan, duration_s)
-    -frame_at(progress)
-  }
-  class SimulationView {
-    +initialize(plan)
-    +render_frame(point, progress)
-    +show_final_state()
-  }
-}
+    class LimitEvaluator {
+        +evaluate(command, limits) PointEvaluation
+        -saturate_translation(value, range) tuple
+        -rotation_in_range(value, range) bool
+    }
 
-AxisLimits *-- AxisRange
-CalibrationSettings *-- AxisLimits
-CalibrationPlan *-- PointEvaluation
-PointEvaluation *-- CalibrationPoint
-PointEvaluation *-- AxisCommand
-ValidationResult *-- ValidationIssue
-ValidationIssue --> Severity
+    class CalibrationService {
+        +build_plan(settings) CalibrationPlan
+    }
 
-CalibrationService --> ScanPlanner
-CalibrationService --> AngleTransformer
-CalibrationService --> PositionCompensator
-CalibrationService --> LimitEvaluator
-CalibrationController --> InputValidator
-CalibrationController --> CalibrationService
-MainWindow --> CalibrationController
-MainWindow --> SettingsRepository
-MainWindow --> InitializationGCodeRepository
-MainWindow --> GCodeGenerator
-MainWindow --> GCodeRepository
-MainWindow --> CalibrationMapView
-MainWindow --> SimulationController
-SimulationController --> SimulationView
-@enduml
+    class CalibrationController {
+        +on_settings_changed(raw_input)
+        +apply_settings(settings)
+        +get_current_settings() CalibrationSettings
+        +get_current_plan() CalibrationPlan
+        +can_generate() bool
+    }
+
+    class SettingsRepository {
+        +save(path, settings)
+        +load(path) CalibrationSettings
+    }
+
+    class InitializationGCodeRepository {
+        +load(path) str
+    }
+
+    class GCodeGenerator {
+        +generate(plan, settings, initialization_text) str
+        -format_header(initialization_text) list
+        -format_point(point_eval, settings) list
+    }
+
+    class GCodeRepository {
+        +save(path, text)
+    }
+
+    class MainWindow {
+        +run()
+        -build_widgets()
+        -collect_raw_input()
+        -on_input_changed()
+        -update_validation_display()
+        -update_action_state()
+        -on_load_initialization()
+        -on_save_settings()
+        -on_load_settings()
+        -on_simulate()
+        -on_generate_gcode()
+    }
+
+    class CalibrationMapView {
+        +render(plan)
+    }
+
+    class SimulationController {
+        +start(plan, duration_s)
+        -frame_at(progress)
+    }
+
+    class SimulationView {
+        +initialize(plan)
+        +render_frame(point, progress)
+        +show_final_state()
+    }
+
+    AxisLimits *-- AxisRange
+    CalibrationSettings *-- AxisLimits
+    CalibrationPlan *-- PointEvaluation
+    PointEvaluation *-- CalibrationPoint
+    PointEvaluation *-- AxisCommand
+    ValidationResult *-- ValidationIssue
+    ValidationIssue --> Severity
+
+    CalibrationService --> ScanPlanner
+    CalibrationService --> AngleTransformer
+    CalibrationService --> PositionCompensator
+    CalibrationService --> LimitEvaluator
+    CalibrationController --> InputValidator
+    CalibrationController --> CalibrationService
+    MainWindow --> CalibrationController
+    MainWindow --> SettingsRepository
+    MainWindow --> InitializationGCodeRepository
+    MainWindow --> GCodeGenerator
+    MainWindow --> GCodeRepository
+    MainWindow --> CalibrationMapView
+    MainWindow --> SimulationController
+    SimulationController --> SimulationView
 ```
 
 ---
 
 # 5. ソフトウェア内部ブロック図
 
-```plantuml
-@startuml
-rectangle "Presentation Layer" as P {
-  component "MainWindow\nTkinter GUI" as GUI
-  component "CalibrationMapView\nMatplotlib" as Map
-  component "SimulationController / View\nMatplotlib" as Sim
-}
+```mermaid
+flowchart TB
+    subgraph Presentation[Presentation Layer]
+        GUI[MainWindow<br/>Tkinter GUI]
+        Map[CalibrationMapView<br/>Matplotlib]
+        Sim[SimulationController / SimulationView<br/>Matplotlib]
+    end
 
-rectangle "Application Layer" as A {
-  component "CalibrationController" as Controller
-  component "CalibrationService" as Service
-}
+    subgraph Application[Application Layer]
+        Controller[CalibrationController]
+        Service[CalibrationService]
+    end
 
-rectangle "Core / Domain Layer" as C {
-  component "InputValidator" as Validator
-  component "ScanPlanner" as Scan
-  component "AngleTransformer" as Transform
-  component "PositionCompensator" as Pos
-  component "LimitEvaluator" as Limit
-  component "Domain Models" as Models
-}
+    subgraph Core[Core / Domain Layer]
+        Validator[InputValidator]
+        Scan[ScanPlanner]
+        Transform[AngleTransformer]
+        Position[PositionCompensator]
+        Limit[LimitEvaluator]
+        Models[Domain Models]
+    end
 
-rectangle "Infrastructure Layer" as I {
-  component "SettingsRepository" as SettingsIO
-  component "InitializationGCodeRepository" as InitIO
-  component "GCodeGenerator" as GGen
-  component "GCodeRepository" as GIO
-}
+    subgraph Infrastructure[Infrastructure Layer]
+        SettingsIO[SettingsRepository]
+        InitIO[InitializationGCodeRepository]
+        GGen[GCodeGenerator]
+        GIO[GCodeRepository]
+    end
 
-GUI --> Controller : raw settings / commands
-Controller --> Validator : settings
-Controller --> Service : valid settings
-Service --> Scan
-Service --> Transform
-Service --> Pos
-Service --> Limit
-Validator --> Models
-Scan --> Models
-Transform --> Models
-Pos --> Models
-Limit --> Models
-Service --> Models
-Controller --> GUI : plan / issues / enabled state
-GUI --> Map : CalibrationPlan
-GUI --> Sim : CalibrationPlan
-GUI --> SettingsIO
-GUI --> InitIO
-GUI --> GGen
-GGen --> Models
-GUI --> GIO
-@enduml
+    GUI -->|raw settings / commands| Controller
+    Controller --> Validator
+    Controller --> Service
+    Service --> Scan
+    Service --> Transform
+    Service --> Position
+    Service --> Limit
+
+    Validator --> Models
+    Scan --> Models
+    Transform --> Models
+    Position --> Models
+    Limit --> Models
+    Service --> Models
+
+    Controller -->|plan / issues / enabled state| GUI
+    GUI --> Map
+    GUI --> Sim
+    GUI --> SettingsIO
+    GUI --> InitIO
+    GUI --> GGen
+    GGen --> Models
+    GUI --> GIO
 ```
 
 ## 5.1 主データフロー
@@ -525,58 +522,63 @@ GUI --> GIO
 
 # 7. データモデル図
 
-```plantuml
-@startuml
-class CalibrationSettings {
-  AoA/AoS範囲・点数
-  先端基準距離 Lx/Ly
-  保持時間
-  Feed rate
-  軸可動範囲
-  蛇行走査
-  コメント出力
-}
-class AxisLimits {
-  X range
-  Y range
-  Z range
-  A range
-}
-class CalibrationPoint {
-  index
-  AoA
-  AoS
-}
-class AxisCommand {
-  X
-  Y
-  Z
-  A
-}
-class PointEvaluation {
-  ideal_command
-  command
-  X/Y saturation
-  X/Y deviation
-  Z/A error
-}
-class CalibrationPlan {
-  settings
-  point evaluations
-  max deviations
-  generation error
-}
-class ValidationResult {
-  issues
-  is_valid
-}
+```mermaid
+classDiagram
+    class CalibrationSettings {
+        AoA_AoS_range_and_points
+        Lx_Ly
+        hold_time
+        feed_rate
+        axis_limits
+        serpentine
+        output_comments
+    }
 
-CalibrationSettings *-- AxisLimits
-CalibrationPlan *-- CalibrationSettings
-CalibrationPlan *-- "1..*" PointEvaluation
-PointEvaluation *-- CalibrationPoint
-PointEvaluation *-- "2" AxisCommand : ideal / actual
-@enduml
+    class AxisLimits {
+        X_range
+        Y_range
+        Z_range
+        A_range
+    }
+
+    class CalibrationPoint {
+        index
+        AoA
+        AoS
+    }
+
+    class AxisCommand {
+        X
+        Y
+        Z
+        A
+    }
+
+    class PointEvaluation {
+        ideal_command
+        command
+        XY_saturation
+        XY_deviation
+        ZA_error
+    }
+
+    class CalibrationPlan {
+        settings
+        point_evaluations
+        max_deviations
+        generation_error
+    }
+
+    class ValidationResult {
+        issues
+        is_valid
+    }
+
+    CalibrationSettings *-- AxisLimits
+    CalibrationPlan *-- CalibrationSettings
+    CalibrationPlan *-- PointEvaluation
+    PointEvaluation *-- CalibrationPoint
+    PointEvaluation *-- AxisCommand : ideal / actual
 ```
 
 ## 7.1 データ不変条件
@@ -592,32 +594,29 @@ PointEvaluation *-- "2" AxisCommand : ideal / actual
 
 # 8. 状態遷移図
 
-```plantuml
-@startuml
-[*] --> Editing
+```mermaid
+stateDiagram-v2
+    [*] --> InputInvalid
 
-state Editing {
-  [*] --> InputInvalid
-  InputInvalid --> Recalculating : 入力が有効になる
-  Recalculating --> GenerationBlocked : Z/A範囲超過あり
-  Recalculating --> ReadyWithWarning : X/Y飽和あり && Z/A正常
-  Recalculating --> Ready : 警告・生成禁止なし
-  Ready --> Recalculating : 入力変更
-  ReadyWithWarning --> Recalculating : 入力変更
-  GenerationBlocked --> Recalculating : 入力変更
-  Recalculating --> InputInvalid : 入力不正
-}
+    InputInvalid --> Recalculating: 入力が有効になる
+    Recalculating --> GenerationBlocked: Z/A範囲超過あり
+    Recalculating --> ReadyWithWarning: X/Y飽和あり かつ Z/A正常
+    Recalculating --> Ready: 警告・生成禁止なし
+    Recalculating --> InputInvalid: 入力不正
 
-Ready --> Simulating : シミュレーション
-ReadyWithWarning --> Simulating : シミュレーション
-Simulating --> Ready : 再生終了/停止 && 警告なし
-Simulating --> ReadyWithWarning : 再生終了/停止 && X/Y警告あり
+    Ready --> Recalculating: 入力変更
+    ReadyWithWarning --> Recalculating: 入力変更
+    GenerationBlocked --> Recalculating: 入力変更
 
-Ready --> SavingGCode : Gコード生成
-ReadyWithWarning --> SavingGCode : Gコード生成
-SavingGCode --> Ready : 保存終了 && 警告なし
-SavingGCode --> ReadyWithWarning : 保存終了 && X/Y警告あり
-@enduml
+    Ready --> Simulating: シミュレーション
+    ReadyWithWarning --> Simulating: シミュレーション
+    Simulating --> Ready: 再生終了/停止 かつ 警告なし
+    Simulating --> ReadyWithWarning: 再生終了/停止 かつ X/Y警告あり
+
+    Ready --> SavingGCode: Gコード生成
+    ReadyWithWarning --> SavingGCode: Gコード生成
+    SavingGCode --> Ready: 保存終了 かつ 警告なし
+    SavingGCode --> ReadyWithWarning: 保存終了 かつ X/Y警告あり
 ```
 
 ## 8.1 状態別GUI動作
@@ -643,7 +642,7 @@ SavingGCode --> ReadyWithWarning : 保存終了 && X/Y警告あり
 | REQ-INPUT-001 | `MainWindow._build_widgets`, `MainWindow._collect_raw_input`, `CalibrationSettings` | AoA/AoS範囲 |
 | REQ-INPUT-002 | `MainWindow._build_widgets`, `MainWindow._collect_raw_input`, `CalibrationSettings` | 点数 |
 | REQ-INPUT-003 | `MainWindow._build_widgets`, `MainWindow._collect_raw_input`, `CalibrationSettings` | Lx/Ly |
-| REQ-INPUT-004 | `MainWindow._build_widgets`, `MainWindow._collect_raw_input`, `CalibrationSettings`, `GCodeGenerator.format_point` | 保持時間、Feed rate |
+| REQ-INPUT-004 | `MainWindow._build_widgets`, `MainWindow._collect_raw_input`, `CalibrationSettings`, `GCodeGenerator._format_point` | 保持時間、Feed rate |
 | REQ-INPUT-005 | `MainWindow._build_widgets`, `AxisLimits`, `AxisRange` | X/Y/Z/A可動範囲 |
 | REQ-INPUT-006 | `MainWindow._on_load_initialization`, `InitializationGCodeRepository.load` | 初期化Gコード |
 | REQ-INPUT-007 | `MainWindow._build_widgets`, `CalibrationSettings` | 蛇行走査、コメント |
