@@ -22,7 +22,7 @@ class CalibrationController:
         self._plan: CalibrationPlan | None = None
         self._validation: ValidationResult | None = None
 
-    # 対応要求: REQ-VALID-001, REQ-SCAN-001
+    # 対応要求: REQ-VALID-001, REQ-VALID-002, REQ-SCAN-001
     def on_settings_changed(self, raw_input) -> ValidationResult:
         """設定変更を検証し、有効な場合のみ較正計画を再構築する。
 
@@ -36,9 +36,25 @@ class CalibrationController:
         対応要求:
             REQ-VALID-001, REQ-VALID-002, REQ-SCAN-001
         """
-        raise NotImplementedError
+        # 入力が変化するたびに必ず検証を行う。検証結果はGUIが非モーダル表示に
+        # 利用できるよう、成功・失敗に関係なく最新値として保持する。
+        validation = self.validator.validate(raw_input)
+        self._validation = validation
 
-    # 対応要求: REQ-GUI-003
+        if not validation.is_valid:
+            # 一時的な不正入力中は較正計画を再構築しない。以前の有効な計画を
+            # 誤って生成処理へ流用しないよう、現在の計画を無効化する。
+            self._plan = None
+            return validation
+
+        # すべての入力条件が有効になった時点で初めて設定を受理し、同じ設定から
+        # CalibrationPlanを一度だけ再構築する。以後、GUI・シミュレーション・
+        # G-code生成はこの共有Planを参照する。
+        self._settings = raw_input
+        self._plan = self.service.build_plan(raw_input)
+        return validation
+
+    # 対応要求: REQ-GUI-003, REQ-VALID-001
     def apply_settings(self, settings: CalibrationSettings) -> ValidationResult:
         """読込済み設定を一括適用し、その後に検証と再構築を行う。
 
@@ -51,7 +67,10 @@ class CalibrationController:
         対応要求:
             REQ-GUI-003, REQ-VALID-001
         """
-        raise NotImplementedError
+        # SettingsRepository側で全項目の読込・型変換が完了した設定だけを受け取り、
+        # 通常の設定変更と同じ検証経路へ通す。検証処理を二重実装しないことで、
+        # GUI直接入力とCSV読込後で判定規則が分岐することを防ぐ。
+        return self.on_settings_changed(settings)
 
     def get_current_settings(self) -> CalibrationSettings | None:
         """現在受理されている設定を返す。
@@ -75,7 +94,7 @@ class CalibrationController:
         """
         return self._plan
 
-    # 対応要求: REQ-VALID-002, REQ-VALID-003
+    # 対応要求: REQ-VALID-002, REQ-VALID-003, REQ-LIMIT-003
     def can_generate(self) -> bool:
         """シミュレーションおよびGコード生成が許可されるかを返す。
 
@@ -85,4 +104,12 @@ class CalibrationController:
         対応要求:
             REQ-VALID-002, REQ-VALID-003, REQ-LIMIT-003
         """
-        raise NotImplementedError
+        # 生成を許可する条件は「最新入力が有効」「有効入力からPlanが生成済み」
+        # 「Plan内にZ/A範囲超過がない」の3条件すべてを満たすこととする。
+        # X/Y飽和は警告扱いなので、has_generation_errorには含めない。
+        return bool(
+            self._validation is not None
+            and self._validation.is_valid
+            and self._plan is not None
+            and not self._plan.has_generation_error
+        )
