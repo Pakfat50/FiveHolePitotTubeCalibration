@@ -106,23 +106,23 @@ Feed rateは **1 unit/min以上** でなければならない。
 
 ソフトウェアは、入力されたAoA=α、AoS=βを再現するよう、実ピッチ角θおよび実ロール角φを次式で求めなければならない。
 
-\[
+$$
 u=\tan(\alpha), \qquad v=\tan(\beta)
-\]
+$$
 
-\[
+$$
 r=\sqrt{u^2+v^2}
-\]
+$$
 
 基本解は、
 
-\[
+$$
 \theta=\arctan(r)
-\]
+$$
 
-\[
+$$
 \phi=\operatorname{atan2}(v,u)
-\]
+$$
 
 とする。
 
@@ -151,23 +151,23 @@ r=\sqrt{u^2+v^2}
 
 回転後の先端位置は次式で計算しなければならない。
 
-\[
+$$
 x_{tip}=L_x\cos\theta-L_y\sin\theta
-\]
+$$
 
-\[
+$$
 y_{tip}=L_x\sin\theta+L_y\cos\theta
-\]
+$$
 
 ピトー管先端を風洞中心に保持するための並進指令値は、
 
-\[
+$$
 X=L_x-x_{tip}
-\]
+$$
 
-\[
+$$
 Y=L_y-y_{tip}
-\]
+$$
 
 とする。
 
