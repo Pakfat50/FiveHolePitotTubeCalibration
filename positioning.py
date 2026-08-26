@@ -1,5 +1,7 @@
 """ピトー管先端位置のX/Y補正量を計算する。"""
 
+import math
+
 
 class PositionCompensator:
     """ピッチ回転後に必要となるX/Y並進量を算出する。
@@ -26,4 +28,19 @@ class PositionCompensator:
         対応要求:
             REQ-POS-001, REQ-POS-002
         """
-        raise NotImplementedError
+        # 基準姿勢での先端位置ベクトル(Lx, Ly)を、ピッチ角thetaだけ
+        # XY平面内で回転させ、回転後の先端位置(x_tip, y_tip)を求める。
+        rad = math.radians(theta)
+        cos_theta = math.cos(rad)
+        sin_theta = math.sin(rad)
+        x_tip = lx * cos_theta - ly * sin_theta
+        y_tip = lx * sin_theta + ly * cos_theta
+
+        # 先端を基準位置(Lx, Ly)へ戻すため、基準位置と回転後位置との差を
+        # 並進軸X/Yへの補正指令とする。theta=0なら差は厳密に0となる。
+        x = lx - x_tip
+        y = ly - y_tip
+
+        # ロール角はAPIに含めない。ロール軸がピトー管長手軸と一致するという
+        # 機構モデルにより、ロール回転は先端のX/Y位置へ影響しないためである。
+        return x, y
