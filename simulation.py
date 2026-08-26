@@ -1,6 +1,9 @@
 """較正機構のシミュレーション制御および表示を行う。"""
 
+import math
+
 import matplotlib.pyplot as plt
+from matplotlib.animation import FuncAnimation
 
 from models import CalibrationPlan, PointEvaluation
 
@@ -19,9 +22,9 @@ class SimulationController:
         self.view = view
         self.duration_s: float | None = None
 
-    # 対応要求: REQ-SIM-002
+    # 対応要求: REQ-SIM-001, REQ-SIM-002
     def start(self, plan: CalibrationPlan, duration_s: float = 10.0) -> None:
-        """実際のGコード保持時間を再現せずに再生を開始する。
+        """実際のGコード保持時間とは独立した約10秒の再生を開始する。
 
         引数:
             plan: 共有較正計画。
@@ -30,16 +33,18 @@ class SimulationController:
         対応要求:
             REQ-SIM-001, REQ-SIM-002
         """
-        # シミュレーション時間はGコードのhold_time_sとは独立に保持する。
         self.duration_s = duration_s
         self.view.initialize(plan)
+        if not plan.points:
+            return
 
-        # GUI側のタイマー駆動に依存しない最小実装として、開始時に先頭点、
-        # 終了時に最終点を描画する。フレーム選択規則は_frame_atへ集約する。
-        if plan.points:
-            self.view.render_frame(self._frame_at(plan, 0.0), 0.0)
-            self.view.render_frame(self._frame_at(plan, 1.0), 1.0)
-            self.view.show_final_state()
+        # 走査順を決める責務はControllerに保持し、Viewは与えられた点を描画する。
+        # 実際のG04保持時間は使用せず、指定された総再生時間へ正規化する。
+        self.view.start_animation(
+            plan=plan,
+            duration_s=duration_s,
+            frame_provider=lambda progress: self._frame_at(plan, progress),
+        )
 
     # 対応要求: REQ-SIM-002
     def _frame_at(self, plan: CalibrationPlan, progress: float) -> PointEvaluation:
@@ -57,20 +62,19 @@ class SimulationController:
         """
         if not plan.points:
             raise ValueError("較正点が存在しません。")
-
-        # 進捗を0～1へ制限し、走査順序の先頭を0、末尾を1として最近傍の
-        # インデックスへ対応付ける。0.5は5点なら中央のindex=2となる。
         normalized = min(1.0, max(0.0, progress))
         index = round(normalized * (len(plan.points) - 1))
         return plan.points[index]
 
 
 class SimulationView:
-    """横面図・正面図と現在較正点情報を表示する。
+    """横面図・正面図と現在較正点情報をアニメーション表示する。
 
     対応要求:
-        REQ-SIM-003, REQ-SIM-004
+        REQ-SIM-002, REQ-SIM-003, REQ-SIM-004
     """
+
+    FRAME_INTERVAL_MS = 100
 
     def __init__(self) -> None:
         self.figure = None
@@ -79,29 +83,82 @@ class SimulationView:
         self.status_text = ""
         self.current_point_index = None
         self.final_state_visible = False
+        self.animation = None
+        self._status_artist = None
+        self._progress_artist = None
+        self._plan = None
 
     # 対応要求: REQ-SIM-003
     def initialize(self, plan: CalibrationPlan) -> None:
-        """横面図と正面図の抽象表示を同時に初期化する。
+        """横面図と正面図、および状態表示領域を初期化する。
 
         引数:
             plan: 共有較正計画。
 
         対応要求:
-            REQ-SIM-003
+            REQ-SIM-003, REQ-SIM-004
         """
-        # 横面図と正面図を別Axesとして保持し、同じPointEvaluationを用いて
-        # ピッチ/X/Yとロールを同期表示できる構造にする。
-        self.figure = plt.figure()
-        self.side_axes = self.figure.add_subplot(1, 2, 1)
-        self.front_axes = self.figure.add_subplot(1, 2, 2)
-        self.side_axes.set_title("横面図")
-        self.front_axes.set_title("正面図")
+        self._plan = plan
+        self.figure = plt.figure(figsize=(11.0, 6.8))
+        grid = self.figure.add_gridspec(2, 2, height_ratios=(8, 1.7))
+        self.side_axes = self.figure.add_subplot(grid[0, 0])
+        self.front_axes = self.figure.add_subplot(grid[0, 1])
+        status_axes = self.figure.add_subplot(grid[1, :])
+
+        self.side_axes.set_title("横面図（ピッチ / X-Y補正）")
+        self.front_axes.set_title("正面図（ロール）")
+        self.side_axes.set_aspect("equal", adjustable="box")
+        self.front_axes.set_aspect("equal", adjustable="box")
+        self.side_axes.grid(True, alpha=0.25)
+        self.front_axes.grid(True, alpha=0.25)
+
+        status_axes.set_axis_off()
+        self._status_artist = status_axes.text(0.01, 0.72, "", transform=status_axes.transAxes, va="top")
+        self._progress_artist = status_axes.plot([0.01, 0.01], [0.18, 0.18], linewidth=8)[0]
+        status_axes.plot([0.01, 0.99], [0.18, 0.18], linewidth=8, alpha=0.15)
+        status_axes.set_xlim(0.0, 1.0)
+        status_axes.set_ylim(0.0, 1.0)
+
+        self.figure.suptitle("5孔ピトー管 較正シミュレーション")
+        self.figure.tight_layout(rect=(0.0, 0.0, 1.0, 0.95))
         self.final_state_visible = False
+
+    # 対応要求: REQ-SIM-002
+    def start_animation(self, plan: CalibrationPlan, duration_s: float, frame_provider) -> None:
+        """指定時間で全較正点を走査するMatplotlibアニメーションを開始する。
+
+        引数:
+            plan: 走査順序を保持した較正計画。
+            duration_s: 全体再生時間。
+            frame_provider: 正規化進捗からPointEvaluationを返す関数。
+
+        対応要求:
+            REQ-SIM-002, REQ-SIM-003, REQ-SIM-004
+        """
+        frame_count = max(2, round(duration_s * 1000.0 / self.FRAME_INTERVAL_MS) + 1)
+
+        def update(frame_index: int):
+            progress = frame_index / (frame_count - 1)
+            point = frame_provider(progress)
+            self.render_frame(point, progress)
+            if frame_index == frame_count - 1:
+                self.show_final_state()
+            return ()
+
+        # animationをメンバーとして保持し、Figure表示後のGCによる停止を防止する。
+        self.animation = FuncAnimation(
+            self.figure,
+            update,
+            frames=frame_count,
+            interval=self.FRAME_INTERVAL_MS,
+            repeat=False,
+            blit=False,
+        )
+        self.figure.canvas.draw_idle()
 
     # 対応要求: REQ-SIM-003, REQ-SIM-004
     def render_frame(self, point: PointEvaluation, progress: float) -> None:
-        """1フレームと必要な状態文字列を描画する。
+        """現在点の機構姿勢と必要な状態情報を描画する。
 
         引数:
             point: 現在の評価済み較正点。
@@ -114,18 +171,86 @@ class SimulationView:
         state = "ZA範囲外" if point.rotational_error else (
             "XY飽和" if point.x_saturated or point.y_saturated else "正常"
         )
-
-        # GUIがそのまま表示できるよう、要求される全情報を1つの状態文字列に集約する。
+        command = point.command
         self.status_text = (
-            f"Point {point.point.index} / AoA {point.point.aoa} / AoS {point.point.aos} / "
-            f"X {point.command.x} / Y {point.command.y} / Z {point.command.z} / A {point.command.a} / "
+            f"Point {point.point.index + 1} / AoA {point.point.aoa:.2f} / AoS {point.point.aos:.2f} / "
+            f"X {command.x:.2f} / Y {command.y:.2f} / Z {command.z:.2f} / A {command.a:.2f} / "
             f"状態 {state} / 進捗 {progress * 100:.0f}%"
         )
 
         if self.side_axes is not None:
-            self.side_axes.set_xlabel(f"X={point.command.x}, Y={point.command.y}, Z={point.command.z}")
+            self._draw_side_view(point)
         if self.front_axes is not None:
-            self.front_axes.set_xlabel(f"A={point.command.a}")
+            self._draw_front_view(point)
+        if self._status_artist is not None:
+            self._status_artist.set_text(self.status_text)
+        if self._progress_artist is not None:
+            end_x = 0.01 + 0.98 * min(1.0, max(0.0, progress))
+            self._progress_artist.set_data([0.01, end_x], [0.18, 0.18])
+        if self.figure is not None:
+            self.figure.canvas.draw_idle()
+
+    # 対応要求: REQ-SIM-003
+    def _draw_side_view(self, point: PointEvaluation) -> None:
+        """X/Y並進位置とピッチ姿勢を横面図へ描画する。"""
+        axes = self.side_axes
+        axes.clear()
+        axes.set_title("横面図（ピッチ / X-Y補正）")
+        axes.set_xlabel("X [mm]")
+        axes.set_ylabel("Y [mm]")
+        axes.grid(True, alpha=0.25)
+        axes.set_aspect("equal", adjustable="box")
+
+        settings = self._plan.settings if self._plan is not None else None
+        lx = float(settings.tip_offset_x) if settings is not None else 100.0
+        ly = float(settings.tip_offset_y) if settings is not None else 0.0
+        theta = math.radians(point.command.z)
+
+        pivot_x = point.command.x
+        pivot_y = point.command.y
+        tip_x = pivot_x + lx * math.cos(theta) - ly * math.sin(theta)
+        tip_y = pivot_y + lx * math.sin(theta) + ly * math.cos(theta)
+
+        axes.plot([pivot_x, tip_x], [pivot_y, tip_y], linewidth=5)
+        axes.scatter([pivot_x], [pivot_y], marker="o", s=55)
+        axes.scatter([tip_x], [tip_y], marker=">", s=75)
+
+        margin = max(20.0, abs(lx) * 0.25, abs(ly) * 0.25)
+        xmin = min(pivot_x, tip_x) - margin
+        xmax = max(pivot_x, tip_x) + margin
+        ymin = min(pivot_y, tip_y) - margin
+        ymax = max(pivot_y, tip_y) + margin
+        if xmax - xmin < 2 * margin:
+            xmax = xmin + 2 * margin
+        if ymax - ymin < 2 * margin:
+            ymax = ymin + 2 * margin
+        axes.set_xlim(xmin, xmax)
+        axes.set_ylim(ymin, ymax)
+        axes.text(0.02, 0.96, f"Z={point.command.z:.2f}°\nX={pivot_x:.2f} mm\nY={pivot_y:.2f} mm",
+                  transform=axes.transAxes, va="top")
+
+    # 対応要求: REQ-SIM-003
+    def _draw_front_view(self, point: PointEvaluation) -> None:
+        """ピトー管のロール姿勢を正面図へ描画する。"""
+        axes = self.front_axes
+        axes.clear()
+        axes.set_title("正面図（ロール）")
+        axes.set_xlabel("水平")
+        axes.set_ylabel("垂直")
+        axes.grid(True, alpha=0.25)
+        axes.set_aspect("equal", adjustable="box")
+
+        radius = 1.0
+        angle = math.radians(point.command.a)
+        circle = plt.Circle((0.0, 0.0), radius, fill=False, linewidth=2, alpha=0.35)
+        axes.add_patch(circle)
+        dx = radius * math.cos(angle)
+        dy = radius * math.sin(angle)
+        axes.plot([-dx, dx], [-dy, dy], linewidth=5)
+        axes.plot([0.0], [0.0], marker="o", markersize=7)
+        axes.set_xlim(-1.35, 1.35)
+        axes.set_ylim(-1.35, 1.35)
+        axes.text(0.02, 0.96, f"A={point.command.a:.2f}°", transform=axes.transAxes, va="top")
 
     def show_final_state(self) -> None:
         """再生終了後も最終較正状態を表示したままにする。
