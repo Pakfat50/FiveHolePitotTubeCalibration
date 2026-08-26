@@ -38,31 +38,32 @@
 ## 3. 共通テスト方針
 
 1. 単体テストフレームワークはPython標準ライブラリ `unittest` を使用する。
-2. 数値比較は `assertAlmostEqual` 等を用いる。具体的な桁数・絶対許容誤差は実装前レビューで確定する。
+2. 数値比較の許容誤差は **10^-6 %FS** とする。FSの具体的な取り方は、対象量ごとにテストコード実装前に一意に定義する。
 3. Core層はGUIを起動せずに試験する。
 4. ファイルI/Oは `tempfile` を用いて一時ファイル・一時ディレクトリ上で試験する。
 5. GUI層の単体テストでは計算ロジックを再試験せず、イベント伝播、状態表示、ボタン有効/無効、非モーダル通知を中心に確認する。
 6. シミュレーションでは実時間10秒を毎回待つ試験は避け、フレーム位置計算や描画呼出しを分離して検証する。ユースケーステストでは必要に応じ再生時間設定を短縮可能なテスト用構成とする。
-7. Gコード生成テストでは文字列全体一致または行単位一致を使用し、G番号のゼロ埋め、Fワード、保持時間、コメント有無、終了時復帰命令なしを確認する。
+7. Gコード数値は小数点以下6桁で出力する。Gコード生成テストでは文字列全体一致または行単位一致を使用し、G番号のゼロ埋め、X/Y/Z/A/F/Pの6桁表記、保持時間、コメント有無、終了時復帰命令なしを確認する。
 8. 入力中の一時的な不正値は例外やモーダルダイアログを発生させないことを確認する。
 9. X/Y可動範囲超過は警告、Z/A可動範囲超過は生成禁止エラーとして明確に区別する。
 10. `CalibrationPlan` が較正点マップ、シミュレーション、Gコード生成の共通データ源であることを組み合わせテストで確認する。
+11. 設定ファイルはCSV形式とし、スキーマバージョン番号は持たない。
+12. CSV設定読込では、必須値欠損、空欄、数値変換不能、構造不正、ファイルI/O失敗等が発生しても未処理例外でアプリケーションを終了させない。
+13. CSV設定読込に失敗した場合は、読み込み途中の値を部分適用せず、読込前の設定および `CalibrationPlan` を維持し、ユーザーへ非モーダルにエラーを通知する。
 
 ---
 
-## 4. テスト前に確定が必要な実装詳細
+## 4. 確定済みテスト条件
 
-以下は現要求で数値条件または表記が完全には固定されていないため、テストコード実装前に確定する。
-
-| ID | 項目 | 現時点の扱い |
+| ID | 項目 | 確定内容 |
 |---|---|---|
-| TBD-T01 | 浮動小数点比較許容誤差 | テスト仕様では「許容誤差内」と記載し、実装前に値を固定する |
-| TBD-T02 | Gコード数値の小数桁/末尾ゼロ規則 | 要求にないためテストでは数値意味を確認し、文字列表記の完全一致規則は実装前に固定する |
-| TBD-T03 | 距離 Lx/Ly の「不正値」の定義 | 負値を禁止する要求はない。パース不能、NaN、Inf等は不正とし、符号制約は追加要求なしでは設けない |
-| TBD-T04 | 保持時間0秒の許否 | 現要求は「不正値」のみ。負値は不正とし、0秒許否は実装前に確認する |
-| TBD-T05 | Feed rateの下限 | 0以下はGRBL送りとして無効とみなす設計候補だが、テストコード実装前に確定する |
-| TBD-T06 | 設定ファイルの拡張子 | JSON形式はアーキテクチャで決定済みだが拡張子は未規定。Repository単体テストは内容を主に検証する |
-| TBD-T07 | 設定ファイルスキーマバージョン不一致時の扱い | 明示的なエラーとする方針をテスト実装前に固定する |
+| TBD-T01 | 浮動小数点比較許容誤差 | **10^-6 %FS** |
+| TBD-T02 | Gコード数値の小数桁 | **小数点以下6桁** |
+| TBD-T03 | 距離 Lx/Ly の有効範囲 | **正の実数のみ（Lx > 0, Ly > 0）**。NaN/Infも不正 |
+| TBD-T04 | 保持時間の下限 | **0.1 s以上**。0秒および0.1秒未満は不正 |
+| TBD-T05 | Feed rateの下限 | **1 unit/min以上**。1未満は不正 |
+| TBD-T06 | 設定ファイル形式 | **CSV形式** |
+| TBD-T07 | 設定ファイルスキーマ | **スキーマバージョン番号は設けない**。CSVから必須値を取得・変換できない場合は安全に読込失敗とし、部分適用せずユーザーへ通知する |
 
 ---
 
@@ -80,14 +81,20 @@
 | TEST-UNIT-006 | REQ-INPUT-002, REQ-VALID-002 | AoA点数の下限正常 | `aoa_points=2` | 点数エラーなし |
 | TEST-UNIT-007 | REQ-INPUT-002, REQ-VALID-002 | AoA点数不足 | `aoa_points=1` | 点数エラー |
 | TEST-UNIT-008 | REQ-INPUT-002, REQ-VALID-002 | AoS点数不足 | `aos_points=1` | 点数エラー |
-| TEST-UNIT-009 | REQ-INPUT-004, REQ-VALID-002 | Feed rate不正 | 0以下または非有限値（TBD-T05確定後） | Feed rateエラー |
-| TEST-UNIT-010 | REQ-INPUT-004, REQ-VALID-002 | 保持時間負値 | `hold_time_s < 0` | 保持時間エラー |
+| TEST-UNIT-009 | REQ-INPUT-004, REQ-VALID-002 | Feed rate不正 | `feed_rate < 1` または非有限値 | Feed rateエラー |
+| TEST-UNIT-010 | REQ-INPUT-004, REQ-VALID-002 | 保持時間不正 | `hold_time_s < 0.1` または非有限値 | 保持時間エラー |
 | TEST-UNIT-011 | REQ-INPUT-003, REQ-VALID-002 | 距離が非有限値 | LxまたはLyがNaN/Inf | 距離エラー |
 | TEST-UNIT-012 | REQ-INPUT-005, REQ-VALID-002 | X軸最小=最大 | X range min=max | X可動範囲エラー |
 | TEST-UNIT-013 | REQ-INPUT-005, REQ-VALID-002 | Y軸最小>最大 | Y range min>max | Y可動範囲エラー |
 | TEST-UNIT-014 | REQ-INPUT-005, REQ-VALID-002 | Z軸最小>=最大 | Z range不正 | Z可動範囲エラー |
 | TEST-UNIT-015 | REQ-INPUT-005, REQ-VALID-002 | A軸最小>=最大 | A range不正 | A可動範囲エラー |
 | TEST-UNIT-016 | REQ-VALID-001 | 複数エラー同時検出 | AoA範囲、点数、Feed等を同時不正 | 複数の`ValidationIssue`を返す |
+| TEST-UNIT-111 | REQ-INPUT-003, REQ-VALID-002 | Lx下限違反 | `Lx=0` | 距離エラー |
+| TEST-UNIT-112 | REQ-INPUT-003, REQ-VALID-002 | Ly負値 | `Ly<0` | 距離エラー |
+| TEST-UNIT-113 | REQ-INPUT-004, REQ-VALID-002 | 保持時間下限正常 | `hold_time_s=0.1` | 保持時間エラーなし |
+| TEST-UNIT-114 | REQ-INPUT-004, REQ-VALID-002 | 保持時間下限未満 | `0 <= hold_time_s < 0.1` | 保持時間エラー |
+| TEST-UNIT-115 | REQ-INPUT-004, REQ-VALID-002 | Feed rate下限正常 | `feed_rate=1` | Feed rateエラーなし |
+| TEST-UNIT-116 | REQ-INPUT-004, REQ-VALID-002 | Feed rate下限未満 | `feed_rate<1` | Feed rateエラー |
 
 ## 5.2 `scan.py` — `ScanPlanner.generate_points`
 
@@ -110,7 +117,7 @@
 | TEST-UNIT-026 | REQ-TRANS-002 | AoA正、AoS=0 | AoA=10°, AoS=0 | Z≈10°, A≈0° |
 | TEST-UNIT-027 | REQ-TRANS-002 | AoA負、AoS=0 | AoA=-10°, AoS=0 | 指定変換式に対応する等価Z/Aを返す |
 | TEST-UNIT-028 | REQ-TRANS-002 | AoA=0、AoS正 | AoA=0, AoS=10° | 基本式に一致するZ/A |
-| TEST-UNIT-029 | REQ-TRANS-002 | AoA/AoS両方正 | 代表値 | tan式、atan2式の期待値に許容誤差内で一致 |
+| TEST-UNIT-029 | REQ-TRANS-002 | AoA/AoS両方正 | 代表値 | tan式、atan2式の期待値に10^-6 %FS以内で一致 |
 | TEST-UNIT-030 | REQ-TRANS-002 | 象限II | u<0, v>0となる条件 | atan2の象限が正しい |
 | TEST-UNIT-031 | REQ-TRANS-002 | 象限III | u<0, v<0となる条件 | atan2の象限が正しい |
 | TEST-UNIT-032 | REQ-TRANS-002 | 象限IV | u>0, v<0となる条件 | atan2の象限が正しい |
@@ -127,11 +134,11 @@
 
 | テストID | 要求ID | テスト内容 | 入力/条件 | 期待結果 |
 |---|---|---|---|---|
-| TEST-UNIT-041 | REQ-POS-001 | θ=0 | 任意Lx/Ly | X=0, Y=0 |
-| TEST-UNIT-042 | REQ-POS-001 | θ正の代表値 | 既知Lx/Ly/θ | 仕様式に許容誤差内で一致 |
-| TEST-UNIT-043 | REQ-POS-001 | θ負の代表値 | 既知Lx/Ly/θ | 仕様式に許容誤差内で一致 |
-| TEST-UNIT-044 | REQ-POS-001 | Ly=0 | Lx>0, Ly=0 | 解析解と一致 |
-| TEST-UNIT-045 | REQ-POS-001 | Lx=0 | Lx=0, Ly任意 | 解析解と一致 |
+| TEST-UNIT-041 | REQ-POS-001 | θ=0 | 任意の有効Lx/Ly | X=0, Y=0 |
+| TEST-UNIT-042 | REQ-POS-001 | θ正の代表値 | 既知Lx/Ly/θ | 仕様式に10^-6 %FS以内で一致 |
+| TEST-UNIT-043 | REQ-POS-001 | θ負の代表値 | 既知Lx/Ly/θ | 仕様式に10^-6 %FS以内で一致 |
+| TEST-UNIT-044 | REQ-POS-001 | 小さい正のLy | Lx>0, Ly>0 | 解析解と10^-6 %FS以内で一致 |
+| TEST-UNIT-045 | REQ-POS-001 | 小さい正のLx | Lx>0, Ly>0 | 解析解と10^-6 %FS以内で一致 |
 | TEST-UNIT-046 | REQ-POS-002 | A角非依存 | 同一θ/Lx/Ly、異なるA | X/Yが変わらない |
 
 ## 5.5 `limits.py` — `LimitEvaluator`
@@ -171,25 +178,29 @@
 | TEST-UNIT-067 | REQ-INPUT-006, REQ-GCODE-002 | 初期化Gコード保持 | 複数行init text | 行順と内容を保持して挿入 |
 | TEST-UNIT-068 | REQ-GCODE-003 | 同時4軸指令 | 1点 | 1行にX,Y,Z,A,Fを出力 |
 | TEST-UNIT-069 | REQ-GCODE-003 | G番号ゼロ埋め | 1点 | `G01` と `G04` を使用 |
-| TEST-UNIT-070 | REQ-INPUT-004, REQ-GCODE-003 | Feed rate出力 | feed_rate=任意正値 | `F...`が各移動指令に出力 |
-| TEST-UNIT-071 | REQ-INPUT-004, REQ-GCODE-003 | 保持時間出力 | hold_time=3.0 | `G04 P3.0`相当を出力 |
+| TEST-UNIT-070 | REQ-INPUT-004, REQ-GCODE-003 | Feed rate出力 | feed_rate=任意有効値 | `F`を小数点以下6桁で各移動指令に出力 |
+| TEST-UNIT-071 | REQ-INPUT-004, REQ-GCODE-003 | 保持時間出力 | hold_time=3.0 | `G04 P3.000000`を出力 |
 | TEST-UNIT-072 | REQ-INPUT-007, REQ-GCODE-004 | コメントON | output_comments=True | 各点にAoA/AoS/軸値/XY飽和状態コメント |
 | TEST-UNIT-073 | REQ-INPUT-007, REQ-GCODE-004 | コメントOFF | output_comments=False | 点コメントを出力しない |
 | TEST-UNIT-074 | REQ-GCODE-005 | 最終点停止 | 複数点 | 最終点後に原点/ホーム復帰指令を追加しない |
-| TEST-UNIT-075 | REQ-LIMIT-001, REQ-GCODE-003 | XY飽和値を出力 | PointEvaluation.commandが飽和済み | idealではなくcommand値を出力 |
+| TEST-UNIT-075 | REQ-LIMIT-001, REQ-GCODE-003 | XY飽和値を出力 | PointEvaluation.commandが飽和済み | idealではなくcommand値を小数点以下6桁で出力 |
 
 ## 5.8 `repositories.py`
 
 | テストID | 要求ID | テスト内容 | 入力/条件 | 期待結果 |
 |---|---|---|---|---|
-| TEST-UNIT-076 | REQ-GUI-003 | 設定保存→読込往復 | 正常settings | 保存前後で同等の設定 |
-| TEST-UNIT-077 | REQ-GUI-003 | 全オプション保持 | serpentine/comments各組合せ | 読込後も値保持 |
-| TEST-UNIT-078 | REQ-GUI-003 | 軸範囲保持 | X/Y/Z/A各range | 読込後に一致 |
-| TEST-UNIT-079 | REQ-GUI-003 | 不正JSON読込 | 壊れたJSON | 例外/明示的エラーとして上位へ通知可能 |
+| TEST-UNIT-076 | REQ-GUI-003 | CSV設定保存→読込往復 | 正常settings | CSV保存前後で同等の設定 |
+| TEST-UNIT-077 | REQ-GUI-003 | CSVで全オプション保持 | serpentine/comments各組合せ | 読込後も値保持 |
+| TEST-UNIT-078 | REQ-GUI-003 | CSVで軸範囲保持 | X/Y/Z/A各range | 読込後に一致 |
+| TEST-UNIT-079 | REQ-GUI-003 | 構造不正CSV読込 | 行列構造が不正なCSV | 未処理例外を発生させず明示的な読込エラーを返す |
 | TEST-UNIT-080 | REQ-INPUT-006 | 初期化Gコード読込 | UTF-8複数行 | 内容を文字列として保持 |
 | TEST-UNIT-081 | REQ-INPUT-006 | 存在しない初期化ファイル | 無効path | I/Oエラーを上位へ通知 |
 | TEST-UNIT-082 | REQ-GCODE-001 | `.nc`保存 | 正常path/text | 指定ファイルに同一内容を保存 |
 | TEST-UNIT-083 | REQ-GCODE-001 | Gコード保存失敗 | 書込不可path等 | I/Oエラーを上位へ通知 |
+| TEST-UNIT-117 | REQ-GUI-003 | CSV必須キー欠損 | 例：`feed_rate`行が存在しない | 未処理例外なし、読込失敗を返し、`CalibrationSettings`を生成しない |
+| TEST-UNIT-118 | REQ-GUI-003 | CSV必須値空欄 | 必須キーはあるがvalueが空欄 | 未処理例外なし、読込失敗を返す |
+| TEST-UNIT-119 | REQ-GUI-003 | CSV数値変換不能 | 数値項目に文字列 | 未処理例外なし、読込失敗を返す |
+| TEST-UNIT-120 | REQ-GUI-003 | CSVファイルI/O失敗 | 存在しない/読取不可path | 未処理例外なし、上位層が通知可能な読込エラーを返す |
 
 ## 5.9 `controller.py` — `CalibrationController`
 
@@ -234,9 +245,10 @@
 | TEST-UNIT-105 | REQ-GUI-005 | 正常時ボタン有効化 | valid plan | Sim/G-code有効 |
 | TEST-UNIT-106 | REQ-INPUT-006 | 初期化Gコード選択 | 読込成功 | 読み込んだテキストを保持 |
 | TEST-UNIT-107 | REQ-GUI-003, REQ-GUI-004 | 設定保存イベント | 保存ボタン | Repositoryへ現在設定を渡す |
-| TEST-UNIT-108 | REQ-GUI-003, REQ-GUI-004 | 設定読込イベント | 読込ボタン | 読込設定をGUIへ反映し再検証 |
+| TEST-UNIT-108 | REQ-GUI-003, REQ-GUI-004 | 設定読込イベント | 読込成功 | 読込設定をGUIへ反映し再検証 |
 | TEST-UNIT-109 | REQ-SIM-001, REQ-GUI-004 | シミュレーションイベント | valid plan | 同一planをSimulationControllerへ渡す |
 | TEST-UNIT-110 | REQ-GCODE-001, REQ-GUI-004 | Gコード生成イベント | valid plan | 保存ダイアログ→Generator→Repositoryの順 |
+| TEST-UNIT-121 | REQ-GUI-003, REQ-GUI-005 | 設定CSV読込失敗時の防御処理 | Repositoryが読込エラーを返す | 未処理例外なし、読込前のGUI設定とplanを維持、部分適用なし、非モーダルにユーザーへエラー通知 |
 
 ---
 
@@ -246,13 +258,13 @@
 |---|---|
 | REQ-INPUT-001 | TEST-UNIT-002,003,004,005 |
 | REQ-INPUT-002 | TEST-UNIT-006,007,008 |
-| REQ-INPUT-003 | TEST-UNIT-011 |
-| REQ-INPUT-004 | TEST-UNIT-009,010,070,071 |
+| REQ-INPUT-003 | TEST-UNIT-011,111,112 |
+| REQ-INPUT-004 | TEST-UNIT-009,010,070,071,113,114,115,116 |
 | REQ-INPUT-005 | TEST-UNIT-012,013,014,015 |
 | REQ-INPUT-006 | TEST-UNIT-067,080,081,106 |
 | REQ-INPUT-007 | TEST-UNIT-072,073 |
 | REQ-VALID-001 | TEST-UNIT-001,016,084,085,086,101,102 |
-| REQ-VALID-002 | TEST-UNIT-001..016（該当入力検証） |
+| REQ-VALID-002 | TEST-UNIT-001..016,111..116（該当入力検証） |
 | REQ-VALID-003 | TEST-UNIT-047,054,055,056,057,087,088 |
 | REQ-TRANS-001 | TEST-UNIT-025,026..032 |
 | REQ-TRANS-002 | TEST-UNIT-025..032,040,060 |
@@ -277,9 +289,9 @@
 | REQ-SIM-004 | TEST-UNIT-099 |
 | REQ-GUI-001 | TEST-UNIT-100 |
 | REQ-GUI-002 | TEST-UNIT-090,091,092 |
-| REQ-GUI-003 | TEST-UNIT-076,077,078,079,089,107,108 |
+| REQ-GUI-003 | TEST-UNIT-076,077,078,079,089,107,108,117,118,119,120,121 |
 | REQ-GUI-004 | TEST-UNIT-100,107,108,109,110 |
-| REQ-GUI-005 | TEST-UNIT-101,102,103,104,105 |
+| REQ-GUI-005 | TEST-UNIT-101,102,103,104,105,121 |
 
 ---
 
@@ -287,7 +299,7 @@
 
 | モジュール/メソッド | テストID |
 |---|---|
-| `InputValidator.validate` | TEST-UNIT-001..016 |
+| `InputValidator.validate` | TEST-UNIT-001..016,111..116 |
 | `ScanPlanner.generate_points` | TEST-UNIT-017..024 |
 | `AngleTransformer.transform` | TEST-UNIT-025..032,040 |
 | `AngleTransformer._unwrap_angle` | TEST-UNIT-033..035 |
@@ -299,14 +311,14 @@
 | `GCodeGenerator._format_header` | TEST-UNIT-066,067 |
 | `GCodeGenerator._format_point` | TEST-UNIT-068..073,075 |
 | `GCodeGenerator.generate` | TEST-UNIT-066..075 |
-| `SettingsRepository.save/load` | TEST-UNIT-076..079 |
+| `SettingsRepository.save/load` | TEST-UNIT-076..079,117..120 |
 | `InitializationGCodeRepository.load` | TEST-UNIT-080,081 |
 | `GCodeRepository.save` | TEST-UNIT-082,083 |
 | `CalibrationController.on_settings_changed/apply_settings/can_generate` | TEST-UNIT-084..089 |
 | `CalibrationMapView.render` | TEST-UNIT-090..092 |
 | `SimulationController.start/_frame_at` | TEST-UNIT-093..096 |
 | `SimulationView.initialize/render_frame` | TEST-UNIT-097..099 |
-| `MainWindow` | TEST-UNIT-100..110 |
+| `MainWindow` | TEST-UNIT-100..110,121 |
 
 ---
 
@@ -332,6 +344,8 @@
 | TEST-UC-01-08 | UC-01 | XY警告とZAエラー同時 | 両方発生する設定 | XY警告情報を保持しつつ生成禁止はZAエラーが優先 |
 | TEST-UC-01-09 | UC-01 | AoA/AoS=0を含む格子 | 中央点あり | 中央点Z=0,A=0、不要な角度ジャンプなし |
 | TEST-UC-01-10 | UC-01 | ±180近傍の連続性を伴う走査 | ロールunwrapが必要な点列 | 走査点間で不要な±360°ジャンプがない |
+| TEST-UC-01-11 | UC-01 | Lx/Ly下限違反 | LxまたはLyを0以下へ変更 | 入力エラー、plan更新停止、Sim/G-code無効 |
+| TEST-UC-01-12 | UC-01 | 保持時間/Feed下限境界 | hold=0.1, F=1→各下限未満へ変更 | 下限値は有効、下限未満では入力エラー・生成不可 |
 
 ## 8.2 UC-02 初期化Gコードを読み込む
 
@@ -354,8 +368,8 @@
 
 | テストID | トレースUC | シナリオ | 操作/条件 | 期待結果 |
 |---|---|---|---|---|
-| TEST-UC-03-01 | UC-03 | 正常保存 | 現在の有効設定を保存 | 全入力条件とオプションをJSONへ保存 |
-| TEST-UC-03-02 | UC-03 | オプション組合せ保存 | serpentine/commentsの各状態 | 保存内容へ正しく反映 |
+| TEST-UC-03-01 | UC-03 | 正常保存 | 現在の有効設定を保存 | 全入力条件とオプションをCSVへ保存 |
+| TEST-UC-03-02 | UC-03 | オプション組合せ保存 | serpentine/commentsの各状態 | CSV保存内容へ正しく反映 |
 | TEST-UC-03-03 | UC-03 | 保存キャンセル | 保存ダイアログ取消 | ファイルを作成せず状態維持 |
 | TEST-UC-03-04 | UC-03 | 保存失敗 | 書込不可場所 | アプリ継続、非モーダルに失敗通知 |
 
@@ -367,12 +381,17 @@
 
 | テストID | トレースUC | シナリオ | 操作/条件 | 期待結果 |
 |---|---|---|---|---|
-| TEST-UC-04-01 | UC-04 | 正常設定読込 | 保存済み正常JSON | GUIへ全値反映→自動検証→plan再生成 |
-| TEST-UC-04-02 | UC-04 | 蛇行設定復元 | serpentine=TrueのJSON | 読込後の点列順序が蛇行 |
-| TEST-UC-04-03 | UC-04 | 読込後XY警告 | XY範囲が狭い設定 | 警告表示、Sim/G-code有効 |
-| TEST-UC-04-04 | UC-04 | 読込後ZAエラー | ZA範囲が狭い設定 | エラー表示、Sim/G-code無効 |
-| TEST-UC-04-05 | UC-04 | 不正JSON | 構文破損 | 現設定を不用意に破壊せず、失敗通知 |
+| TEST-UC-04-01 | UC-04 | 正常設定読込 | 保存済み正常CSV | GUIへ全値反映→自動検証→plan再生成 |
+| TEST-UC-04-02 | UC-04 | 蛇行設定復元 | serpentine=TrueのCSV | 読込後の点列順序が蛇行 |
+| TEST-UC-04-03 | UC-04 | 読込後XY警告 | XY範囲が狭いCSV設定 | 警告表示、Sim/G-code有効 |
+| TEST-UC-04-04 | UC-04 | 読込後ZAエラー | ZA範囲が狭いCSV設定 | エラー表示、Sim/G-code無効 |
+| TEST-UC-04-05 | UC-04 | 構造不正CSV | 行列構造が不正 | アプリ継続、現設定/plan維持、部分適用なし、非モーダルに失敗通知 |
 | TEST-UC-04-06 | UC-04 | 読込キャンセル | ダイアログ取消 | 現在設定とplanを維持 |
+| TEST-UC-04-07 | UC-04 | 必須値欠損CSV | 必須キー1件以上なし | アプリ継続、現設定/plan維持、部分適用なし、欠損を示す読込失敗通知 |
+| TEST-UC-04-08 | UC-04 | 必須値空欄CSV | 必須valueが空欄 | アプリ継続、現設定/plan維持、部分適用なし、読込失敗通知 |
+| TEST-UC-04-09 | UC-04 | 数値変換不能CSV | 数値項目に文字列 | アプリ継続、現設定/plan維持、部分適用なし、読込失敗通知 |
+| TEST-UC-04-10 | UC-04 | 読込I/O失敗 | 削除済み/アクセス不可CSV | アプリ継続、現設定/plan維持、非モーダルに失敗通知 |
+| TEST-UC-04-11 | UC-04 | 読込途中で後半項目が不正 | 前半は正常、後半の必須項目が不正 | 前半だけをGUIへ反映せず、全設定を読込前状態のまま維持 |
 
 ## 8.5 UC-05 シミュレーションする
 
@@ -402,12 +421,13 @@
 | TEST-UC-06-03 | UC-06 | コメントOFF | output_comments=False | 点コメントなし |
 | TEST-UC-06-04 | UC-06 | XY飽和付き生成 | XY warningのみ | 生成可能、飽和後X/Yを出力、コメントONなら飽和状態記載 |
 | TEST-UC-06-05 | UC-06 | ZAエラー時 | generation error=True | 生成ボタン無効、ファイル生成なし |
-| TEST-UC-06-06 | UC-06 | Feed/hold反映 | 任意Fとhold | 各`G01`にF、各点後に`G04 P...` |
+| TEST-UC-06-06 | UC-06 | Feed/hold反映 | 任意Fとhold | 各`G01`にF、各点後に`G04 P...`、数値は小数点以下6桁 |
 | TEST-UC-06-07 | UC-06 | 初期化Gコード反映 | UC-02で読込済みtext | ヘッダ先頭部へ内容反映 |
 | TEST-UC-06-08 | UC-06 | 最終点停止 | 複数点 | 最終点後にホーム/原点復帰を追加しない |
 | TEST-UC-06-09 | UC-06 | 保存キャンセル | 保存ダイアログ取消 | ファイル生成なし、plan維持 |
 | TEST-UC-06-10 | UC-06 | 保存失敗 | 書込不可path | アプリ継続、失敗通知 |
 | TEST-UC-06-11 | UC-06 | GUI/シミュレーション/Gコード整合 | 同一plan | Gコードの各X/Y/Z/Aが表示・Simulationで使うcommandと一致 |
+| TEST-UC-06-12 | UC-06 | 6桁数値フォーマット | 小数部を持つX/Y/Z/A/F/P | 対象浮動小数点値がすべて小数点以下6桁で出力 |
 
 ---
 
@@ -415,12 +435,12 @@
 
 | ユースケースID | ユースケース名 | テストID |
 |---|---|---|
-| UC-01 | 較正条件を入力・更新する | TEST-UC-01-01 ～ TEST-UC-01-10 |
+| UC-01 | 較正条件を入力・更新する | TEST-UC-01-01 ～ TEST-UC-01-12 |
 | UC-02 | 初期化Gコードを読み込む | TEST-UC-02-01 ～ TEST-UC-02-04 |
 | UC-03 | 設定を保存する | TEST-UC-03-01 ～ TEST-UC-03-04 |
-| UC-04 | 設定を読み込む | TEST-UC-04-01 ～ TEST-UC-04-06 |
+| UC-04 | 設定を読み込む | TEST-UC-04-01 ～ TEST-UC-04-11 |
 | UC-05 | シミュレーションする | TEST-UC-05-01 ～ TEST-UC-05-06 |
-| UC-06 | Gコードを生成する | TEST-UC-06-01 ～ TEST-UC-06-11 |
+| UC-06 | Gコードを生成する | TEST-UC-06-01 ～ TEST-UC-06-12 |
 
 ---
 
@@ -467,13 +487,14 @@ def test_uc01_valid_input_recalculates_plan(self):
 
 Phase 3「テスト実装」へ進む前に、本テスト仕様についてユーザーレビューを受ける。
 
-レビューで特に確定すべき事項は以下である。
+確定済み条件は以下である。
 
-- TBD-T01：数値許容誤差
-- TBD-T02：Gコード数値フォーマット
-- TBD-T03：Lx/Lyの符号制約
-- TBD-T04：保持時間0秒の許否
-- TBD-T05：Feed rateの有効範囲
-- TBD-T06/T07：設定ファイル拡張子およびスキーマ不一致時の扱い
+- TBD-T01：数値許容誤差 = 10^-6 %FS
+- TBD-T02：Gコード浮動小数点 = 小数点以下6桁
+- TBD-T03：Lx/Ly = 正の実数のみ
+- TBD-T04：保持時間 = 0.1 s以上
+- TBD-T05：Feed rate = 1 unit/min以上
+- TBD-T06：設定ファイル = CSV形式
+- TBD-T07：スキーマ番号なし。CSV読込不能時は防御処理、部分適用禁止、ユーザー通知
 
 Phase 3では、本書に定義されたテストIDを変更せずにテストコードへ実装する。
