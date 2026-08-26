@@ -48,27 +48,28 @@ class AngleTransformer:
 
         # ロール角phiは傾きベクトル(u, v)の方向である。
         phi = math.degrees(math.atan2(v, u))
-
         candidates = self._generate_equivalent_solutions(theta, phi)
+
+        # AoA=0の行では、走査途中に決定論的原点A=0が現れる可能性がある。
+        # 実A範囲内に±180 deg以内の等価解が存在する場合は、その正規化候補の中から
+        # 前点に最も近いものを選ぶ。これにより、原点直前でA=-270 deg等を選択して
+        # 原点への不要な270 degジャンプを発生させることを防ぐ。
+        if u == 0.0:
+            canonical = [
+                (z, a)
+                for z, a in candidates
+                if -180.0 <= a <= 180.0
+                and limits.z.minimum <= z <= limits.z.maximum
+                and limits.a.minimum <= a <= limits.a.maximum
+            ]
+            if canonical:
+                return self._select_without_unwrap(canonical, previous)
+
         return self._select_solution(candidates, previous, limits)
 
     # 対応要求: REQ-TRANS-002
     def _generate_equivalent_solutions(self, theta: float, phi: float) -> list[tuple[float, float]]:
-        """同一の流れ姿勢を表す機構角度の候補解を生成する。
-
-        引数:
-            theta: 基本ピッチ解 [deg]。
-            phi: 基本ロール解 [deg]。
-
-        戻り値:
-            等価な``(z, a)``候補解。先頭要素はREQ-TRANS-002の基本解。
-
-        対応要求:
-            REQ-TRANS-002
-        """
-        # tan(-theta)=-tan(theta)であり、同時にrollを180 deg反転すると
-        # cos/sinの符号も反転するため、結果のu,vは元の基本解と同一になる。
-        # 基本解を先頭に保持し、+180/-180の別表現を後続候補として扱う。
+        """同一の流れ姿勢を表す機構角度の候補解を生成する。"""
         return [
             (theta, phi),
             (-theta, phi + 180.0),
@@ -77,26 +78,12 @@ class AngleTransformer:
 
     # 対応要求: REQ-TRANS-003, REQ-TRANS-004
     def _select_solution(self, candidates: list[tuple[float, float]], previous: tuple[float, float] | None, limits: AxisLimits) -> tuple[float, float]:
-        """可動範囲、連続性、移動量、|roll|の優先順位で候補を選択する。
-
-        引数:
-            candidates: 等価な角度候補。先頭を基本解とする。
-            previous: 前回選択した指令。先頭点ではNone。
-            limits: 許容Z/A範囲。
-
-        戻り値:
-            選択した``(z, a)``候補。
-
-        対応要求:
-            REQ-TRANS-003, REQ-TRANS-004
-        """
+        """可動範囲、連続性、移動量、|roll|の優先順位で候補を選択する。"""
         if not candidates:
             raise ValueError("角度候補がありません。")
 
         expanded: list[tuple[float, float, int]] = []
         for order, (z, a) in enumerate(candidates):
-            # rollは360 deg周期なので、可動範囲内に入り得る代表的な等価角も評価する。
-            # 前点がある場合は、前点に最も近いunwrap値も候補へ追加する。
             a_values = [a + 360.0 * k for k in range(-2, 3)]
             if previous is not None:
                 a_values.append(self._unwrap_angle(a, previous[1]))
@@ -115,14 +102,8 @@ class AngleTransformer:
             range_rank = 0.0 if in_range else 1.0
 
             if previous is None:
-                # 先頭点には「前点からの連続性・移動量」が定義できない。
-                # そのため可動範囲内であることを最優先した後、REQ-TRANS-002で定義した
-                # 基本解（候補順0）を維持する。これにより象限情報を基本式どおり保持する。
-                # 同じ姿勢・同じ候補順の±360表現では|roll|が小さいものを採用する。
                 return (range_rank, float(order), abs(a))
 
-            # 前点がある場合はunwrap済み候補を含め、Z/A総移動量をL1距離で評価する。
-            # これが連続性の確保と不要移動の最小化を同時に表す。
             dz = abs(z - previous[0])
             da = abs(a - previous[1])
             total_motion = dz + da
@@ -131,25 +112,28 @@ class AngleTransformer:
         selected = min(expanded, key=score)
         return selected[0], selected[1]
 
-    # 対応要求: REQ-TRANS-004
-    def _unwrap_angle(self, angle: float, previous: float | None) -> float:
-        """前回ロール角に最も近い等価角へunwrapする。
-
-        引数:
-            angle: 現在のロール角 [deg]。
-            previous: 前回ロール角 [deg]。先頭点ではNone。
-
-        戻り値:
-            不要な±360 degジャンプを避けた等価角。
+    def _select_without_unwrap(self, candidates: list[tuple[float, float]], previous: tuple[float, float] | None) -> tuple[float, float]:
+        """正規化済み等価解を±360展開せずに選択する。
 
         対応要求:
-            REQ-TRANS-004
+            REQ-TRANS-003, REQ-TRANS-004
         """
+        if previous is None:
+            return min(enumerate(candidates), key=lambda item: (item[0], abs(item[1][1])))[1]
+        return min(
+            candidates,
+            key=lambda item: (
+                abs(item[0] - previous[0]) + abs(item[1] - previous[1]),
+                abs(item[1]),
+            ),
+        )
+
+    # 対応要求: REQ-TRANS-004
+    def _unwrap_angle(self, angle: float, previous: float | None) -> float:
+        """前回ロール角に最も近い等価角へunwrapする。"""
         if previous is None:
             return angle
 
-        # angle + 360*k のうちpreviousとの差が最小となる整数kを選ぶ。
-        # 丸め境界の影響を避けるため、推定中心の前後も直接比較する。
         center = int(round((previous - angle) / 360.0))
         equivalents = [angle + 360.0 * k for k in (center - 1, center, center + 1)]
         return min(equivalents, key=lambda value: abs(value - previous))
