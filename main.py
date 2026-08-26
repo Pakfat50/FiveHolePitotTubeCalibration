@@ -29,9 +29,6 @@ def configure_ui_theme(root: tk.Tk) -> None:
     available = set(tkfont.families(root))
     preferred_families = ("Meiryo UI", "Meiryo", "Yu Gothic UI", "Noto Sans CJK JP")
     family = next((name for name in preferred_families if name in available), None)
-
-    # Linux上のGUIレビューでも破綻しないよう、指定フォントが無い場合は
-    # Tkの標準フォントが実際に使用しているファミリを採用する。
     if family is None:
         family = tkfont.nametofont("TkDefaultFont").actual("family")
 
@@ -46,21 +43,13 @@ def configure_ui_theme(root: tk.Tk) -> None:
         pass
 
     style = ttk.Style(root)
-    # Windows/Linux間で背景色の指定結果が大きく変わらないよう、配色可能なclamを使用する。
     if "clam" in style.theme_names():
         style.theme_use("clam")
-
     style.configure(".", font=(family, 10))
     style.configure("TButton", padding=(10, 6), font=(family, 10))
-
-    # 主要操作は一般のファイル操作より強く視認できる専用スタイルとする。
     style.configure(
-        "Simulation.TButton",
-        padding=(16, 8),
-        font=(family, 10, "bold"),
-        foreground="#ffffff",
-        background="#3578c4",
-        borderwidth=1,
+        "Simulation.TButton", padding=(16, 8), font=(family, 10, "bold"),
+        foreground="#ffffff", background="#3578c4", borderwidth=1,
     )
     style.map(
         "Simulation.TButton",
@@ -68,12 +57,8 @@ def configure_ui_theme(root: tk.Tk) -> None:
         foreground=[("disabled", "#eef2f6")],
     )
     style.configure(
-        "Generate.TButton",
-        padding=(18, 8),
-        font=(family, 10, "bold"),
-        foreground="#ffffff",
-        background="#27864a",
-        borderwidth=1,
+        "Generate.TButton", padding=(18, 8), font=(family, 10, "bold"),
+        foreground="#ffffff", background="#27864a", borderwidth=1,
     )
     style.map(
         "Generate.TButton",
@@ -83,12 +68,11 @@ def configure_ui_theme(root: tk.Tk) -> None:
 
 
 # 対応要求: REQ-GUI-001, REQ-GUI-004
-def compact_vertical_layout(application: MainWindow) -> None:
-    """1280x900内に全入力欄を収めるため、縦方向の余白だけを調整する。
+def tune_vertical_layout(application: MainWindow) -> None:
+    """1280x900内に全項目を収めつつ、左側設定項目の余白を確保する。
 
-    フォントサイズや入力欄の高さは変更せず、左側入力ペインのグループ間隔、
-    LabelFrame内部余白、入力行余白を小さくする。これにより初期化Gコード欄まで
-    常時表示しながら、可読性を維持する。
+    前版よりLabelFrame間隔・内部余白・入力行余白を広げ、設定項目の視認性を
+    高める。一方で初期化Gコード欄と下部操作欄は900px高の範囲内に維持する。
 
     引数:
         application: 構築済みMainWindow。
@@ -103,22 +87,19 @@ def compact_vertical_layout(application: MainWindow) -> None:
 
     for widget in walk(application.main_frame):
         if isinstance(widget, ttk.LabelFrame):
-            # 較正点マップは右側表示領域なので、左ペインだけをコンパクト化する。
             if str(widget.cget("text")) != "較正点マップ":
-                widget.configure(padding=5)
+                widget.configure(padding=7)
                 if widget.winfo_manager() == "pack":
                     pack_info = widget.pack_info()
-                    current_pady = pack_info.get("pady", 0)
-                    if current_pady:
-                        widget.pack_configure(pady=(0, 4))
+                    if pack_info.get("pady", 0):
+                        widget.pack_configure(pady=(0, 6))
         elif isinstance(widget, ttk.Entry) and widget.winfo_manager() == "grid":
-            widget.grid_configure(pady=1)
+            widget.grid_configure(pady=2)
         elif isinstance(widget, ttk.Label) and widget.winfo_manager() == "grid":
-            # 入力行ラベルのみ対象。タイトルや状態表示はgrid情報が異なるため影響しない。
             grid_info = widget.grid_info()
-            if int(grid_info.get("row", 0)) >= 0 and int(grid_info.get("column", 0)) <= 3:
+            if int(grid_info.get("column", 0)) <= 3:
                 try:
-                    widget.grid_configure(pady=1)
+                    widget.grid_configure(pady=2)
                 except tk.TclError:
                     pass
 
@@ -126,22 +107,12 @@ def compact_vertical_layout(application: MainWindow) -> None:
 def build_application(root: tk.Tk) -> MainWindow:
     """アプリケーションの依存関係を構築し、MainWindowを返す。
 
-    引数:
-        root: Tkinterのルートウィンドウ。
-
-    戻り値:
-        すべての依存関係が接続済みのMainWindow。
-
     対応要求:
         REQ-GUI-001, REQ-GUI-002, REQ-GUI-003, REQ-GUI-004, REQ-SIM-001,
         REQ-GCODE-001
     """
     configure_ui_theme(root)
-
-    validator = InputValidator()
-    calibration_service = CalibrationService()
-    controller = CalibrationController(validator, calibration_service)
-
+    controller = CalibrationController(InputValidator(), CalibrationService())
     map_view = CalibrationMapView()
     simulation_view = SimulationView()
     simulation_controller = SimulationController(simulation_view)
@@ -158,24 +129,16 @@ def build_application(root: tk.Tk) -> MainWindow:
         build_ui=True,
     )
 
-    # 対応要求: REQ-GUI-001, REQ-GUI-004
-    # フルHD以上の実運用ディスプレイを前提に、全入力欄と操作部を一画面へ収める。
     root.geometry("1280x900")
     root.minsize(1100, 820)
-    compact_vertical_layout(application)
-
-    # 一般操作と主要実行操作の優先度を視覚的に分ける。
+    tune_vertical_layout(application)
     application.simulation_button.configure(style="Simulation.TButton")
     application.gcode_button.configure(style="Generate.TButton")
-
     return application
 
 
 def main() -> None:
     """アプリケーション依存関係を構築し、GUIを起動する。
-
-    Presentation -> Application -> Domain/Core の依存方向に従い、
-    ファイルI/OはInfrastructure層へ分離して構築する。
 
     対応要求:
         REQ-GUI-004
