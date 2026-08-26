@@ -27,8 +27,8 @@
 |---|---|---|
 | UC-01 | 較正条件を入力・更新する | AoA/AoS範囲、点数、寸法、保持時間、Feed rate、軸可動範囲、オプションを入力し、リアルタイムに検証・較正点再計算する |
 | UC-02 | 初期化Gコードを読み込む | テキストファイルから初期化Gコードを読み込む |
-| UC-03 | 設定を保存する | 現在の入力条件・オプションを設定ファイルへ保存する |
-| UC-04 | 設定を読み込む | 設定ファイルから入力条件・オプションを復元し、再検証・再計算する |
+| UC-03 | 設定を保存する | 現在の入力条件・オプションをCSV設定ファイルへ保存する |
+| UC-04 | 設定を読み込む | CSV設定ファイルから入力条件・オプションを復元し、再検証・再計算する |
 | UC-05 | シミュレーションする | 有効な較正計画を約10秒で可視化する |
 | UC-06 | Gコードを生成する | 有効な較正計画から `.nc` Gコードを生成・保存する |
 
@@ -133,7 +133,7 @@ sequenceDiagram
     participant SettingsRepo as SettingsRepository
     User->>MainWindow: 設定保存
     MainWindow->>MainWindow: 保存先ダイアログ
-    User-->>MainWindow: 保存先選択
+    User-->>MainWindow: CSV保存先選択
     MainWindow->>Controller: get_current_settings()
     Controller-->>MainWindow: CalibrationSettings
     MainWindow->>SettingsRepo: save(path, settings)
@@ -153,10 +153,10 @@ sequenceDiagram
     participant Service as CalibrationService
     User->>MainWindow: 設定読込
     MainWindow->>MainWindow: ファイル選択ダイアログ
-    User-->>MainWindow: 設定ファイル選択
+    User-->>MainWindow: CSV設定ファイル選択
     MainWindow->>SettingsRepo: load(path)
-    SettingsRepo-->>MainWindow: CalibrationSettings / Error
-    alt 読込成功
+    SettingsRepo-->>MainWindow: CalibrationSettings / LoadError
+    alt 読込・変換成功
         MainWindow->>Controller: apply_settings(settings)
         Controller->>Validator: validate(settings)
         Validator-->>Controller: ValidationResult
@@ -167,7 +167,8 @@ sequenceDiagram
         else 無効
             Controller-->>MainWindow: ValidationResult
         end
-    else 読込失敗
+    else CSV欠損/変換/I-O等の読込失敗
+        MainWindow->>MainWindow: 現設定・plan維持
         MainWindow->>MainWindow: 非モーダルエラー表示
     end
 ```
@@ -549,7 +550,7 @@ flowchart TB
 | `calibration_service.py` | 較正計画生成サービス | `CalibrationService.build_plan()` | 点列生成から軸指令、補正、制限判定までを統合し `CalibrationPlan` を構築する |
 | `controller.py` | アプリケーション制御 | `CalibrationController` | GUIイベントを受け、入力検証と較正計画再生成を制御し、現在状態を保持する |
 | `gcode.py` | Gコード生成 | `GCodeGenerator.generate()` | 初期化コード、`$H`, `G21`, `G90`, `G94`, `G01 ... F...`, `G04`、任意コメントを文字列化する |
-| `repositories.py` | ファイル入出力 | `SettingsRepository`, `InitializationGCodeRepository`, `GCodeRepository` | JSON設定、初期化Gコード、`.nc`ファイルの読み書きを担当する |
+| `repositories.py` | ファイル入出力 | `SettingsRepository`, `InitializationGCodeRepository`, `GCodeRepository` | CSV設定、初期化Gコード、`.nc`ファイルの読み書きを担当する。CSV読込時の欠損・空欄・型変換・I/Oエラーを防御的に処理する |
 | `map_view.py` | 較正点マップ表示 | `CalibrationMapView` | MatplotlibでAoA/AoS点列と警告・エラー状態を表示する |
 | `simulation.py` | 動作シミュレーション | `SimulationController`, `SimulationView` | 約10秒の再生、横面図・正面図、現在点・軸値・進捗を表示する |
 | `gui.py` | GUI | `MainWindow` | Tkinter画面、入力フィールド、ボタン、非モーダルエラー表示、ファイルダイアログを提供する |
@@ -723,7 +724,7 @@ stateDiagram-v2
 |---|---|---|
 | REQ-GUI-001 | `MainWindow._build_widgets` | 日本語GUI |
 | REQ-GUI-002 | `CalibrationMapView.render` | AoA/AoSマップ、警告/エラー識別 |
-| REQ-GUI-003 | `MainWindow._on_save_settings`, `MainWindow._on_load_settings`, `SettingsRepository.save/load` | 設定保存読込 |
+| REQ-GUI-003 | `MainWindow._on_save_settings`, `MainWindow._on_load_settings`, `SettingsRepository.save/load` | CSV設定保存読込、読込失敗時は部分適用せず通知 |
 | REQ-GUI-004 | `MainWindow._build_widgets` | 4操作ボタン |
 | REQ-GUI-005 | `MainWindow._update_validation_display`, `MainWindow._update_action_state`, `CalibrationController.can_generate` | 非モーダル表示、ボタン制御 |
 
@@ -745,7 +746,7 @@ stateDiagram-v2
 | limits | `LimitEvaluator.evaluate` | `AxisCommand`, `AxisLimits` | 制限判定結果 | なし |
 | calibration_service | `CalibrationService.build_plan` | `CalibrationSettings` | `CalibrationPlan` | なし |
 | gcode | `GCodeGenerator.generate` | plan, settings, init text | Gコード文字列 | なし |
-| repositories | `SettingsRepository.save/load` | path/settings | settings/None | ファイルI/O |
+| repositories | `SettingsRepository.save/load` | path/settings | settings/読込エラー | ファイルI/O、CSV変換 |
 | repositories | `InitializationGCodeRepository.load` | path | text | ファイルI/O |
 | repositories | `GCodeRepository.save` | path/text | None | ファイルI/O |
 | controller | `CalibrationController.on_settings_changed` | GUI入力 | 状態更新 | 内部状態更新 |
@@ -759,16 +760,18 @@ stateDiagram-v2
 
 1. Core層の関数・メソッドはTkinter、Matplotlib、ファイルI/Oへ依存させない。
 2. `CalibrationService.build_plan()` はGUI状態を参照せず、引数だけで同じ結果を返す決定的処理とする。
-3. 浮動小数点比較は後続テスト設計で許容誤差を明示する。
+3. 浮動小数点比較はテスト仕様で定義した許容誤差に従う。
 4. `CalibrationPlan` を較正点マップ・シミュレーション・Gコード生成の単一ソースとする。
 5. X/Yの飽和前値を必ず保持し、偏差計算・警告表示に使用する。
 6. Z/Aは範囲超過時に値を改変しない。
-7. 設定保存形式は標準ライブラリ `json` を用いる。スキーマバージョンを設定ファイルに保持し、将来拡張可能とする。
-8. GUI入力値のパース失敗と、パース成功後の意味的検証エラーを区別する。
-9. 入力変更イベントはモーダルダイアログを発生させない。
-10. ファイル選択・保存失敗などユーザー起点I/Oの失敗は、アプリケーションを終了させずGUI上で通知する。
-11. コード内の各関数・メソッドには `Requirements: REQ-...` を記載する。
-12. テストコードには後続で定義する `TEST-...` IDをコメントで記載する。
+7. 設定保存形式は標準ライブラリ `csv` を用いるCSV形式とし、スキーマバージョン番号は保持しない。
+8. `SettingsRepository.load()` は必要なCSV項目をすべて取得・型変換できた場合のみ `CalibrationSettings` を生成する。必須項目欠損、空欄、構造不正、数値変換不能、I/Oエラー等は読込失敗として処理し、未処理例外によってアプリケーションを終了させない。
+9. 設定読込結果は全項目の読込成功後にのみGUI/Controllerへ適用する。読込途中の値を部分適用してはならない。
+10. GUI入力値のパース失敗と、パース成功後の意味的検証エラーを区別する。
+11. 入力変更イベントはモーダルダイアログを発生させない。
+12. ファイル選択・保存・CSV読込失敗などユーザー起点I/Oの失敗は、アプリケーションを終了させずGUI上で非モーダルに通知する。
+13. コード内の各関数・メソッドには `Requirements: REQ-...` を記載する。
+14. テストコードには後続で定義する `TEST-...` IDをコメントで記載する。
 
 ---
 
@@ -780,5 +783,7 @@ stateDiagram-v2
 - 個別テストID
 - 要求ID → テストID トレーサビリティマトリックス
 - モジュール/メソッド → テストID 対応表
+- 各ユースケースに対応する組み合わせテスト仕様
+- ユースケースID → ユースケーステストID トレーサビリティマトリックス
 
 Phase 2開始前に、本アーキテクチャ設計についてユーザーレビューを受ける。
