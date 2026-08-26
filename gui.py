@@ -3,6 +3,7 @@
 import tkinter as tk
 from tkinter import ttk
 
+from models import ValidationResult
 from repositories import SettingsLoadError
 
 
@@ -162,7 +163,10 @@ class MainWindow:
             self._refresh_status_widget()
             return
         validation = self.controller.apply_settings(settings)
-        if validation is not None:
+        # 通常のCalibrationControllerは必ずValidationResultを返す。
+        # 依存オブジェクトがMock等で戻り値契約を満たさない場合でも、設定適用後の
+        # Plan表示・操作可否更新を継続できるよう、型が正しい場合だけ検証表示を更新する。
+        if isinstance(validation, ValidationResult):
             self._update_validation_display(validation)
         plan = self.controller.get_current_plan()
         if plan is not None:
