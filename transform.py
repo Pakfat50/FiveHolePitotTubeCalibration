@@ -40,8 +40,13 @@ class AngleTransformer:
         r = math.hypot(u, v)
         theta = math.degrees(math.atan(r))
 
+        # AoA=AoS=0ではロール方向は数学的に不定となる。
+        # ここで前点からの連続性を適用すると、走査途中の原点がA=±180 deg等の
+        # 等価解へ変化し得るため、仕様どおり原点だけは常に(Z,A)=(0,0)とする。
+        if r == 0.0:
+            return 0.0, 0.0
+
         # ロール角phiは傾きベクトル(u, v)の方向である。
-        # 原点ではPythonのatan2(0, 0)=0を利用し、(z, a)=(0, 0)を決定論的に返す。
         phi = math.degrees(math.atan2(v, u))
 
         candidates = self._generate_equivalent_solutions(theta, phi)
