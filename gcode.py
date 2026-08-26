@@ -1,61 +1,61 @@
-"""G-code text generation from a precomputed CalibrationPlan."""
+"""事前計算済みCalibrationPlanからGコード文字列を生成する。"""
 
 from models import CalibrationPlan, CalibrationSettings, PointEvaluation
 
 
 class GCodeGenerator:
-    """Generate GRBL-compatible calibration G-code without recalculating axes.
+    """軸値を再計算せず、GRBL互換の較正Gコードを生成する。
 
-    Requirements:
+    対応要求:
         REQ-INPUT-004, REQ-INPUT-006, REQ-INPUT-007, REQ-GCODE-002,
         REQ-GCODE-003, REQ-GCODE-004, REQ-GCODE-005
     """
 
-    # Requirements: REQ-GCODE-002, REQ-GCODE-003, REQ-GCODE-004, REQ-GCODE-005
+    # 対応要求: REQ-GCODE-002, REQ-GCODE-003, REQ-GCODE-004, REQ-GCODE-005
     def generate(self, plan: CalibrationPlan, settings: CalibrationSettings, initialization_text: str) -> str:
-        """Generate complete G-code text from the shared calculation plan.
+        """共有された較正計画から完全なGコード文字列を生成する。
 
-        Args:
-            plan: Precomputed calibration plan used by all output paths.
-            settings: Settings supplying feed, hold, and comment options.
-            initialization_text: User-loaded initialization G-code.
+        引数:
+            plan: すべての出力経路で共有する事前計算済み較正計画。
+            settings: Feed rate、保持時間、コメント出力設定を含む設定。
+            initialization_text: ユーザーが読み込んだ初期化Gコード。
 
-        Returns:
-            Complete `.nc` text. Floating-point X/Y/Z/A/F/P values use six
-            digits after the decimal point and no return-to-origin is appended.
+        戻り値:
+            完全な`.nc`文字列。X/Y/Z/A/F/Pの浮動小数点値は
+            小数点以下6桁とし、原点復帰指令は末尾に付加しない。
 
-        Requirements:
+        対応要求:
             REQ-GCODE-002, REQ-GCODE-003, REQ-GCODE-004, REQ-GCODE-005
         """
         raise NotImplementedError
 
-    # Requirements: REQ-GCODE-002
+    # 対応要求: REQ-GCODE-002
     def _format_header(self, initialization_text: str) -> list[str]:
-        """Format initialization, homing, G21, G90, and G94 header lines.
+        """初期化コード、原点復帰、G21、G90、G94のヘッダ行を整形する。
 
-        Args:
-            initialization_text: User-loaded initialization G-code.
+        引数:
+            initialization_text: ユーザーが読み込んだ初期化Gコード。
 
-        Returns:
-            Header lines in required order.
+        戻り値:
+            要求された順序のヘッダ行。
 
-        Requirements:
+        対応要求:
             REQ-INPUT-006, REQ-GCODE-002
         """
         raise NotImplementedError
 
-    # Requirements: REQ-INPUT-004, REQ-GCODE-003, REQ-GCODE-004
+    # 対応要求: REQ-INPUT-004, REQ-GCODE-003, REQ-GCODE-004
     def _format_point(self, point_eval: PointEvaluation, settings: CalibrationSettings) -> list[str]:
-        """Format one simultaneous move, hold, and optional point comment.
+        """1較正点分の同時移動、保持、任意コメントを整形する。
 
-        Args:
-            point_eval: Evaluated point whose ``command`` is the actual output.
-            settings: Feed rate, hold time, and comment option.
+        引数:
+            point_eval: ``command``が実際の出力値となる評価済み較正点。
+            settings: Feed rate、保持時間、コメント出力設定。
 
-        Returns:
-            G-code lines for one calibration point.
+        戻り値:
+            1較正点分のGコード行。
 
-        Requirements:
+        対応要求:
             REQ-INPUT-004, REQ-INPUT-007, REQ-GCODE-003, REQ-GCODE-004
         """
         raise NotImplementedError

@@ -1,29 +1,29 @@
-"""Pitot-tip X/Y compensation calculations."""
+"""ピトー管先端位置のX/Y補正量を計算する。"""
 
 
 class PositionCompensator:
-    """Calculate X/Y translation required after pitch rotation.
+    """ピッチ回転後に必要となるX/Y並進量を算出する。
 
-    Roll is ignored because the roll axis lies on the Pitot tube longitudinal
-    axis and therefore does not move the tip.
+    ロール軸はピトー管長手軸上にあるため、ロール回転による先端位置変化は
+    発生しないものとして扱う。
 
-    Requirements:
+    対応要求:
         REQ-POS-001, REQ-POS-002
     """
 
-    # Requirements: REQ-POS-001, REQ-POS-002
+    # 対応要求: REQ-POS-001, REQ-POS-002
     def calculate_xy(self, theta: float, lx: float, ly: float) -> tuple[float, float]:
-        """Calculate translation commands that keep the tip at tunnel center.
+        """ピトー管先端を風洞中心に保持するための並進指令を算出する。
 
-        Args:
-            theta: Actual pitch angle [deg].
-            lx: Reference X distance from pitch center to tip [mm].
-            ly: Reference Y distance from pitch center to tip [mm].
+        引数:
+            theta: 実ピッチ角 [deg]。
+            lx: ピッチ中心から先端までの基準X方向距離 [mm]。
+            ly: ピッチ中心から先端までの基準Y方向距離 [mm]。
 
-        Returns:
-            Required ``(x, y)`` translations [mm].
+        戻り値:
+            必要な``(x, y)``並進量 [mm]。
 
-        Requirements:
+        対応要求:
             REQ-POS-001, REQ-POS-002
         """
         raise NotImplementedError

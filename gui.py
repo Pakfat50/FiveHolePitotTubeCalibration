@@ -1,24 +1,24 @@
-"""Tkinter presentation layer for the calibration application."""
+"""較正アプリケーションのTkinter Presentation層。"""
 
 
 class MainWindow:
-    """Main Japanese-language GUI and user-operation coordinator.
+    """日本語GUIとユーザー操作を統括するメインウィンドウ。
 
-    The class owns presentation state only; numerical calculation remains in
-    Core/Application services. File-load failures are reported non-modally.
+    本クラスは表示状態のみを保持し、数値計算はCore/Application層へ委譲する。
+    ファイル読込失敗は非モーダルに通知する。
 
-    Args:
-        root: Tk root object.
-        controller: CalibrationController-compatible dependency.
-        settings_repository: SettingsRepository-compatible dependency.
-        initialization_repository: InitializationGCodeRepository dependency.
-        gcode_generator: GCodeGenerator-compatible dependency.
-        gcode_repository: GCodeRepository-compatible dependency.
-        map_view: CalibrationMapView-compatible dependency.
-        simulation_controller: SimulationController-compatible dependency.
-        build_ui: False allows headless tests to instantiate the class.
+    引数:
+        root: Tkのルートオブジェクト。
+        controller: CalibrationController互換の依存オブジェクト。
+        settings_repository: SettingsRepository互換の依存オブジェクト。
+        initialization_repository: InitializationGCodeRepository依存オブジェクト。
+        gcode_generator: GCodeGenerator互換の依存オブジェクト。
+        gcode_repository: GCodeRepository互換の依存オブジェクト。
+        map_view: CalibrationMapView互換の依存オブジェクト。
+        simulation_controller: SimulationController互換の依存オブジェクト。
+        build_ui: Falseの場合、ヘッドレステストでGUI構築を省略できる。
 
-    Requirements:
+    対応要求:
         REQ-GUI-001, REQ-GUI-002, REQ-GUI-003, REQ-GUI-004, REQ-GUI-005
     """
 
@@ -41,141 +41,141 @@ class MainWindow:
             self._build_widgets()
 
     def run(self) -> None:
-        """Run the Tk event loop.
+        """Tkイベントループを開始する。
 
-        Requirements:
+        対応要求:
             REQ-GUI-004
         """
         raise NotImplementedError
 
-    # Requirements: REQ-INPUT-001, REQ-INPUT-002, REQ-INPUT-003, REQ-INPUT-004, REQ-INPUT-005, REQ-INPUT-007, REQ-GUI-001, REQ-GUI-004
+    # 対応要求: REQ-INPUT-001, REQ-INPUT-002, REQ-INPUT-003, REQ-INPUT-004, REQ-INPUT-005, REQ-INPUT-007, REQ-GUI-001, REQ-GUI-004
     def _build_widgets(self) -> None:
-        """Create Japanese input fields, map area, status area, and buttons.
+        """日本語入力欄、較正点マップ、状態表示領域、操作ボタンを構築する。
 
-        Requirements:
+        対応要求:
             REQ-INPUT-001, REQ-INPUT-002, REQ-INPUT-003, REQ-INPUT-004,
             REQ-INPUT-005, REQ-INPUT-007, REQ-GUI-001, REQ-GUI-004
         """
         raise NotImplementedError
 
     def required_labels(self) -> tuple[str, ...]:
-        """Return required operation labels used by the GUI.
+        """GUIで必須となる操作ラベルを返す。
 
-        Returns:
-            Labels for Simulation, G-code generation, settings save, and load.
+        戻り値:
+            シミュレーション、Gコード生成、設定保存、設定読込の各ラベル。
 
-        Requirements:
+        対応要求:
             REQ-GUI-001, REQ-GUI-004
         """
         raise NotImplementedError
 
     def _collect_raw_input(self):
-        """Collect current GUI field contents for controller validation.
+        """コントローラで検証するため、現在のGUI入力内容を収集する。
 
-        Returns:
-            Presentation-layer input values.
+        戻り値:
+            Presentation層の入力値。
 
-        Requirements:
+        対応要求:
             REQ-INPUT-001, REQ-INPUT-002, REQ-INPUT-003, REQ-INPUT-004,
             REQ-INPUT-005, REQ-INPUT-007
         """
         raise NotImplementedError
 
-    # Requirements: REQ-VALID-001
+    # 対応要求: REQ-VALID-001
     def _on_input_changed(self) -> None:
-        """Propagate an edit, then refresh validation, plan, and action state.
+        """入力変更を伝搬し、検証表示、較正計画、操作可否を更新する。
 
-        Requirements:
+        対応要求:
             REQ-VALID-001, REQ-SCAN-001
         """
         raise NotImplementedError
 
-    # Requirements: REQ-VALID-001, REQ-LIMIT-002, REQ-GUI-005
+    # 対応要求: REQ-VALID-001, REQ-LIMIT-002, REQ-GUI-005
     def _update_validation_display(self, validation_result) -> None:
-        """Update non-modal field highlighting and error messages.
+        """非モーダルなフィールド強調表示とエラーメッセージを更新する。
 
-        Args:
-            validation_result: ValidationResult from the controller.
+        引数:
+            validation_result: コントローラから得たValidationResult。
 
-        Requirements:
+        対応要求:
             REQ-VALID-001, REQ-LIMIT-002, REQ-GUI-005
         """
         raise NotImplementedError
 
-    # Requirements: REQ-LIMIT-002, REQ-LIMIT-003, REQ-GUI-005
+    # 対応要求: REQ-LIMIT-002, REQ-LIMIT-003, REQ-GUI-005
     def _update_plan_status(self, plan) -> None:
-        """Show X/Y warning deviations or Z/A blocking state.
+        """X/Y逸脱警告またはZ/A生成禁止状態を表示する。
 
-        Args:
-            plan: Current CalibrationPlan.
+        引数:
+            plan: 現在のCalibrationPlan。
 
-        Requirements:
+        対応要求:
             REQ-LIMIT-002, REQ-LIMIT-003, REQ-GUI-005
         """
         raise NotImplementedError
 
-    # Requirements: REQ-VALID-003, REQ-GUI-005
+    # 対応要求: REQ-VALID-003, REQ-GUI-005
     def _update_action_state(self) -> None:
-        """Enable or disable Simulation and G-code actions.
+        """シミュレーションおよびGコード生成操作の有効／無効を更新する。
 
-        Requirements:
+        対応要求:
             REQ-VALID-003, REQ-GUI-005
         """
         raise NotImplementedError
 
-    # Requirements: REQ-INPUT-006, REQ-GUI-005
+    # 対応要求: REQ-INPUT-006, REQ-GUI-005
     def _on_load_initialization(self, path: str | None = None) -> None:
-        """Load user initialization G-code or preserve state on failure.
+        """初期化Gコードを読み込み、失敗時は現在状態を維持する。
 
-        Args:
-            path: Selected path; None represents a canceled selection.
+        引数:
+            path: 選択したパス。Noneはファイル選択キャンセルを表す。
 
-        Requirements:
+        対応要求:
             REQ-INPUT-006, REQ-GUI-005
         """
         raise NotImplementedError
 
-    # Requirements: REQ-GUI-003, REQ-GUI-004
+    # 対応要求: REQ-GUI-003, REQ-GUI-004
     def _on_save_settings(self, path: str | None = None) -> None:
-        """Save current settings to CSV.
+        """現在の設定をCSVへ保存する。
 
-        Args:
-            path: Selected destination; None represents cancel.
+        引数:
+            path: 選択した保存先。Noneはキャンセルを表す。
 
-        Requirements:
+        対応要求:
             REQ-GUI-003, REQ-GUI-004
         """
         raise NotImplementedError
 
-    # Requirements: REQ-GUI-003, REQ-GUI-004, REQ-GUI-005
+    # 対応要求: REQ-GUI-003, REQ-GUI-004, REQ-GUI-005
     def _on_load_settings(self, path: str | None = None) -> None:
-        """Load CSV atomically and preserve current state on load failure.
+        """CSV設定を一括で読み込み、失敗時は現在状態を維持する。
 
-        Args:
-            path: Selected CSV path; None represents cancel.
+        引数:
+            path: 選択したCSVパス。Noneはキャンセルを表す。
 
-        Requirements:
+        対応要求:
             REQ-GUI-003, REQ-GUI-004, REQ-GUI-005
         """
         raise NotImplementedError
 
-    # Requirements: REQ-SIM-001, REQ-GUI-004
+    # 対応要求: REQ-SIM-001, REQ-GUI-004
     def _on_simulate(self) -> None:
-        """Start about-10-second simulation using the current plan.
+        """現在の較正計画を使用して約10秒のシミュレーションを開始する。
 
-        Requirements:
+        対応要求:
             REQ-SIM-001, REQ-SIM-002, REQ-GUI-004
         """
         raise NotImplementedError
 
-    # Requirements: REQ-GCODE-001, REQ-GUI-004
+    # 対応要求: REQ-GCODE-001, REQ-GUI-004
     def _on_generate_gcode(self, path: str | None = None) -> None:
-        """Generate and save `.nc` text from the current shared plan.
+        """現在の共有較正計画から`.nc`文字列を生成し保存する。
 
-        Args:
-            path: Selected `.nc` destination; None represents cancel.
+        引数:
+            path: 選択した`.nc`保存先。Noneはキャンセルを表す。
 
-        Requirements:
+        対応要求:
             REQ-GCODE-001, REQ-GUI-004
         """
         raise NotImplementedError

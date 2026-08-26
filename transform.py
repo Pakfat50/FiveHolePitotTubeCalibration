@@ -1,81 +1,81 @@
-"""AoA/AoS to actual Z/A angle transformation."""
+"""AoA/AoSを実機構のZ/A角へ変換する。"""
 
 from models import AxisLimits
 
 
 class AngleTransformer:
-    """Transform requested flow angles to pitch/roll mechanism commands.
+    """要求された流れ角を実ピッチ／実ロール指令へ変換する。
 
-    The mechanism is modeled as pitch rotation followed by roll about the Pitot
-    tube axis. Equivalent solutions are selected using travel and continuity.
+    機構はピッチ回転後にピトー管軸周りのロール回転を行うものとして扱う。
+    等価解は可動範囲と前較正点からの連続性を考慮して選択する。
 
-    Requirements:
+    対応要求:
         REQ-TRANS-001, REQ-TRANS-002, REQ-TRANS-003, REQ-TRANS-004
     """
 
-    # Requirements: REQ-TRANS-001, REQ-TRANS-002, REQ-TRANS-003, REQ-TRANS-004
+    # 対応要求: REQ-TRANS-001, REQ-TRANS-002, REQ-TRANS-003, REQ-TRANS-004
     def transform(self, aoa: float, aos: float, previous: tuple[float, float] | None, limits: AxisLimits) -> tuple[float, float]:
-        """Calculate actual pitch Z and roll A for one AoA/AoS point.
+        """1つのAoA/AoS点から実ピッチZと実ロールAを算出する。
 
-        Args:
-            aoa: Requested AoA [deg].
-            aos: Requested AoS [deg].
-            previous: Previous selected ``(z, a)`` command, or None at start.
-            limits: Allowed axis ranges used during equivalent-solution choice.
+        引数:
+            aoa: 要求AoA [deg]。
+            aos: 要求AoS [deg]。
+            previous: 前回選択した``(z, a)``指令。先頭点ではNone。
+            limits: 等価解選択に使用する軸可動範囲。
 
-        Returns:
-            Selected ``(z, a)`` angle pair [deg].
+        戻り値:
+            選択した``(z, a)``角度 [deg]。
 
-        Requirements:
+        対応要求:
             REQ-TRANS-001, REQ-TRANS-002, REQ-TRANS-003, REQ-TRANS-004
         """
         raise NotImplementedError
 
-    # Requirements: REQ-TRANS-002
+    # 対応要求: REQ-TRANS-002
     def _generate_equivalent_solutions(self, theta: float, phi: float) -> list[tuple[float, float]]:
-        """Generate mechanism-angle candidates representing the same flow pose.
+        """同一の流れ姿勢を表す機構角度の候補解を生成する。
 
-        Args:
-            theta: Basic pitch solution [deg].
-            phi: Basic roll solution [deg].
+        引数:
+            theta: 基本ピッチ解 [deg]。
+            phi: 基本ロール解 [deg]。
 
-        Returns:
-            Equivalent ``(z, a)`` candidates.
+        戻り値:
+            等価な``(z, a)``候補解。
 
-        Requirements:
+        対応要求:
             REQ-TRANS-002
         """
         raise NotImplementedError
 
-    # Requirements: REQ-TRANS-003
+    # 対応要求: REQ-TRANS-003
     def _select_solution(self, candidates: list[tuple[float, float]], previous: tuple[float, float] | None, limits: AxisLimits) -> tuple[float, float]:
-        """Select a candidate by travel, continuity, motion, then |roll|.
+        """可動範囲、連続性、移動量、|roll|の優先順位で候補を選択する。
 
-        Args:
-            candidates: Equivalent angle candidates.
-            previous: Previous selected command or None.
-            limits: Allowed Z/A ranges.
+        引数:
+            candidates: 等価な角度候補。
+            previous: 前回選択した指令。先頭点ではNone。
+            limits: 許容Z/A範囲。
 
-        Returns:
-            Selected ``(z, a)`` candidate.
+        戻り値:
+            選択した``(z, a)``候補。
 
-        Requirements:
+        対応要求:
             REQ-TRANS-003
         """
         raise NotImplementedError
 
-    # Requirements: REQ-TRANS-004
+    # 対応要求: REQ-TRANS-004
     def _unwrap_angle(self, angle: float, previous: float | None) -> float:
-        """Unwrap roll to the equivalent angle nearest the previous roll.
+        """前回ロール角に最も近い等価角へunwrapする。
 
-        Args:
-            angle: Current roll angle [deg].
-            previous: Previous roll angle [deg], or None.
+        引数:
+            angle: 現在のロール角 [deg]。
+            previous: 前回ロール角 [deg]。先頭点ではNone。
 
-        Returns:
-            Equivalent angle avoiding unnecessary ±360-degree jumps.
+        戻り値:
+            不要な±360 degジャンプを避けた等価角。
 
-        Requirements:
+        対応要求:
             REQ-TRANS-004
         """
         raise NotImplementedError

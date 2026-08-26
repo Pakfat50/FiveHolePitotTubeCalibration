@@ -1,14 +1,14 @@
-"""Application entry point for the 5-hole Pitot calibration GUI."""
+"""5孔ピトー管較正GUIアプリケーションのエントリポイント。"""
 
 
 def main() -> None:
-    """Construct application dependencies and start the GUI.
+    """アプリケーション依存関係を構築し、GUIを起動する。
 
-    The concrete composition follows the layered dependency direction defined in
-    the architecture: Presentation -> Application -> Domain/Core, while file I/O
-    remains in Infrastructure.
+    依存関係の構成はアーキテクチャで定義した
+    Presentation -> Application -> Domain/Core の方向に従い、
+    ファイルI/OはInfrastructure層へ分離する。
 
-    Requirements:
+    対応要求:
         REQ-GUI-004
     """
     raise NotImplementedError

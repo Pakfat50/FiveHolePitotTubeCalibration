@@ -1,29 +1,27 @@
-"""Calibration point scan planning."""
+"""較正点の走査順序を生成する。"""
 
 from models import CalibrationPoint, CalibrationSettings
 
 
 class ScanPlanner:
-    """Generate the equally spaced AoA/AoS scan sequence.
+    """AoA/AoSの等間隔走査点列を生成する。
 
-    Requirements:
+    対応要求:
         REQ-SCAN-001, REQ-SCAN-002, REQ-SCAN-003
     """
 
-    # Requirements: REQ-SCAN-001, REQ-SCAN-002, REQ-SCAN-003
+    # 対応要求: REQ-SCAN-001, REQ-SCAN-002, REQ-SCAN-003
     def generate_points(self, settings: CalibrationSettings) -> list[CalibrationPoint]:
-        """Generate calibration points in the configured scan order.
+        """設定された走査順序で較正点列を生成する。
 
-        Args:
-            settings: Valid settings containing AoA/AoS ranges, counts, and
-                serpentine option.
+        引数:
+            settings: AoA/AoS範囲、点数、蛇行走査設定を含む有効な設定。
 
-        Returns:
-            Calibration points with endpoints included, AoA as outer loop and
-            AoS as inner loop; alternate AoS rows are reversed when serpentine
-            scanning is enabled.
+        戻り値:
+            両端を含み、AoAを外側ループ、AoSを内側ループとする較正点列。
+            蛇行走査時はAoA行ごとにAoS方向を反転する。
 
-        Requirements:
+        対応要求:
             REQ-SCAN-001, REQ-SCAN-002, REQ-SCAN-003
         """
         raise NotImplementedError

@@ -1,10 +1,10 @@
-"""Domain data models for the 5-hole Pitot calibration application.
+"""5孔ピトー管較正アプリケーションのドメインデータモデル。
 
-The models in this module are shared across the Core, Application, Infrastructure,
-and Presentation layers. They intentionally contain no GUI or file-I/O dependency.
+本モジュールのモデルはCore、Application、Infrastructure、Presentation各層で
+共有する。GUIやファイルI/Oへの依存は持たない。
 
-Architecture source:
-    docs/architecture_design.md sections 4, 6, 8, and 10.
+設計根拠:
+    docs/architecture_design.md の4章、6章、8章、10章。
 """
 
 from dataclasses import dataclass
@@ -12,13 +12,13 @@ from enum import Enum
 
 
 class Severity(Enum):
-    """Validation issue severity.
+    """入力検証問題の重大度。
 
-    Values:
-        ERROR: Blocking validation error.
-        WARNING: Non-blocking warning.
+    値:
+        ERROR: 処理を禁止する入力エラー。
+        WARNING: 処理を禁止しない警告。
 
-    Requirements:
+    対応要求:
         REQ-VALID-001, REQ-VALID-002, REQ-VALID-003
     """
 
@@ -28,13 +28,13 @@ class Severity(Enum):
 
 @dataclass(frozen=True)
 class AxisRange:
-    """Minimum and maximum travel of one physical axis.
+    """1物理軸の最小・最大可動範囲。
 
-    Args:
-        minimum: Minimum permitted command value.
-        maximum: Maximum permitted command value.
+    引数:
+        minimum: 許容する最小指令値。
+        maximum: 許容する最大指令値。
 
-    Requirements:
+    対応要求:
         REQ-INPUT-005, REQ-VALID-002
     """
 
@@ -44,15 +44,15 @@ class AxisRange:
 
 @dataclass(frozen=True)
 class AxisLimits:
-    """Travel ranges for X, Y, Z, and A axes.
+    """X、Y、Z、A各軸の可動範囲。
 
-    Args:
-        x: X-axis travel range.
-        y: Y-axis travel range.
-        z: Z-axis travel range.
-        a: A-axis travel range.
+    引数:
+        x: X軸可動範囲。
+        y: Y軸可動範囲。
+        z: Z軸可動範囲。
+        a: A軸可動範囲。
 
-    Requirements:
+    対応要求:
         REQ-INPUT-005, REQ-VALID-003
     """
 
@@ -64,24 +64,24 @@ class AxisLimits:
 
 @dataclass(frozen=True)
 class CalibrationSettings:
-    """Validated calibration input conditions and user options.
+    """検証対象となる較正入力条件およびユーザーオプション。
 
-    Args:
-        aoa_min: Minimum AoA in degrees.
-        aoa_max: Maximum AoA in degrees.
-        aos_min: Minimum AoS in degrees.
-        aos_max: Maximum AoS in degrees.
-        aoa_points: Number of AoA calibration points including endpoints.
-        aos_points: Number of AoS calibration points including endpoints.
-        tip_offset_x: Lx, X-direction distance from pitch center to Pitot tip [mm].
-        tip_offset_y: Ly, Y-direction distance from pitch center to Pitot tip [mm].
-        hold_time_s: Hold time at each calibration point [s].
-        feed_rate: GRBL G94 composite feed rate F [unit/min].
-        axis_limits: X/Y/Z/A travel limits.
-        serpentine: Whether to reverse AoS direction on alternating AoA rows.
-        output_comments: Whether generated G-code includes point comments.
+    引数:
+        aoa_min: AoA最小値 [deg]。
+        aoa_max: AoA最大値 [deg]。
+        aos_min: AoS最小値 [deg]。
+        aos_max: AoS最大値 [deg]。
+        aoa_points: 両端を含むAoA較正点数。
+        aos_points: 両端を含むAoS較正点数。
+        tip_offset_x: Lx。ピッチ中心からピトー管先端までのX方向距離 [mm]。
+        tip_offset_y: Ly。ピッチ中心からピトー管先端までのY方向距離 [mm]。
+        hold_time_s: 各較正点での保持時間 [s]。
+        feed_rate: GRBL G94の合成送り速度F [unit/min]。
+        axis_limits: X/Y/Z/A可動範囲。
+        serpentine: AoA行ごとにAoS走査方向を反転するか。
+        output_comments: 生成Gコードへ較正点コメントを出力するか。
 
-    Requirements:
+    対応要求:
         REQ-INPUT-001, REQ-INPUT-002, REQ-INPUT-003, REQ-INPUT-004,
         REQ-INPUT-005, REQ-INPUT-007
     """
@@ -103,14 +103,14 @@ class CalibrationSettings:
 
 @dataclass(frozen=True)
 class CalibrationPoint:
-    """One requested calibration point in scan order.
+    """走査順序上の1つの要求較正点。
 
-    Args:
-        index: Zero-based scan index.
-        aoa: Requested angle of attack [deg].
-        aos: Requested angle of sideslip [deg].
+    引数:
+        index: 0始まりの走査インデックス。
+        aoa: 要求AoA [deg]。
+        aos: 要求AoS [deg]。
 
-    Requirements:
+    対応要求:
         REQ-SCAN-001, REQ-SCAN-002, REQ-SCAN-003
     """
 
@@ -121,15 +121,15 @@ class CalibrationPoint:
 
 @dataclass(frozen=True)
 class AxisCommand:
-    """Command values for simultaneous X/Y/Z/A motion.
+    """X/Y/Z/Aの同時軸指令値。
 
-    Args:
-        x: X translation command [mm].
-        y: Y translation command [mm].
-        z: Actual pitch command [deg].
-        a: Actual roll command [deg].
+    引数:
+        x: X並進指令 [mm]。
+        y: Y並進指令 [mm]。
+        z: 実ピッチ指令 [deg]。
+        a: 実ロール指令 [deg]。
 
-    Requirements:
+    対応要求:
         REQ-TRANS-002, REQ-POS-001, REQ-GCODE-003
     """
 
@@ -141,19 +141,19 @@ class AxisCommand:
 
 @dataclass(frozen=True)
 class PointEvaluation:
-    """Calculated and limit-evaluated command for one calibration point.
+    """1較正点に対する計算結果および可動範囲評価結果。
 
-    Args:
-        point: Requested AoA/AoS point.
-        ideal_command: Command before X/Y saturation.
-        command: Actual command used by simulation and G-code.
-        x_saturated: True when X was clamped to its travel range.
-        y_saturated: True when Y was clamped to its travel range.
-        x_deviation: Absolute X deviation caused by saturation [mm].
-        y_deviation: Absolute Y deviation caused by saturation [mm].
-        rotational_error: True when Z or A exceeds its allowed range.
+    引数:
+        point: 要求AoA/AoS較正点。
+        ideal_command: X/Y飽和前の理想指令。
+        command: シミュレーションおよびGコードで使用する実指令。
+        x_saturated: Xが可動範囲端へ飽和した場合True。
+        y_saturated: Yが可動範囲端へ飽和した場合True。
+        x_deviation: 飽和によるX方向絶対逸脱量 [mm]。
+        y_deviation: 飽和によるY方向絶対逸脱量 [mm]。
+        rotational_error: ZまたはAが許容範囲を超える場合True。
 
-    Requirements:
+    対応要求:
         REQ-LIMIT-001, REQ-LIMIT-002, REQ-LIMIT-003
     """
 
@@ -169,14 +169,14 @@ class PointEvaluation:
 
 @dataclass(frozen=True)
 class ValidationIssue:
-    """Field-level validation issue for non-modal GUI presentation.
+    """GUIへ非モーダル表示するフィールド単位の入力検証問題。
 
-    Args:
-        field: Input-field identifier.
-        severity: Error or warning severity.
-        message: Human-readable Japanese-facing reason.
+    引数:
+        field: 入力フィールド識別子。
+        severity: エラーまたは警告の重大度。
+        message: ユーザーへ表示する日本語の理由。
 
-    Requirements:
+    対応要求:
         REQ-VALID-001, REQ-GUI-005
     """
 
@@ -187,13 +187,13 @@ class ValidationIssue:
 
 @dataclass(frozen=True)
 class ValidationResult:
-    """Result returned by input validation.
+    """入力検証結果。
 
-    Args:
-        issues: All detected field-level validation issues.
-        is_valid: True only when no blocking input error exists.
+    引数:
+        issues: 検出したフィールド単位の問題一覧。
+        is_valid: 処理を禁止する入力エラーがない場合のみTrue。
 
-    Requirements:
+    対応要求:
         REQ-VALID-001, REQ-VALID-002
     """
 
@@ -203,19 +203,19 @@ class ValidationResult:
 
 @dataclass(frozen=True)
 class CalibrationPlan:
-    """Single source of calculated calibration commands for all outputs.
+    """すべての出力で共有する較正軸指令の単一計算結果。
 
-    The same plan is consumed by the map, simulation, and G-code generator so
-    coordinate calculations are not repeated independently.
+    座標計算を各機能で独立に繰り返さないよう、較正点マップ、
+    シミュレーション、Gコード生成で同一の計画を使用する。
 
-    Args:
-        settings: Settings used to create this plan.
-        points: Limit-evaluated points in scan order.
-        max_x_deviation: Maximum X saturation deviation [mm].
-        max_y_deviation: Maximum Y saturation deviation [mm].
-        has_generation_error: True when any Z/A command is out of range.
+    引数:
+        settings: 本計画の生成に使用した設定。
+        points: 走査順序に並んだ可動範囲評価済み較正点。
+        max_x_deviation: X飽和による最大逸脱量 [mm]。
+        max_y_deviation: Y飽和による最大逸脱量 [mm]。
+        has_generation_error: Z/A指令が1点でも範囲外の場合True。
 
-    Requirements:
+    対応要求:
         REQ-LIMIT-002, REQ-LIMIT-003, REQ-SCAN-001, REQ-SIM-001,
         REQ-GCODE-003
     """

@@ -1,111 +1,111 @@
-"""Infrastructure repositories for settings and G-code files."""
+"""設定ファイルおよびGコードファイルの入出力を担当するRepository群。"""
 
 from models import CalibrationSettings
 
 
 class SettingsLoadError(Exception):
-    """Expected, non-fatal failure while loading a settings CSV.
+    """設定CSV読込時に発生する、想定内かつ非致命的な失敗。
 
-    The presentation layer catches this error, keeps the pre-load settings and
-    CalibrationPlan unchanged, and notifies the user non-modally.
+    Presentation層は本例外を捕捉し、読込前の設定とCalibrationPlanを維持したまま、
+    ユーザーへ非モーダルに通知する。
 
-    Requirements:
+    対応要求:
         REQ-GUI-003, REQ-GUI-005
     """
 
 
 class SettingsRepository:
-    """Persist calibration settings as CSV without a schema-version field.
+    """スキーマバージョンを持たないCSVとして較正設定を保存・復元する。
 
-    Requirements:
+    対応要求:
         REQ-GUI-003
     """
 
-    # Requirements: REQ-GUI-003
+    # 対応要求: REQ-GUI-003
     def save(self, path: str, settings: CalibrationSettings) -> None:
-        """Save all input conditions and options to a CSV file.
+        """すべての入力条件とオプションをCSVへ保存する。
 
-        Args:
-            path: Destination path.
-            settings: Settings to serialize.
+        引数:
+            path: 保存先パス。
+            settings: シリアライズ対象の較正設定。
 
-        Raises:
-            OSError: When the file cannot be written.
+        例外:
+            OSError: ファイルへ書き込めない場合。
 
-        Requirements:
+        対応要求:
             REQ-GUI-003
         """
         raise NotImplementedError
 
-    # Requirements: REQ-GUI-003
+    # 対応要求: REQ-GUI-003
     def load(self, path: str) -> CalibrationSettings:
-        """Load settings atomically from CSV.
+        """CSVから設定を一括で読み込む。
 
-        Required fields must all exist, be non-blank, structurally valid, and
-        convertible before a CalibrationSettings object is returned. No partial
-        settings object is exposed on failure.
+        必須項目がすべて存在し、空欄でなく、構造が正しく、型変換可能であることを
+        確認した後にのみCalibrationSettingsを返す。失敗時に部分的な設定を外部へ
+        公開しない。
 
-        Args:
-            path: CSV path to read.
+        引数:
+            path: 読込対象CSVパス。
 
-        Returns:
-            Fully parsed CalibrationSettings.
+        戻り値:
+            全項目の解析に成功したCalibrationSettings。
 
-        Raises:
-            SettingsLoadError: For missing/blank fields, malformed CSV, numeric
-                conversion failures, or file-I/O failures.
+        例外:
+            SettingsLoadError: 必須項目欠損、空欄、CSV構造不正、数値変換失敗、
+                またはファイルI/O失敗の場合。
 
-        Requirements:
+        対応要求:
             REQ-GUI-003
         """
         raise NotImplementedError
 
 
 class InitializationGCodeRepository:
-    """Read initialization G-code text from a user-selected file.
+    """ユーザーが選択したファイルから初期化Gコードを読み込む。
 
-    Requirements:
+    対応要求:
         REQ-INPUT-006
     """
 
-    # Requirements: REQ-INPUT-006
+    # 対応要求: REQ-INPUT-006
     def load(self, path: str) -> str:
-        """Read initialization G-code text.
+        """初期化Gコード文字列を読み込む。
 
-        Args:
-            path: Text-file path.
+        引数:
+            path: テキストファイルのパス。
 
-        Returns:
-            File contents preserving line order.
+        戻り値:
+            行順序を保持したファイル内容。
 
-        Raises:
-            OSError: When the file cannot be read.
+        例外:
+            OSError: ファイルを読み込めない場合。
 
-        Requirements:
+        対応要求:
             REQ-INPUT-006
         """
         raise NotImplementedError
 
 
 class GCodeRepository:
-    """Write generated G-code text to an `.nc` file.
+    """生成済みGコード文字列を`.nc`ファイルへ保存する。
 
-    Requirements:
+    対応要求:
         REQ-GCODE-001
     """
 
-    # Requirements: REQ-GCODE-001
+    # 対応要求: REQ-GCODE-001
     def save(self, path: str, text: str) -> None:
-        """Write generated G-code to the selected path.
+        """生成済みGコードを指定パスへ保存する。
 
-        Args:
-            path: Destination `.nc` path.
-            text: Complete G-code text.
+        引数:
+            path: 保存先`.nc`パス。
+            text: 完全なGコード文字列。
 
-        Raises:
-            OSError: When the file cannot be written.
+        例外:
+            OSError: ファイルへ書き込めない場合。
 
-        Requirements:
+        対応要求:
             REQ-GCODE-001
         """
         raise NotImplementedError

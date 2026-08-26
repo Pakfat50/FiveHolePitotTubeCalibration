@@ -1,26 +1,26 @@
-"""Matplotlib view for the AoA/AoS calibration point map."""
+"""AoA/AoS較正点マップを表示するMatplotlib View。"""
 
 from models import CalibrationPlan
 
 
 class CalibrationMapView:
-    """Render calibration points and visually distinguish limit states.
+    """較正点を描画し、可動範囲の警告・エラー状態を視覚的に区別する。
 
-    Requirements:
+    対応要求:
         REQ-GUI-002, REQ-LIMIT-001, REQ-LIMIT-003
     """
 
-    # Requirements: REQ-GUI-002
+    # 対応要求: REQ-GUI-002
     def render(self, plan: CalibrationPlan):
-        """Render AoS horizontally and AoA vertically from one shared plan.
+        """共有CalibrationPlanから、AoSを横軸、AoAを縦軸として描画する。
 
-        Args:
-            plan: CalibrationPlan whose points include warning/error state.
+        引数:
+            plan: 警告・エラー状態を含むCalibrationPlan。
 
-        Returns:
-            View-specific render result, if any.
+        戻り値:
+            View固有の描画結果。必要がない場合は戻り値を持たなくてもよい。
 
-        Requirements:
+        対応要求:
             REQ-GUI-002, REQ-LIMIT-001, REQ-LIMIT-003
         """
         raise NotImplementedError
