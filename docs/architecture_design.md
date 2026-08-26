@@ -442,6 +442,14 @@ GUI表示、シミュレーション、ファイルI/Oは、必要なユーザ�
 
 本図の矢印は**データの受け渡し方向**を表す。呼出し関係そのものは表さない。
 
+色は以下の意味で使用する。
+
+- **青色**：処理を実行するソフトウェアモジュール／クラス
+- **緑色**：モジュール間で受け渡されるデータ、データモデル、計算結果
+- **橙色**：GUIからの生入力やGコード文字列など、システム境界に近い外部入出力データ
+
+色だけに依存せず、ノード名によってもモジュールとデータを識別できるようにする。
+
 ```mermaid
 flowchart TB
     Raw[GUI Raw Input]
@@ -501,6 +509,14 @@ flowchart TB
     Plan --> GCode
     Settings --> GCode
     GCode --> NC
+
+    classDef module fill:#dbeafe,stroke:#2563eb,stroke-width:1.5px,color:#111827;
+    classDef data fill:#dcfce7,stroke:#16a34a,stroke-width:1.5px,color:#111827;
+    classDef external fill:#ffedd5,stroke:#ea580c,stroke-width:1.5px,color:#111827;
+
+    class Validator,Controller,Service,Scan,Transform,Position,Limit,GUI,Simulation,GCode module;
+    class Settings,Validation,Points,Angles,XY,Cmd,Eval,Plan data;
+    class Raw,NC external;
 ```
 
 ## 6.1 データフローの原則
