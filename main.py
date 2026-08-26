@@ -52,6 +52,10 @@ def configure_ui_theme(root: tk.Tk) -> None:
 def tune_vertical_layout(application: MainWindow) -> None:
     """フルHD環境で各設定グループをゆったり表示する。
 
+    2行構成の装置寸法・移動条件は上下paddingを大きくし、入力欄と枠線の
+    距離を確保する。他の設定グループも入力行間隔を維持しつつ、全体を
+    1360x960内へ収める。
+
     対応要求:
         REQ-GUI-001, REQ-GUI-004
     """
@@ -62,7 +66,13 @@ def tune_vertical_layout(application: MainWindow) -> None:
 
     for widget in walk(application.main_frame):
         if isinstance(widget, ttk.LabelFrame) and str(widget.cget("text")) != "較正点マップ":
-            widget.configure(padding=9, labelanchor="nw")
+            title = str(widget.cget("text"))
+            # 対応要求: REQ-GUI-001
+            # 2行しかないグループは上下方向に余白を追加し、枠線から入力欄を離す。
+            if title in ("装置寸法", "移動条件"):
+                widget.configure(padding=(9, 14), labelanchor="nw")
+            else:
+                widget.configure(padding=(9, 10), labelanchor="nw")
             if widget.winfo_manager() == "pack" and widget.pack_info().get("pady", 0):
                 widget.pack_configure(pady=(0, 9))
         elif isinstance(widget, ttk.Entry) and widget.winfo_manager() == "grid":
