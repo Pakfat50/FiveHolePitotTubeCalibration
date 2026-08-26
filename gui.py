@@ -3,7 +3,7 @@
 import tkinter as tk
 from tkinter import ttk
 
-from models import ValidationResult
+from models import CalibrationPlan, ValidationResult
 from repositories import SettingsLoadError
 
 
@@ -169,7 +169,10 @@ class MainWindow:
         if isinstance(validation, ValidationResult):
             self._update_validation_display(validation)
         plan = self.controller.get_current_plan()
-        if plan is not None:
+        # 通常のCalibrationControllerはCalibrationPlanまたはNoneを返す。
+        # Mock等の契約外オブジェクトを実Planとして描画・数値比較しないことで、
+        # GUI層が依存オブジェクトの不正な戻り値で例外停止することを防ぐ。
+        if isinstance(plan, CalibrationPlan):
             self.map_view.render(plan)
             self._update_plan_status(plan)
         self._update_action_state()
