@@ -24,22 +24,11 @@ class SimulationController:
 
     # 対応要求: REQ-SIM-001, REQ-SIM-002
     def start(self, plan: CalibrationPlan, duration_s: float = 10.0) -> None:
-        """実際のGコード保持時間とは独立した約10秒の再生を開始する。
-
-        引数:
-            plan: 共有較正計画。
-            duration_s: 目標総再生時間。通常は約10秒。
-
-        対応要求:
-            REQ-SIM-001, REQ-SIM-002
-        """
+        """実際のGコード保持時間とは独立した約10秒の再生を開始する。"""
         self.duration_s = duration_s
         self.view.initialize(plan)
         if not plan.points:
             return
-
-        # 走査順を決める責務はControllerに保持し、Viewは与えられた点を描画する。
-        # 実際のG04保持時間は使用せず、指定された総再生時間へ正規化する。
         self.view.start_animation(
             plan=plan,
             duration_s=duration_s,
@@ -48,18 +37,7 @@ class SimulationController:
 
     # 対応要求: REQ-SIM-002
     def _frame_at(self, plan: CalibrationPlan, progress: float) -> PointEvaluation:
-        """正規化進捗に対応する走査点を選択する。
-
-        引数:
-            plan: 走査順序に並んだ較正計画。
-            progress: 0から1までの再生進捗。
-
-        戻り値:
-            再生位置に対応するPointEvaluation。
-
-        対応要求:
-            REQ-SIM-002
-        """
+        """正規化進捗に対応する走査点を選択する。"""
         if not plan.points:
             raise ValueError("較正点が存在しません。")
         normalized = min(1.0, max(0.0, progress))
@@ -90,14 +68,7 @@ class SimulationView:
 
     # 対応要求: REQ-SIM-003
     def initialize(self, plan: CalibrationPlan) -> None:
-        """横面図と正面図、および状態表示領域を初期化する。
-
-        引数:
-            plan: 共有較正計画。
-
-        対応要求:
-            REQ-SIM-003, REQ-SIM-004
-        """
+        """横面図と正面図、および状態表示領域を初期化する。"""
         self._plan = plan
         self.figure = plt.figure(figsize=(11.0, 6.8))
         grid = self.figure.add_gridspec(2, 2, height_ratios=(8, 1.7))
@@ -125,16 +96,7 @@ class SimulationView:
 
     # 対応要求: REQ-SIM-002
     def start_animation(self, plan: CalibrationPlan, duration_s: float, frame_provider) -> None:
-        """指定時間で全較正点を走査するMatplotlibアニメーションを開始する。
-
-        引数:
-            plan: 走査順序を保持した較正計画。
-            duration_s: 全体再生時間。
-            frame_provider: 正規化進捗からPointEvaluationを返す関数。
-
-        対応要求:
-            REQ-SIM-002, REQ-SIM-003, REQ-SIM-004
-        """
+        """指定時間で全較正点を走査するMatplotlibアニメーションを開始する。"""
         frame_count = max(2, round(duration_s * 1000.0 / self.FRAME_INTERVAL_MS) + 1)
 
         def update(frame_index: int):
@@ -158,15 +120,7 @@ class SimulationView:
 
     # 対応要求: REQ-SIM-003, REQ-SIM-004
     def render_frame(self, point: PointEvaluation, progress: float) -> None:
-        """現在点の機構姿勢と必要な状態情報を描画する。
-
-        引数:
-            point: 現在の評価済み較正点。
-            progress: 正規化された再生進捗。
-
-        対応要求:
-            REQ-SIM-003, REQ-SIM-004
-        """
+        """現在点の機構姿勢と必要な状態情報を描画する。"""
         self.current_point_index = point.point.index
         state = "ZA範囲外" if point.rotational_error else (
             "XY飽和" if point.x_saturated or point.y_saturated else "正常"
@@ -201,11 +155,18 @@ class SimulationView:
         axes.grid(True, alpha=0.25)
         axes.set_aspect("equal", adjustable="box")
 
-        settings = self._plan.settings if self._plan is not None else None
-        lx = float(settings.tip_offset_x) if settings is not None else 100.0
-        ly = float(settings.tip_offset_y) if settings is not None else 0.0
-        theta = math.radians(point.command.z)
+        # 通常はCalibrationPlan.settingsを使用する。単体テストのMock等で設定値を
+        # 数値化できない場合だけ既定寸法へフォールバックし、Viewを停止させない。
+        lx, ly = 100.0, 0.0
+        settings = getattr(self._plan, "settings", None)
+        if settings is not None:
+            try:
+                lx = float(settings.tip_offset_x)
+                ly = float(settings.tip_offset_y)
+            except (TypeError, ValueError):
+                pass
 
+        theta = math.radians(point.command.z)
         pivot_x = point.command.x
         pivot_y = point.command.y
         tip_x = pivot_x + lx * math.cos(theta) - ly * math.sin(theta)
@@ -226,8 +187,12 @@ class SimulationView:
             ymax = ymin + 2 * margin
         axes.set_xlim(xmin, xmax)
         axes.set_ylim(ymin, ymax)
-        axes.text(0.02, 0.96, f"Z={point.command.z:.2f}°\nX={pivot_x:.2f} mm\nY={pivot_y:.2f} mm",
-                  transform=axes.transAxes, va="top")
+        axes.text(
+            0.02, 0.96,
+            f"Z={point.command.z:.2f}°\nX={pivot_x:.2f} mm\nY={pivot_y:.2f} mm",
+            transform=axes.transAxes,
+            va="top",
+        )
 
     # 対応要求: REQ-SIM-003
     def _draw_front_view(self, point: PointEvaluation) -> None:
