@@ -56,15 +56,14 @@ class AngleTransformer:
             phi: 基本ロール解 [deg]。
 
         戻り値:
-            等価な``(z, a)``候補解。
+            等価な``(z, a)``候補解。先頭要素はREQ-TRANS-002の基本解。
 
         対応要求:
             REQ-TRANS-002
         """
         # tan(-theta)=-tan(theta)であり、同時にrollを180 deg反転すると
         # cos/sinの符号も反転するため、結果のu,vは元の基本解と同一になる。
-        # +180と-180は同一姿勢の異なる角度表現なので両方を候補に残し、
-        # 後段で可動範囲・連続性に最も適したものを選択する。
+        # 基本解を先頭に保持し、+180/-180の別表現を後続候補として扱う。
         return [
             (theta, phi),
             (-theta, phi + 180.0),
@@ -76,7 +75,7 @@ class AngleTransformer:
         """可動範囲、連続性、移動量、|roll|の優先順位で候補を選択する。
 
         引数:
-            candidates: 等価な角度候補。
+            candidates: 等価な角度候補。先頭を基本解とする。
             previous: 前回選択した指令。先頭点ではNone。
             limits: 許容Z/A範囲。
 
@@ -92,14 +91,13 @@ class AngleTransformer:
         expanded: list[tuple[float, float, int]] = []
         for order, (z, a) in enumerate(candidates):
             # rollは360 deg周期なので、可動範囲内に入り得る代表的な等価角も評価する。
-            # 前点がある場合は、まず前点に最も近いunwrap値を候補へ追加する。
+            # 前点がある場合は、前点に最も近いunwrap値も候補へ追加する。
             a_values = [a + 360.0 * k for k in range(-2, 3)]
             if previous is not None:
                 a_values.append(self._unwrap_angle(a, previous[1]))
 
             seen: set[float] = set()
             for candidate_a in a_values:
-                # 浮動小数の同一値重複を避けるため丸め値をキーにする。
                 key = round(candidate_a, 12)
                 if key in seen:
                     continue
@@ -109,22 +107,20 @@ class AngleTransformer:
         def score(item: tuple[float, float, int]) -> tuple[float, ...]:
             z, a, order = item
             in_range = limits.z.minimum <= z <= limits.z.maximum and limits.a.minimum <= a <= limits.a.maximum
-
-            # 優先順位1: Z/Aが可動範囲内の候補を最優先する。
             range_rank = 0.0 if in_range else 1.0
 
             if previous is None:
-                # 先頭点では連続性・移動量を評価できないため、仕様の最終優先順位である
-                # |roll|を小さくする。完全同点では元の候補順を維持して決定論的にする。
-                return (range_rank, abs(a), float(order))
+                # 先頭点には「前点からの連続性・移動量」が定義できない。
+                # そのため可動範囲内であることを最優先した後、REQ-TRANS-002で定義した
+                # 基本解（候補順0）を維持する。これにより象限情報を基本式どおり保持する。
+                # 同じ姿勢・同じ候補順の±360表現では|roll|が小さいものを採用する。
+                return (range_rank, float(order), abs(a))
 
-            # 優先順位2/3: unwrap済みの候補について、前点からの角度変化を最小化する。
-            # Z/A総移動量をL1距離で評価することで、両軸の不要な移動を抑える。
+            # 前点がある場合はunwrap済み候補を含め、Z/A総移動量をL1距離で評価する。
+            # これが連続性の確保と不要移動の最小化を同時に表す。
             dz = abs(z - previous[0])
             da = abs(a - previous[1])
             total_motion = dz + da
-
-            # 優先順位4: 総移動量まで同一の場合は|roll|が小さい候補を選ぶ。
             return (range_rank, total_motion, abs(a), float(order))
 
         selected = min(expanded, key=score)
@@ -148,8 +144,7 @@ class AngleTransformer:
             return angle
 
         # angle + 360*k のうちpreviousとの差が最小となる整数kを選ぶ。
-        # roundだけでは厳密な0.5で偶数丸めになるため、近傍3候補を直接比較して
-        # 境界条件でも「前点に最も近い」という物理的な意味を優先する。
+        # 丸め境界の影響を避けるため、推定中心の前後も直接比較する。
         center = int(round((previous - angle) / 360.0))
         equivalents = [angle + 360.0 * k for k in (center - 1, center, center + 1)]
         return min(equivalents, key=lambda value: abs(value - previous))
