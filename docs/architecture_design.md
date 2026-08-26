@@ -32,12 +32,9 @@
 | UC-05 | シミュレーションする | 有効な較正計画を約10秒で可視化する |
 | UC-06 | Gコードを生成する | 有効な較正計画から `.nc` Gコードを生成・保存する |
 
-## 2.2 Mermaid
-
 ```mermaid
 flowchart LR
     User([ユーザー])
-
     subgraph System[5孔ピトー管較正Gコード生成GUI]
         UC01([UC-01<br/>較正条件を入力・更新する])
         UC02([UC-02<br/>初期化Gコードを読み込む])
@@ -48,14 +45,12 @@ flowchart LR
         Validate([入力値を検証する])
         Recalc([較正計画を再計算する])
     end
-
     User --> UC01
     User --> UC02
     User --> UC03
     User --> UC04
     User --> UC05
     User --> UC06
-
     UC01 -. include .-> Validate
     UC01 -. include .-> Recalc
     UC04 -. include .-> Validate
@@ -85,32 +80,27 @@ sequenceDiagram
 
     User->>MainWindow: 入力フィールドを変更
     MainWindow->>Controller: on_settings_changed(raw_input)
-    Controller->>Validator: parse_and_validate(raw_input)
+    Controller->>Validator: validate(settings)
     Validator-->>Controller: ValidationResult
-
     alt 入力エラーあり
-        Controller->>MainWindow: show_validation_issues()
-        Controller->>MainWindow: disable_simulation_and_gcode()
+        Controller-->>MainWindow: ValidationResult
+        MainWindow->>MainWindow: エラー表示・生成操作無効化
     else 入力有効
         Controller->>Service: build_plan(settings)
         Service->>Scan: generate_points(settings)
         Scan-->>Service: CalibrationPoint[]
         loop 各較正点
-            Service->>Transform: transform(point, previous_axis)
-            Transform-->>Service: AxisAngles
-            Service->>Position: compensate(theta, geometry)
+            Service->>Transform: transform(aoa, aos, previous, limits)
+            Transform-->>Service: Z, A
+            Service->>Position: calculate_xy(Z, Lx, Ly)
             Position-->>Service: X, Y
             Service->>Limit: evaluate(command, limits)
             Limit-->>Service: PointEvaluation
         end
         Service-->>Controller: CalibrationPlan
-        Controller->>Map: render(plan)
-        Controller->>MainWindow: show_warnings_errors(plan)
-        alt Z/A範囲エラーあり
-            Controller->>MainWindow: disable_simulation_and_gcode()
-        else 生成可能
-            Controller->>MainWindow: enable_simulation_and_gcode()
-        end
+        Controller-->>MainWindow: CalibrationPlan / ValidationResult
+        MainWindow->>Map: render(plan)
+        MainWindow->>MainWindow: 警告・ボタン状態更新
     end
 ```
 
@@ -121,7 +111,6 @@ sequenceDiagram
     actor User as ユーザー
     participant MainWindow
     participant InitRepo as InitializationGCodeRepository
-
     User->>MainWindow: 初期化Gコード読込
     MainWindow->>MainWindow: ファイル選択ダイアログ
     User-->>MainWindow: ファイル選択
@@ -142,7 +131,6 @@ sequenceDiagram
     participant MainWindow
     participant Controller as CalibrationController
     participant SettingsRepo as SettingsRepository
-
     User->>MainWindow: 設定保存
     MainWindow->>MainWindow: 保存先ダイアログ
     User-->>MainWindow: 保存先選択
@@ -163,22 +151,21 @@ sequenceDiagram
     participant Controller as CalibrationController
     participant Validator as InputValidator
     participant Service as CalibrationService
-
     User->>MainWindow: 設定読込
     MainWindow->>MainWindow: ファイル選択ダイアログ
     User-->>MainWindow: 設定ファイル選択
     MainWindow->>SettingsRepo: load(path)
     SettingsRepo-->>MainWindow: CalibrationSettings / Error
     alt 読込成功
-        MainWindow->>MainWindow: 入力フィールドへ反映
         MainWindow->>Controller: apply_settings(settings)
         Controller->>Validator: validate(settings)
+        Validator-->>Controller: ValidationResult
         alt 有効
             Controller->>Service: build_plan(settings)
             Service-->>Controller: CalibrationPlan
-            Controller->>MainWindow: 更新結果表示
+            Controller-->>MainWindow: 更新結果
         else 無効
-            Controller->>MainWindow: 入力エラー表示
+            Controller-->>MainWindow: ValidationResult
         end
     else 読込失敗
         MainWindow->>MainWindow: 非モーダルエラー表示
@@ -194,20 +181,15 @@ sequenceDiagram
     participant Controller as CalibrationController
     participant SimController as SimulationController
     participant SimView as SimulationView
-
     User->>MainWindow: シミュレーション
     MainWindow->>Controller: get_current_plan()
     Controller-->>MainWindow: CalibrationPlan
-    alt 生成禁止エラーあり
-        MainWindow->>MainWindow: ボタン無効状態を維持
-    else 実行可能
-        MainWindow->>SimController: start(plan, duration=10s)
-        SimController->>SimView: initialize(plan)
-        loop フレーム更新
-            SimController->>SimView: render_frame(point, progress)
-        end
-        SimController->>SimView: show_final_state()
+    MainWindow->>SimController: start(plan, duration=10s)
+    SimController->>SimView: initialize(plan)
+    loop フレーム更新
+        SimController->>SimView: render_frame(point, progress)
     end
+    SimController->>SimView: show_final_state()
 ```
 
 ## 3.6 UC-06 Gコードを生成する
@@ -219,21 +201,16 @@ sequenceDiagram
     participant Controller as CalibrationController
     participant Generator as GCodeGenerator
     participant GCodeRepo as GCodeRepository
-
     User->>MainWindow: Gコード生成
     MainWindow->>Controller: get_current_plan()
     Controller-->>MainWindow: CalibrationPlan
-    alt 生成禁止エラーあり
-        MainWindow->>MainWindow: ボタン無効状態を維持
-    else 生成可能
-        MainWindow->>MainWindow: 保存先ダイアログ
-        User-->>MainWindow: .nc保存先
-        MainWindow->>Generator: generate(plan, settings, initialization_text)
-        Generator-->>MainWindow: gcode_text
-        MainWindow->>GCodeRepo: save(path, gcode_text)
-        GCodeRepo-->>MainWindow: success / IOError
-        MainWindow->>MainWindow: ステータス表示
-    end
+    MainWindow->>MainWindow: 保存先ダイアログ
+    User-->>MainWindow: .nc保存先
+    MainWindow->>Generator: generate(plan, settings, initialization_text)
+    Generator-->>MainWindow: gcode_text
+    MainWindow->>GCodeRepo: save(path, gcode_text)
+    GCodeRepo-->>MainWindow: success / IOError
+    MainWindow->>MainWindow: ステータス表示
 ```
 
 ---
@@ -257,32 +234,27 @@ classDiagram
         +bool serpentine
         +bool output_comments
     }
-
     class AxisRange {
         +float minimum
         +float maximum
     }
-
     class AxisLimits {
         +AxisRange x
         +AxisRange y
         +AxisRange z
         +AxisRange a
     }
-
     class CalibrationPoint {
         +int index
         +float aoa
         +float aos
     }
-
     class AxisCommand {
         +float x
         +float y
         +float z
         +float a
     }
-
     class PointEvaluation {
         +CalibrationPoint point
         +AxisCommand ideal_command
@@ -293,18 +265,15 @@ classDiagram
         +float y_deviation
         +bool rotational_error
     }
-
     class ValidationIssue {
         +str field
         +Severity severity
         +str message
     }
-
     class ValidationResult {
         +list issues
         +bool is_valid
     }
-
     class CalibrationPlan {
         +CalibrationSettings settings
         +list points
@@ -312,42 +281,34 @@ classDiagram
         +float max_y_deviation
         +bool has_generation_error
     }
-
     class Severity {
         <<enumeration>>
         ERROR
         WARNING
     }
-
     class InputValidator {
         +validate(settings) ValidationResult
     }
-
     class ScanPlanner {
         +generate_points(settings) list
     }
-
     class AngleTransformer {
         +transform(aoa, aos, previous, limits) tuple
         -generate_equivalent_solutions(theta, phi) list
         -select_solution(candidates, previous, limits) tuple
         -unwrap_angle(angle, previous) float
     }
-
     class PositionCompensator {
         +calculate_xy(theta, lx, ly) tuple
     }
-
     class LimitEvaluator {
         +evaluate(command, limits) PointEvaluation
         -saturate_translation(value, range) tuple
         -rotation_in_range(value, range) bool
     }
-
     class CalibrationService {
         +build_plan(settings) CalibrationPlan
     }
-
     class CalibrationController {
         +on_settings_changed(raw_input)
         +apply_settings(settings)
@@ -355,26 +316,21 @@ classDiagram
         +get_current_plan() CalibrationPlan
         +can_generate() bool
     }
-
     class SettingsRepository {
         +save(path, settings)
         +load(path) CalibrationSettings
     }
-
     class InitializationGCodeRepository {
         +load(path) str
     }
-
     class GCodeGenerator {
         +generate(plan, settings, initialization_text) str
         -format_header(initialization_text) list
         -format_point(point_eval, settings) list
     }
-
     class GCodeRepository {
         +save(path, text)
     }
-
     class MainWindow {
         +run()
         -build_widgets()
@@ -388,16 +344,13 @@ classDiagram
         -on_simulate()
         -on_generate_gcode()
     }
-
     class CalibrationMapView {
         +render(plan)
     }
-
     class SimulationController {
         +start(plan, duration_s)
         -frame_at(progress)
     }
-
     class SimulationView {
         +initialize(plan)
         +render_frame(point, progress)
@@ -411,7 +364,6 @@ classDiagram
     PointEvaluation *-- AxisCommand
     ValidationResult *-- ValidationIssue
     ValidationIssue --> Severity
-
     CalibrationService --> ScanPlanner
     CalibrationService --> AngleTransformer
     CalibrationService --> PositionCompensator
@@ -430,38 +382,29 @@ classDiagram
 
 ---
 
-# 5. ソフトウェア内部ブロック図
+# 5. コールツリー図（制御フロー）
+
+本図の矢印は**呼出し方向のみ**を表す。データの入出力方向は表さない。
 
 ```mermaid
 flowchart TB
-    subgraph Presentation[Presentation Layer]
-        GUI[MainWindow<br/>Tkinter GUI]
-        Map[CalibrationMapView<br/>Matplotlib]
-        Sim[SimulationController / SimulationView<br/>Matplotlib]
-    end
+    Main[MainWindow]
+    Controller[CalibrationController]
+    Validator[InputValidator]
+    Service[CalibrationService]
+    Scan[ScanPlanner]
+    Transform[AngleTransformer]
+    Position[PositionCompensator]
+    Limit[LimitEvaluator]
+    Map[CalibrationMapView]
+    SimCtrl[SimulationController]
+    SimView[SimulationView]
+    SettingsRepo[SettingsRepository]
+    InitRepo[InitializationGCodeRepository]
+    Generator[GCodeGenerator]
+    GCodeRepo[GCodeRepository]
 
-    subgraph Application[Application Layer]
-        Controller[CalibrationController]
-        Service[CalibrationService]
-    end
-
-    subgraph Core[Core / Domain Layer]
-        Validator[InputValidator]
-        Scan[ScanPlanner]
-        Transform[AngleTransformer]
-        Position[PositionCompensator]
-        Limit[LimitEvaluator]
-        Models[Domain Models]
-    end
-
-    subgraph Infrastructure[Infrastructure Layer]
-        SettingsIO[SettingsRepository]
-        InitIO[InitializationGCodeRepository]
-        GGen[GCodeGenerator]
-        GIO[GCodeRepository]
-    end
-
-    GUI -->|raw settings / commands| Controller
+    Main --> Controller
     Controller --> Validator
     Controller --> Service
     Service --> Scan
@@ -469,37 +412,115 @@ flowchart TB
     Service --> Position
     Service --> Limit
 
-    Validator --> Models
-    Scan --> Models
-    Transform --> Models
-    Position --> Models
-    Limit --> Models
-    Service --> Models
+    Main --> Map
+    Main --> SimCtrl
+    SimCtrl --> SimView
 
-    Controller -->|plan / issues / enabled state| GUI
-    GUI --> Map
-    GUI --> Sim
-    GUI --> SettingsIO
-    GUI --> InitIO
-    GUI --> GGen
-    GGen --> Models
-    GUI --> GIO
+    Main --> SettingsRepo
+    Main --> InitRepo
+    Main --> Generator
+    Main --> GCodeRepo
 ```
 
-## 5.1 主データフロー
+## 5.1 主な制御フロー
 
-1. ユーザー入力を `MainWindow` が収集する。
-2. `CalibrationController` がGUI入力を `CalibrationSettings` へ変換し、`InputValidator` で検証する。
-3. 有効な場合のみ `CalibrationService` が `CalibrationPlan` を生成する。
-4. `CalibrationService` は `ScanPlanner` → `AngleTransformer` → `PositionCompensator` → `LimitEvaluator` の順に処理する。
-5. `CalibrationPlan` はGUIの較正点マップ、Summary、シミュレーション、Gコード生成で共通利用する。
-6. Gコード生成時に再度独立した別計算を行わず、GUI表示・シミュレーションと同じ `CalibrationPlan` を使用する。
+通常の入力変更時は次の順で呼び出す。
 
-この「単一計算結果の共有」により、GUI表示と出力Gコードの不一致を防止する。
+`MainWindow → CalibrationController → InputValidator`
+
+入力が有効な場合のみ、続いて
+
+`CalibrationController → CalibrationService → ScanPlanner / AngleTransformer / PositionCompensator / LimitEvaluator`
+
+を呼び出す。
+
+GUI表示、シミュレーション、ファイルI/Oは、必要なユーザー操作が発生した時点で `MainWindow` から個別に起動する。
 
 ---
 
-# 6. モジュールリスト
+# 6. データフロー図
+
+本図の矢印は**データの受け渡し方向**を表す。呼出し関係そのものは表さない。
+
+```mermaid
+flowchart TB
+    Raw[GUI Raw Input]
+    Settings[CalibrationSettings]
+    Validator[InputValidator]
+    Validation[ValidationResult]
+    Controller[CalibrationController]
+    Service[CalibrationService]
+    Scan[ScanPlanner]
+    Points[CalibrationPoint list]
+    Transform[AngleTransformer]
+    Angles[Z / A]
+    Position[PositionCompensator]
+    XY[X / Y]
+    Cmd[AxisCommand]
+    Limit[LimitEvaluator]
+    Eval[PointEvaluation list]
+    Plan[CalibrationPlan]
+    GUI[MainWindow / CalibrationMapView]
+    Simulation[SimulationController / View]
+    GCode[GCodeGenerator]
+    NC[G-code text]
+
+    Raw --> Controller
+    Controller --> Settings
+
+    Settings --> Validator
+    Validator --> Validation
+    Validation --> Controller
+
+    Settings --> Service
+    Settings --> Scan
+    Scan --> Points
+    Points --> Service
+
+    Points --> Transform
+    Settings --> Transform
+    Transform --> Angles
+    Angles --> Service
+
+    Angles --> Position
+    Settings --> Position
+    Position --> XY
+    XY --> Service
+
+    XY --> Cmd
+    Angles --> Cmd
+    Cmd --> Limit
+    Settings --> Limit
+    Limit --> Eval
+    Eval --> Service
+
+    Service --> Plan
+    Plan --> Controller
+    Plan --> GUI
+    Plan --> Simulation
+    Plan --> GCode
+    Settings --> GCode
+    GCode --> NC
+```
+
+## 6.1 データフローの原則
+
+1. `CalibrationController` はGUI入力を `CalibrationSettings` として保持する。
+2. `InputValidator` には `CalibrationSettings` を入力し、`ValidationResult` を返す。したがって、ControllerとValidator間のデータフローは往復する。
+3. 入力が有効な場合のみ `CalibrationService` が `CalibrationPlan` を構築する。
+4. `ScanPlanner` は `CalibrationSettings` から `CalibrationPoint[]` を生成する。
+5. `AngleTransformer` は各 `CalibrationPoint` と設定・前回角度からZ/Aを算出する。
+6. `PositionCompensator` はZ角とLx/LyからX/Yを算出する。
+7. Z/AとX/Yをまとめた `AxisCommand` を `LimitEvaluator` が評価し、`PointEvaluation` を返す。
+8. 全点の `PointEvaluation` を `CalibrationService` が集約して `CalibrationPlan` を生成する。
+9. `CalibrationPlan` は較正点マップ、シミュレーション、Gコード生成の共通入力とする。
+10. Gコード生成時に座標計算をやり直さず、同一の `CalibrationPlan` を使用する。
+
+この「単一計算結果の共有」により、GUI表示・シミュレーション・出力Gコードの不一致を防止する。
+
+---
+
+# 7. モジュールリスト
 
 | Pythonモジュール名 | 日本語での意味 | 主なクラス/関数 | 機能概要 |
 |---|---|---|---|
@@ -520,7 +541,7 @@ flowchart TB
 
 ---
 
-# 7. データモデル図
+# 8. データモデル図
 
 ```mermaid
 classDiagram
@@ -533,27 +554,23 @@ classDiagram
         serpentine
         output_comments
     }
-
     class AxisLimits {
         X_range
         Y_range
         Z_range
         A_range
     }
-
     class CalibrationPoint {
         index
         AoA
         AoS
     }
-
     class AxisCommand {
         X
         Y
         Z
         A
     }
-
     class PointEvaluation {
         ideal_command
         command
@@ -561,19 +578,16 @@ classDiagram
         XY_deviation
         ZA_error
     }
-
     class CalibrationPlan {
         settings
         point_evaluations
         max_deviations
         generation_error
     }
-
     class ValidationResult {
         issues
         is_valid
     }
-
     CalibrationSettings *-- AxisLimits
     CalibrationPlan *-- CalibrationSettings
     CalibrationPlan *-- PointEvaluation
@@ -581,7 +595,7 @@ classDiagram
     PointEvaluation *-- AxisCommand : ideal / actual
 ```
 
-## 7.1 データ不変条件
+## 8.1 データ不変条件
 
 - `CalibrationPlan` は、入力検証に成功した `CalibrationSettings` からのみ生成する。
 - `PointEvaluation.ideal_command` は飽和前の計算結果を保持する。
@@ -592,34 +606,30 @@ classDiagram
 
 ---
 
-# 8. 状態遷移図
+# 9. 状態遷移図
 
 ```mermaid
 stateDiagram-v2
     [*] --> InputInvalid
-
     InputInvalid --> Recalculating: 入力が有効になる
     Recalculating --> GenerationBlocked: Z/A範囲超過あり
     Recalculating --> ReadyWithWarning: X/Y飽和あり かつ Z/A正常
     Recalculating --> Ready: 警告・生成禁止なし
     Recalculating --> InputInvalid: 入力不正
-
     Ready --> Recalculating: 入力変更
     ReadyWithWarning --> Recalculating: 入力変更
     GenerationBlocked --> Recalculating: 入力変更
-
     Ready --> Simulating: シミュレーション
     ReadyWithWarning --> Simulating: シミュレーション
     Simulating --> Ready: 再生終了/停止 かつ 警告なし
     Simulating --> ReadyWithWarning: 再生終了/停止 かつ X/Y警告あり
-
     Ready --> SavingGCode: Gコード生成
     ReadyWithWarning --> SavingGCode: Gコード生成
     SavingGCode --> Ready: 保存終了 かつ 警告なし
     SavingGCode --> ReadyWithWarning: 保存終了 かつ X/Y警告あり
 ```
 
-## 8.1 状態別GUI動作
+## 9.1 状態別GUI動作
 
 | 状態 | 較正点マップ | シミュレーション | Gコード生成 | 表示 |
 |---|---|---|---|---|
@@ -633,9 +643,9 @@ stateDiagram-v2
 
 ---
 
-# 9. 要求仕様ID－クラス/メソッド トレーサビリティマトリックス
+# 10. 要求仕様ID－クラス/メソッド トレーサビリティマトリックス
 
-## 9.1 入力・検証
+## 10.1 入力・検証
 
 | 要求ID | 実装クラス/メソッド | 備考 |
 |---|---|---|
@@ -650,7 +660,7 @@ stateDiagram-v2
 | REQ-VALID-002 | `InputValidator.validate`, `CalibrationController.can_generate` | 入力整合性 |
 | REQ-VALID-003 | `LimitEvaluator.evaluate`, `CalibrationController.can_generate`, `MainWindow._update_action_state` | X/Y警告、Z/A禁止 |
 
-## 9.2 座標変換・位置補正・制限
+## 10.2 座標変換・位置補正・制限
 
 | 要求ID | 実装クラス/メソッド | 備考 |
 |---|---|---|
@@ -664,7 +674,7 @@ stateDiagram-v2
 | REQ-LIMIT-002 | `LimitEvaluator.evaluate`, `CalibrationService.build_plan`, `MainWindow._update_validation_display` | 最大X/Y偏差 |
 | REQ-LIMIT-003 | `LimitEvaluator.evaluate`, `LimitEvaluator._rotation_in_range`, `CalibrationController.can_generate` | Z/A生成禁止 |
 
-## 9.3 較正点走査
+## 10.3 較正点走査
 
 | 要求ID | 実装クラス/メソッド | 備考 |
 |---|---|---|
@@ -672,7 +682,7 @@ stateDiagram-v2
 | REQ-SCAN-002 | `ScanPlanner.generate_points` | AoA外側、AoS内側 |
 | REQ-SCAN-003 | `ScanPlanner.generate_points` | 蛇行 |
 
-## 9.4 Gコード
+## 10.4 Gコード
 
 | 要求ID | 実装クラス/メソッド | 備考 |
 |---|---|---|
@@ -682,7 +692,7 @@ stateDiagram-v2
 | REQ-GCODE-004 | `GCodeGenerator._format_point` | 任意コメント |
 | REQ-GCODE-005 | `GCodeGenerator.generate` | 終了時復帰指令なし |
 
-## 9.5 シミュレーション
+## 10.5 シミュレーション
 
 | 要求ID | 実装クラス/メソッド | 備考 |
 |---|---|---|
@@ -691,7 +701,7 @@ stateDiagram-v2
 | REQ-SIM-003 | `SimulationView.initialize`, `SimulationView.render_frame` | 横面図・正面図 |
 | REQ-SIM-004 | `SimulationView.render_frame` | 点番号、AoA/AoS、X/Y/Z/A、状態、進捗 |
 
-## 9.6 GUI
+## 10.6 GUI
 
 | 要求ID | 実装クラス/メソッド | 備考 |
 |---|---|---|
@@ -703,7 +713,7 @@ stateDiagram-v2
 
 ---
 
-# 10. メソッド単位の責務定義
+# 11. メソッド単位の責務定義
 
 後続のテスト設計で試験対象を明確にするため、主要メソッドの責務境界を以下に固定する。
 
@@ -729,7 +739,7 @@ stateDiagram-v2
 
 ---
 
-# 11. 実装上の設計ルール
+# 12. 実装上の設計ルール
 
 1. Core層の関数・メソッドはTkinter、Matplotlib、ファイルI/Oへ依存させない。
 2. `CalibrationService.build_plan()` はGUI状態を参照せず、引数だけで同じ結果を返す決定的処理とする。
@@ -746,7 +756,7 @@ stateDiagram-v2
 
 ---
 
-# 12. Phase 2への入力
+# 13. Phase 2への入力
 
 次段階の単体テスト設計では、本書の「メソッド単位の責務定義」を試験単位とし、以下を作成する。
 
