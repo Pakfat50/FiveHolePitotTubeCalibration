@@ -38,7 +38,7 @@
 ## 3. 共通テスト方針
 
 1. 単体テストフレームワークはPython標準ライブラリ `unittest` を使用する。
-2. 数値比較の許容誤差は **10^-6 %FS** とする。FSの具体的な取り方は、対象量ごとにテストコード実装前に一意に定義する。
+2. 数値計算結果の比較は要求仕様に従い、理論値に対する**絶対誤差0.001以内**を合格基準とする。角度はdeg、位置はmmを単位とする。
 3. Core層はGUIを起動せずに試験する。
 4. ファイルI/Oは `tempfile` を用いて一時ファイル・一時ディレクトリ上で試験する。
 5. GUI層の単体テストでは計算ロジックを再試験せず、イベント伝播、状態表示、ボタン有効/無効、非モーダル通知を中心に確認する。
@@ -53,23 +53,9 @@
 
 ---
 
-## 4. 確定済みテスト条件
+# 4. 単体テスト仕様
 
-| ID | 項目 | 確定内容 |
-|---|---|---|
-| TBD-T01 | 浮動小数点比較許容誤差 | **10^-6 %FS** |
-| TBD-T02 | Gコード数値の小数桁 | **小数点以下6桁** |
-| TBD-T03 | 距離 Lx/Ly の有効範囲 | **正の実数のみ（Lx > 0, Ly > 0）**。NaN/Infも不正 |
-| TBD-T04 | 保持時間の下限 | **0.1 s以上**。0秒および0.1秒未満は不正 |
-| TBD-T05 | Feed rateの下限 | **1 unit/min以上**。1未満は不正 |
-| TBD-T06 | 設定ファイル形式 | **CSV形式** |
-| TBD-T07 | 設定ファイルスキーマ | **スキーマバージョン番号は設けない**。CSVから必須値を取得・変換できない場合は安全に読込失敗とし、部分適用せずユーザーへ通知する |
-
----
-
-# 5. 単体テスト仕様
-
-## 5.1 `validation.py` — `InputValidator.validate`
+## 4.1 `validation.py` — `InputValidator.validate`
 
 | テストID | 要求ID | テスト内容 | 入力/条件 | 期待結果 |
 |---|---|---|---|---|
@@ -96,7 +82,7 @@
 | TEST-UNIT-115 | REQ-INPUT-004, REQ-VALID-002 | Feed rate下限正常 | `feed_rate=1` | Feed rateエラーなし |
 | TEST-UNIT-116 | REQ-INPUT-004, REQ-VALID-002 | Feed rate下限未満 | `feed_rate<1` | Feed rateエラー |
 
-## 5.2 `scan.py` — `ScanPlanner.generate_points`
+## 4.2 `scan.py` — `ScanPlanner.generate_points`
 
 | テストID | 要求ID | テスト内容 | 入力/条件 | 期待結果 |
 |---|---|---|---|---|
@@ -109,15 +95,15 @@
 | TEST-UNIT-023 | REQ-SCAN-001 | 点数総数 | `N_aoa`, `N_aos` | `N_aoa*N_aos`点 |
 | TEST-UNIT-024 | REQ-SCAN-001, REQ-SCAN-002 | CalibrationPoint index連番 | 任意有効設定 | indexが走査順に一意かつ連番 |
 
-## 5.3 `transform.py` — `AngleTransformer`
+## 4.3 `transform.py` — `AngleTransformer`
 
 | テストID | 要求ID | テスト内容 | 入力/条件 | 期待結果 |
 |---|---|---|---|---|
 | TEST-UNIT-025 | REQ-TRANS-001, REQ-TRANS-002 | 原点変換 | AoA=0, AoS=0 | Z=0, A=0を決定論的に返す |
-| TEST-UNIT-026 | REQ-TRANS-002 | AoA正、AoS=0 | AoA=10°, AoS=0 | Z≈10°, A≈0° |
-| TEST-UNIT-027 | REQ-TRANS-002 | AoA負、AoS=0 | AoA=-10°, AoS=0 | 指定変換式に対応する等価Z/Aを返す |
-| TEST-UNIT-028 | REQ-TRANS-002 | AoA=0、AoS正 | AoA=0, AoS=10° | 基本式に一致するZ/A |
-| TEST-UNIT-029 | REQ-TRANS-002 | AoA/AoS両方正 | 代表値 | tan式、atan2式の期待値に10^-6 %FS以内で一致 |
+| TEST-UNIT-026 | REQ-TRANS-002 | AoA正、AoS=0 | AoA=10°, AoS=0 | Z=10°, A=0°に絶対誤差0.001 deg以内で一致 |
+| TEST-UNIT-027 | REQ-TRANS-002 | AoA負、AoS=0 | AoA=-10°, AoS=0 | 指定変換式に対応する等価Z/Aを絶対誤差0.001 deg以内で返す |
+| TEST-UNIT-028 | REQ-TRANS-002 | AoA=0、AoS正 | AoA=0, AoS=10° | 基本式に絶対誤差0.001 deg以内で一致 |
+| TEST-UNIT-029 | REQ-TRANS-002 | AoA/AoS両方正 | 代表値 | tan式、atan2式の期待値に絶対誤差0.001 deg以内で一致 |
 | TEST-UNIT-030 | REQ-TRANS-002 | 象限II | u<0, v>0となる条件 | atan2の象限が正しい |
 | TEST-UNIT-031 | REQ-TRANS-002 | 象限III | u<0, v<0となる条件 | atan2の象限が正しい |
 | TEST-UNIT-032 | REQ-TRANS-002 | 象限IV | u>0, v<0となる条件 | atan2の象限が正しい |
@@ -130,18 +116,18 @@
 | TEST-UNIT-039 | REQ-TRANS-003 | |A|で最終選択 | 上位条件同等 | |A|の小さい候補 |
 | TEST-UNIT-040 | REQ-TRANS-002, REQ-TRANS-003 | 等価解候補生成 | 代表基本解 | 同一姿勢を表す設計上の候補集合を生成 |
 
-## 5.4 `positioning.py` — `PositionCompensator.calculate_xy`
+## 4.4 `positioning.py` — `PositionCompensator.calculate_xy`
 
 | テストID | 要求ID | テスト内容 | 入力/条件 | 期待結果 |
 |---|---|---|---|---|
 | TEST-UNIT-041 | REQ-POS-001 | θ=0 | 任意の有効Lx/Ly | X=0, Y=0 |
-| TEST-UNIT-042 | REQ-POS-001 | θ正の代表値 | 既知Lx/Ly/θ | 仕様式に10^-6 %FS以内で一致 |
-| TEST-UNIT-043 | REQ-POS-001 | θ負の代表値 | 既知Lx/Ly/θ | 仕様式に10^-6 %FS以内で一致 |
-| TEST-UNIT-044 | REQ-POS-001 | 小さい正のLy | Lx>0, Ly>0 | 解析解と10^-6 %FS以内で一致 |
-| TEST-UNIT-045 | REQ-POS-001 | 小さい正のLx | Lx>0, Ly>0 | 解析解と10^-6 %FS以内で一致 |
+| TEST-UNIT-042 | REQ-POS-001 | θ正の代表値 | 既知Lx/Ly/θ | 仕様式に絶対誤差0.001 mm以内で一致 |
+| TEST-UNIT-043 | REQ-POS-001 | θ負の代表値 | 既知Lx/Ly/θ | 仕様式に絶対誤差0.001 mm以内で一致 |
+| TEST-UNIT-044 | REQ-POS-001 | 小さい正のLy | Lx>0, Ly>0 | 解析解と絶対誤差0.001 mm以内で一致 |
+| TEST-UNIT-045 | REQ-POS-001 | 小さい正のLx | Lx>0, Ly>0 | 解析解と絶対誤差0.001 mm以内で一致 |
 | TEST-UNIT-046 | REQ-POS-002 | A角非依存 | 同一θ/Lx/Ly、異なるA | X/Yが変わらない |
 
-## 5.5 `limits.py` — `LimitEvaluator`
+## 4.5 `limits.py` — `LimitEvaluator`
 
 | テストID | 要求ID | テスト内容 | 入力/条件 | 期待結果 |
 |---|---|---|---|---|
@@ -159,7 +145,7 @@
 | TEST-UNIT-058 | REQ-LIMIT-001, REQ-LIMIT-003 | X/Y超過とZ/A正常 | X/Yのみ超過 | 生成禁止エラーにはしない |
 | TEST-UNIT-059 | REQ-LIMIT-003 | X/Y超過とZ/A超過同時 | 両種超過 | XYは飽和、ZAは非飽和、生成禁止 |
 
-## 5.6 `calibration_service.py` — `CalibrationService.build_plan`
+## 4.6 `calibration_service.py` — `CalibrationService.build_plan`
 
 | テストID | 要求ID | テスト内容 | 入力/条件 | 期待結果 |
 |---|---|---|---|---|
@@ -170,7 +156,7 @@
 | TEST-UNIT-064 | REQ-SCAN-002, REQ-SCAN-003, REQ-TRANS-004 | 前点情報の走査順伝播 | 蛇行走査 | 走査順にpreviousが渡され連続解選択に反映 |
 | TEST-UNIT-065 | REQ-POS-001, REQ-LIMIT-001 | ideal/actual保持 | XY飽和あり | ideal_commandは飽和前、commandは飽和後 |
 
-## 5.7 `gcode.py` — `GCodeGenerator`
+## 4.7 `gcode.py` — `GCodeGenerator`
 
 | テストID | 要求ID | テスト内容 | 入力/条件 | 期待結果 |
 |---|---|---|---|---|
@@ -185,7 +171,7 @@
 | TEST-UNIT-074 | REQ-GCODE-005 | 最終点停止 | 複数点 | 最終点後に原点/ホーム復帰指令を追加しない |
 | TEST-UNIT-075 | REQ-LIMIT-001, REQ-GCODE-003 | XY飽和値を出力 | PointEvaluation.commandが飽和済み | idealではなくcommand値を小数点以下6桁で出力 |
 
-## 5.8 `repositories.py`
+## 4.8 `repositories.py`
 
 | テストID | 要求ID | テスト内容 | 入力/条件 | 期待結果 |
 |---|---|---|---|---|
@@ -202,7 +188,7 @@
 | TEST-UNIT-119 | REQ-GUI-003 | CSV数値変換不能 | 数値項目に文字列 | 未処理例外なし、読込失敗を返す |
 | TEST-UNIT-120 | REQ-GUI-003 | CSVファイルI/O失敗 | 存在しない/読取不可path | 未処理例外なし、上位層が通知可能な読込エラーを返す |
 
-## 5.9 `controller.py` — `CalibrationController`
+## 4.9 `controller.py` — `CalibrationController`
 
 | テストID | 要求ID | テスト内容 | 入力/条件 | 期待結果 |
 |---|---|---|---|---|
@@ -213,7 +199,7 @@
 | TEST-UNIT-088 | REQ-VALID-003, REQ-LIMIT-003 | ZAエラーplan | generation error=True | `can_generate=False` |
 | TEST-UNIT-089 | REQ-GUI-003 | 設定適用 | loadしたsettings | current settings更新後にvalidate/build |
 
-## 5.10 `map_view.py` — `CalibrationMapView.render`
+## 4.10 `map_view.py` — `CalibrationMapView.render`
 
 | テストID | 要求ID | テスト内容 | 入力/条件 | 期待結果 |
 |---|---|---|---|---|
@@ -221,7 +207,7 @@
 | TEST-UNIT-091 | REQ-GUI-002, REQ-LIMIT-001 | XY飽和点識別 | x/y_saturated=True | 正常点と視覚的に異なる表現 |
 | TEST-UNIT-092 | REQ-GUI-002, REQ-LIMIT-003 | ZAエラー点識別 | rotational_error=True | 生成禁止点として識別可能 |
 
-## 5.11 `simulation.py` — `SimulationController`, `SimulationView`
+## 4.11 `simulation.py` — `SimulationController`, `SimulationView`
 
 | テストID | 要求ID | テスト内容 | 入力/条件 | 期待結果 |
 |---|---|---|---|---|
@@ -233,7 +219,7 @@
 | TEST-UNIT-098 | REQ-SIM-003 | 正面図初期化 | valid plan | rollを表現する描画要素生成 |
 | TEST-UNIT-099 | REQ-SIM-004 | 情報表示 | 任意点 | point番号、AoA/AoS、X/Y/Z/A、状態、進捗を更新 |
 
-## 5.12 `gui.py` — `MainWindow`
+## 4.12 `gui.py` — `MainWindow`
 
 | テストID | 要求ID | テスト内容 | 入力/条件 | 期待結果 |
 |---|---|---|---|---|
@@ -252,7 +238,7 @@
 
 ---
 
-# 6. 要求仕様ID ↔ 単体テストID トレーサビリティマトリックス
+# 5. 要求仕様ID ↔ 単体テストID トレーサビリティマトリックス
 
 | 要求ID | 単体テストID |
 |---|---|
@@ -295,7 +281,7 @@
 
 ---
 
-# 7. モジュール/メソッド ↔ 単体テストID 対応表
+# 6. モジュール/メソッド ↔ 単体テストID 対応表
 
 | モジュール/メソッド | テストID |
 |---|---|
@@ -322,11 +308,11 @@
 
 ---
 
-# 8. ユースケーステスト（組み合わせテスト）仕様
+# 7. ユースケーステスト（組み合わせテスト）仕様
 
 ユースケーステストは、単一クラスの内部ロジックではなく、アーキテクチャのシーケンス図に示された複数モジュールの組み合わせが、ユーザー操作として成立することを確認する。
 
-## 8.1 UC-01 較正条件を入力・更新する
+## 7.1 UC-01 較正条件を入力・更新する
 
 対象経路：
 
@@ -347,7 +333,7 @@
 | TEST-UC-01-11 | UC-01 | Lx/Ly下限違反 | LxまたはLyを0以下へ変更 | 入力エラー、plan更新停止、Sim/G-code無効 |
 | TEST-UC-01-12 | UC-01 | 保持時間/Feed下限境界 | hold=0.1, F=1→各下限未満へ変更 | 下限値は有効、下限未満では入力エラー・生成不可 |
 
-## 8.2 UC-02 初期化Gコードを読み込む
+## 7.2 UC-02 初期化Gコードを読み込む
 
 対象経路：
 
@@ -360,7 +346,7 @@
 | TEST-UC-02-03 | UC-02 | 読込キャンセル | ファイルダイアログをキャンセル | 現在内容を破壊せず何も実行しない |
 | TEST-UC-02-04 | UC-02 | 読込失敗 | 削除済み/アクセス不可ファイル | アプリ継続、非モーダルに失敗通知 |
 
-## 8.3 UC-03 設定を保存する
+## 7.3 UC-03 設定を保存する
 
 対象経路：
 
@@ -373,7 +359,7 @@
 | TEST-UC-03-03 | UC-03 | 保存キャンセル | 保存ダイアログ取消 | ファイルを作成せず状態維持 |
 | TEST-UC-03-04 | UC-03 | 保存失敗 | 書込不可場所 | アプリ継続、非モーダルに失敗通知 |
 
-## 8.4 UC-04 設定を読み込む
+## 7.4 UC-04 設定を読み込む
 
 対象経路：
 
@@ -393,7 +379,7 @@
 | TEST-UC-04-10 | UC-04 | 読込I/O失敗 | 削除済み/アクセス不可CSV | アプリ継続、現設定/plan維持、非モーダルに失敗通知 |
 | TEST-UC-04-11 | UC-04 | 読込途中で後半項目が不正 | 前半は正常、後半の必須項目が不正 | 前半だけをGUIへ反映せず、全設定を読込前状態のまま維持 |
 
-## 8.5 UC-05 シミュレーションする
+## 7.5 UC-05 シミュレーションする
 
 対象経路：
 
@@ -408,7 +394,7 @@
 | TEST-UC-05-05 | UC-05 | 表示情報整合 | 任意中間点 | point番号/AoA/AoS/X/Y/Z/A/状態/進捗がplanと一致 |
 | TEST-UC-05-06 | UC-05 | 2ビュー同期 | 任意点列 | 横面図と正面図が同一CalibrationPlan・同一点を表示 |
 
-## 8.6 UC-06 Gコードを生成する
+## 7.6 UC-06 Gコードを生成する
 
 対象経路：
 
@@ -431,7 +417,7 @@
 
 ---
 
-# 9. ユースケースID ↔ ユースケーステストID トレーサビリティマトリックス
+# 8. ユースケースID ↔ ユースケーステストID トレーサビリティマトリックス
 
 | ユースケースID | ユースケース名 | テストID |
 |---|---|---|
@@ -444,7 +430,7 @@
 
 ---
 
-# 10. テスト実装時のファイル構成案
+# 9. テスト実装時のファイル構成案
 
 Phase 3でテストコードを実装する場合、以下を基本構成とする。
 
@@ -483,18 +469,10 @@ def test_uc01_valid_input_recalculates_plan(self):
 
 ---
 
-# 11. Phase 3への入力条件
+# 10. Phase 3への入力条件
 
 Phase 3「テスト実装」へ進む前に、本テスト仕様についてユーザーレビューを受ける。
 
-確定済み条件は以下である。
-
-- TBD-T01：数値許容誤差 = 10^-6 %FS
-- TBD-T02：Gコード浮動小数点 = 小数点以下6桁
-- TBD-T03：Lx/Ly = 正の実数のみ
-- TBD-T04：保持時間 = 0.1 s以上
-- TBD-T05：Feed rate = 1 unit/min以上
-- TBD-T06：設定ファイル = CSV形式
-- TBD-T07：スキーマ番号なし。CSV読込不能時は防御処理、部分適用禁止、ユーザー通知
+テスト条件はすべて要求仕様へ反映済みであり、本書では要求仕様を試験の唯一の基準とする。
 
 Phase 3では、本書に定義されたテストIDを変更せずにテストコードへ実装する。
