@@ -1,6 +1,6 @@
 """軸可動範囲の評価とX/Y飽和処理を行う。"""
 
-from models import AxisCommand, AxisLimits, AxisRange, CalibrationPoint, PointEvaluation
+from models import AxisCommand, AxisLimits, AxisRange, PointEvaluation
 
 
 class LimitEvaluator:
@@ -11,11 +11,10 @@ class LimitEvaluator:
     """
 
     # 対応要求: REQ-VALID-003, REQ-LIMIT-001, REQ-LIMIT-002, REQ-LIMIT-003
-    def evaluate(self, point: CalibrationPoint, command: AxisCommand, limits: AxisLimits) -> PointEvaluation:
+    def evaluate(self, command: AxisCommand, limits: AxisLimits) -> PointEvaluation:
         """1つの理想軸指令を設定済みの全軸可動範囲に対して評価する。
 
         引数:
-            point: 軸指令に対応する較正点。
             command: 理想X/Y/Z/A指令。
             limits: 軸可動範囲。
 
