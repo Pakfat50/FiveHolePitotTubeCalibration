@@ -82,6 +82,47 @@ def configure_ui_theme(root: tk.Tk) -> None:
     )
 
 
+# 対応要求: REQ-GUI-001, REQ-GUI-004
+def compact_vertical_layout(application: MainWindow) -> None:
+    """1280x900内に全入力欄を収めるため、縦方向の余白だけを調整する。
+
+    フォントサイズや入力欄の高さは変更せず、左側入力ペインのグループ間隔、
+    LabelFrame内部余白、入力行余白を小さくする。これにより初期化Gコード欄まで
+    常時表示しながら、可読性を維持する。
+
+    引数:
+        application: 構築済みMainWindow。
+
+    対応要求:
+        REQ-GUI-001, REQ-GUI-004
+    """
+    def walk(widget):
+        for child in widget.winfo_children():
+            yield child
+            yield from walk(child)
+
+    for widget in walk(application.main_frame):
+        if isinstance(widget, ttk.LabelFrame):
+            # 較正点マップは右側表示領域なので、左ペインだけをコンパクト化する。
+            if str(widget.cget("text")) != "較正点マップ":
+                widget.configure(padding=5)
+                if widget.winfo_manager() == "pack":
+                    pack_info = widget.pack_info()
+                    current_pady = pack_info.get("pady", 0)
+                    if current_pady:
+                        widget.pack_configure(pady=(0, 4))
+        elif isinstance(widget, ttk.Entry) and widget.winfo_manager() == "grid":
+            widget.grid_configure(pady=1)
+        elif isinstance(widget, ttk.Label) and widget.winfo_manager() == "grid":
+            # 入力行ラベルのみ対象。タイトルや状態表示はgrid情報が異なるため影響しない。
+            grid_info = widget.grid_info()
+            if int(grid_info.get("row", 0)) >= 0 and int(grid_info.get("column", 0)) <= 3:
+                try:
+                    widget.grid_configure(pady=1)
+                except tk.TclError:
+                    pass
+
+
 def build_application(root: tk.Tk) -> MainWindow:
     """アプリケーションの依存関係を構築し、MainWindowを返す。
 
@@ -121,6 +162,7 @@ def build_application(root: tk.Tk) -> MainWindow:
     # フルHD以上の実運用ディスプレイを前提に、全入力欄と操作部を一画面へ収める。
     root.geometry("1280x900")
     root.minsize(1100, 820)
+    compact_vertical_layout(application)
 
     # 一般操作と主要実行操作の優先度を視覚的に分ける。
     application.simulation_button.configure(style="Simulation.TButton")
