@@ -121,7 +121,7 @@ $$
 $$
 
 $$
-\phi=\operatorname{atan2}(v,u)
+\phi=\mathrm{atan2}(v,u)
 $$
 
 とする。
