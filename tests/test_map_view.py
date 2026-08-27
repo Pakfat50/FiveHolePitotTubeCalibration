@@ -1,3 +1,10 @@
+"""メインGUI較正点マップ表示の単体テスト。
+
+@file test_map_view.py
+@brief CalibrationMapView の軸方向、飽和点、回転エラー点の視覚分類を検証する。
+@details docs/test_specification.md に対応する較正点マップ表示テストを実装する。
+"""
+
 import unittest
 from unittest.mock import Mock
 
@@ -7,12 +14,23 @@ from map_view import CalibrationMapView
 
 
 class TestCalibrationMapView(unittest.TestCase):
+    """@brief 較正点の状態がGUI上で仕様どおり識別可能に描画されることを確認する。"""
+
     def setUp(self):
+        """@brief 各テストで独立した CalibrationMapView を生成する。"""
         self.view = CalibrationMapView()
 
     # TEST-UNIT-090
     # Requirements: REQ-GUI-002
     def test_axes_are_aos_horizontal_aoa_vertical(self):
+        """@brief 較正点マップの横軸がAoS、縦軸がAoAであることを確認する。
+
+        @test TEST-UNIT-090: render後のxlabel="AoS"、ylabel="AoA"であること。
+        @details 点を含まないplanを描画し、軸設定だけを分離して観測する。
+        @par 検証根拠
+        Matplotlib Axesの公開ラベル値を直接確認するため、表示軸の取り違えを確実に検出できる。
+        @see REQ-GUI-002
+        """
         plan = Mock(points=[])
         self.view.render(plan)
         self.assertEqual("AoS", self.view.axes.get_xlabel())
@@ -21,6 +39,14 @@ class TestCalibrationMapView(unittest.TestCase):
     # TEST-UNIT-091
     # Requirements: REQ-GUI-002, REQ-LIMIT-001
     def test_saturated_points_use_distinct_visual_group(self):
+        """@brief X/Y飽和点が正常点と異なる色グループで描画されることを確認する。
+
+        @test TEST-UNIT-091: 正常点と飽和点を同時描画したときNORMAL_COLORとSATURATED_COLORの2 collectionが存在すること。
+        @details 状態以外の条件を単純化した2点を描画し、collection数とfacecolorを確認する。
+        @par 検証根拠
+        正常点・警告点を同一図上で比較し実際の描画色をRGBA値で照合するため、視覚的識別性をプログラム的に直接検証できる。
+        @see REQ-GUI-002, REQ-LIMIT-001
+        """
         normal = Mock(point=Mock(aos=0, aoa=0), x_saturated=False, y_saturated=False, rotational_error=False)
         saturated = Mock(point=Mock(aos=1, aoa=1), x_saturated=True, y_saturated=False, rotational_error=False)
         self.view.render(Mock(points=[normal, saturated]))
@@ -32,6 +58,14 @@ class TestCalibrationMapView(unittest.TestCase):
     # TEST-UNIT-092
     # Requirements: REQ-GUI-002, REQ-LIMIT-003
     def test_rotational_error_points_use_distinct_visual_group_without_third_color(self):
+        """@brief Z/A生成禁止点が識別可能で、不要な第3色を導入しないことを確認する。
+
+        @test TEST-UNIT-092: 正常点と回転エラー点が別collectionとなり、色は通常色のまま生成禁止ラベルで識別できること。
+        @details edgecolor集合とlegend labelを同時に確認する。
+        @par 検証根拠
+        色設計と生成禁止の意味表示を別々に観測するため、エラー点が識別可能でありながら規定外色を追加していないことを確認できる。
+        @see REQ-GUI-002, REQ-LIMIT-003
+        """
         normal = Mock(point=Mock(aos=0, aoa=0), x_saturated=False, y_saturated=False, rotational_error=False)
         error = Mock(point=Mock(aos=1, aoa=1), x_saturated=False, y_saturated=False, rotational_error=True)
         self.view.render(Mock(points=[normal, error]))
@@ -44,6 +78,14 @@ class TestCalibrationMapView(unittest.TestCase):
     # TEST-UNIT-122
     # Requirements: REQ-GUI-002, REQ-LIMIT-001, REQ-LIMIT-003
     def test_saturated_rotational_error_keeps_saturation_color_and_error_marker_group(self):
+        """@brief X/Y飽和とZ/A範囲外が同時発生した点の複合表示を確認する。
+
+        @test TEST-UNIT-122: 複合状態点は飽和色を維持し、凡例でZ/A生成禁止も識別できること。
+        @details x_saturated=Trueかつrotational_error=Trueの1点を描画し、色と凡例文言を確認する。
+        @par 検証根拠
+        2種類の状態を同一点に同時付与し、双方の視覚情報が失われていないことを観測するため、状態優先順位・複合表現を直接検証できる。
+        @see REQ-GUI-002, REQ-LIMIT-001, REQ-LIMIT-003
+        """
         error = Mock(point=Mock(aos=1, aoa=1), x_saturated=True, y_saturated=False, rotational_error=True)
         self.view.render(Mock(points=[error]))
         self.assertEqual(1, len(self.view.axes.collections))
@@ -53,4 +95,5 @@ class TestCalibrationMapView(unittest.TestCase):
         self.assertEqual(["X/Y飽和・Z/A範囲外（生成禁止）"], legend_labels)
 
 
-if __name__ == "__main__": unittest.main()
+if __name__ == "__main__":
+    unittest.main()
