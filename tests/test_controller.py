@@ -1,3 +1,10 @@
+"""アプリケーション制御の単体テスト。
+
+@file test_controller.py
+@brief CalibrationController の検証・plan再生成・生成可否・設定適用を検証する。
+@details docs/test_specification.md の TEST-UNIT-084..089 に対応する。
+"""
+
 import unittest
 from unittest.mock import Mock
 
@@ -6,7 +13,10 @@ from tests.test_support import make_settings
 
 
 class TestCalibrationController(unittest.TestCase):
+    """@brief Controller が Validator と Service を正しい条件で呼び分け、状態を保持することを確認する。"""
+
     def setUp(self):
+        """@brief 依存先をMock化しController単体の制御判断だけを観測可能にする。"""
         self.validator = Mock()
         self.service = Mock()
         self.controller = CalibrationController(self.validator, self.service)
@@ -14,6 +24,13 @@ class TestCalibrationController(unittest.TestCase):
     # TEST-UNIT-084
     # Requirements: REQ-VALID-001, REQ-SCAN-001
     def test_valid_input_rebuilds_plan(self):
+        """@brief 有効入力では検証後にplanを再生成し保持することを確認する。
+
+        @test TEST-UNIT-084: valid設定変更でvalidate→build_planが実行され、生成planがcurrent_planになること。
+        @par 検証根拠
+        Mockの呼出し引数・回数とController内部公開状態を同時に確認するため、有効入力時の制御フローを直接検証できる。
+        @see REQ-VALID-001, REQ-SCAN-001
+        """
         valid = Mock(is_valid=True, issues=[])
         plan = Mock(has_generation_error=False)
         self.validator.validate.return_value = valid
@@ -27,6 +44,13 @@ class TestCalibrationController(unittest.TestCase):
     # TEST-UNIT-085
     # Requirements: REQ-VALID-001, REQ-VALID-002
     def test_invalid_input_does_not_rebuild_plan(self):
+        """@brief 不正入力ではplanを再生成せず生成不可になることを確認する。
+
+        @test TEST-UNIT-085: validateが無効ならbuild_planを呼ばずcan_generate=Falseとすること。
+        @par 検証根拠
+        Service未呼出しと生成不可状態を確認することで、不正入力から計算処理へ進まないガード条件を検証できる。
+        @see REQ-VALID-001, REQ-VALID-002
+        """
         self.validator.validate.return_value = Mock(is_valid=False, issues=[Mock()])
         self.controller.on_settings_changed(make_settings())
         self.service.build_plan.assert_not_called()
@@ -35,6 +59,13 @@ class TestCalibrationController(unittest.TestCase):
     # TEST-UNIT-086
     # Requirements: REQ-VALID-001
     def test_invalid_then_valid_recovers(self):
+        """@brief 一時的不正入力が解消された後に生成可能状態へ自動復帰することを確認する。
+
+        @test TEST-UNIT-086: 連続2回の設定変更でinvalid→validとなった場合、can_generateがFalse→Trueへ変化すること。
+        @par 検証根拠
+        同一Controller上で状態遷移を連続観測するため、エラー状態が残留せず再検証結果へ追従することを確認できる。
+        @see REQ-VALID-001
+        """
         self.validator.validate.side_effect = [Mock(is_valid=False, issues=[Mock()]), Mock(is_valid=True, issues=[])]
         self.service.build_plan.return_value = Mock(has_generation_error=False)
         settings = make_settings()
@@ -46,6 +77,13 @@ class TestCalibrationController(unittest.TestCase):
     # TEST-UNIT-087
     # Requirements: REQ-VALID-003, REQ-LIMIT-001
     def test_xy_warning_plan_can_generate(self):
+        """@brief X/Y偏差を含む警告planでも生成可能であることを確認する。
+
+        @test TEST-UNIT-087: max_x/y_deviationが非零でもgeneration_error=Falseならcan_generate=Trueであること。
+        @par 検証根拠
+        警告情報を持つplanを明示的に与えて生成可否だけを観測するため、XY警告が禁止条件へ誤昇格しないことを確認できる。
+        @see REQ-VALID-003, REQ-LIMIT-001
+        """
         self.validator.validate.return_value = Mock(is_valid=True, issues=[])
         self.service.build_plan.return_value = Mock(has_generation_error=False, max_x_deviation=1.0, max_y_deviation=2.0)
         self.controller.on_settings_changed(make_settings())
@@ -54,6 +92,13 @@ class TestCalibrationController(unittest.TestCase):
     # TEST-UNIT-088
     # Requirements: REQ-VALID-003, REQ-LIMIT-003
     def test_rotational_error_plan_cannot_generate(self):
+        """@brief Z/A生成禁止エラーplanでは生成不可となることを確認する。
+
+        @test TEST-UNIT-088: has_generation_error=Trueなら入力自体が有効でもcan_generate=Falseであること。
+        @par 検証根拠
+        Validation成功とplan生成エラーを意図的に組み合わせるため、入力エラーとは独立した回転軸禁止条件を確認できる。
+        @see REQ-VALID-003, REQ-LIMIT-003
+        """
         self.validator.validate.return_value = Mock(is_valid=True, issues=[])
         self.service.build_plan.return_value = Mock(has_generation_error=True)
         self.controller.on_settings_changed(make_settings())
@@ -62,6 +107,13 @@ class TestCalibrationController(unittest.TestCase):
     # TEST-UNIT-089
     # Requirements: REQ-GUI-003
     def test_apply_settings_updates_and_revalidates(self):
+        """@brief 読み込んだ設定適用時に現在設定更新と再検証・再計算を行うことを確認する。
+
+        @test TEST-UNIT-089: apply_settings後、設定を保持しvalidate/build_planへ同じ設定を渡すこと。
+        @par 検証根拠
+        保存設定値、Validator呼出し、Service呼出しを同時に確認するため、設定読込後の適用経路をController単位で検証できる。
+        @see REQ-GUI-003
+        """
         self.validator.validate.return_value = Mock(is_valid=True, issues=[])
         self.service.build_plan.return_value = Mock(has_generation_error=False)
         settings = make_settings(feed_rate=123.0)
@@ -71,4 +123,5 @@ class TestCalibrationController(unittest.TestCase):
         self.service.build_plan.assert_called_once_with(settings)
 
 
-if __name__ == "__main__": unittest.main()
+if __name__ == "__main__":
+    unittest.main()
