@@ -8,7 +8,16 @@ class TestSimulation(unittest.TestCase):
     def setUp(self):
         self.view = Mock(spec=SimulationView)
         self.controller = SimulationController(self.view)
-        self.points = [Mock(point=Mock(index=i), command=Mock(x=i,y=i,z=i,a=i)) for i in range(5)]
+        self.points = [
+            Mock(
+                point=Mock(index=i, aoa=float(i), aos=float(i)),
+                command=Mock(x=float(i), y=float(i), z=float(i), a=float(i)),
+                rotational_error=False,
+                x_saturated=False,
+                y_saturated=False,
+            )
+            for i in range(5)
+        ]
         self.plan = Mock(points=self.points)
 
     # TEST-UNIT-093
@@ -31,6 +40,12 @@ class TestSimulation(unittest.TestCase):
     def test_playback_duration_is_independent_of_hold_time(self):
         self.controller.start(self.plan, duration_s=10.0)
         self.assertEqual(10.0, self.controller.duration_s)
+        self.view.start_animation.assert_called_once()
+        kwargs = self.view.start_animation.call_args.kwargs
+        self.assertIs(self.plan, kwargs["plan"])
+        self.assertEqual(10.0, kwargs["duration_s"])
+        self.assertIs(self.points[0], kwargs["frame_provider"](0.0))
+        self.assertIs(self.points[-1], kwargs["frame_provider"](1.0))
 
     # TEST-UNIT-097
     # Requirements: REQ-SIM-003
@@ -38,6 +53,37 @@ class TestSimulation(unittest.TestCase):
         view = SimulationView()
         view.initialize(self.plan)
         self.assertTrue(hasattr(view, "side_axes"))
+        initial_xlim = view.side_axes.get_xlim()
+        initial_ylim = view.side_axes.get_ylim()
+
+        view.render_frame(self.points[0], 0.0)
+        first_xlim = view.side_axes.get_xlim()
+        first_ylim = view.side_axes.get_ylim()
+
+        tilted_point = Mock(
+            point=Mock(index=4, aoa=30.0, aos=0.0),
+            command=Mock(x=4.0, y=4.0, z=30.0, a=0.0),
+            rotational_error=False,
+            x_saturated=False,
+            y_saturated=False,
+        )
+        view.render_frame(tilted_point, 1.0)
+
+        self.assertGreaterEqual(len(view.side_axes.lines), 1)
+        self.assertEqual(initial_xlim, first_xlim)
+        self.assertEqual(initial_ylim, first_ylim)
+        self.assertEqual(initial_xlim, view.side_axes.get_xlim())
+        self.assertEqual(initial_ylim, view.side_axes.get_ylim())
+        labels = [text.get_text() for text in view.side_axes.texts]
+        self.assertTrue(any(label in ("先端", "Tip") for label in labels))
+
+        arrows = [
+            text for text in view.side_axes.texts
+            if getattr(text, "arrow_patch", None) is not None
+        ]
+        self.assertEqual(1, len(arrows))
+        tip_arrow = arrows[0]
+        self.assertNotAlmostEqual(tip_arrow.xy[1], tip_arrow.xyann[1], places=6)
 
     # TEST-UNIT-098
     # Requirements: REQ-SIM-003
@@ -45,16 +91,39 @@ class TestSimulation(unittest.TestCase):
         view = SimulationView()
         view.initialize(self.plan)
         self.assertTrue(hasattr(view, "front_axes"))
+        initial_xlim = view.front_axes.get_xlim()
+        initial_ylim = view.front_axes.get_ylim()
+
+        view.render_frame(self.points[0], 0.0)
+        first_xlim = view.front_axes.get_xlim()
+        first_ylim = view.front_axes.get_ylim()
+        view.render_frame(self.points[-1], 1.0)
+
+        self.assertGreaterEqual(len(view.front_axes.lines), 2)
+        self.assertEqual(initial_xlim, first_xlim)
+        self.assertEqual(initial_ylim, first_ylim)
+        self.assertEqual(initial_xlim, view.front_axes.get_xlim())
+        self.assertEqual(initial_ylim, view.front_axes.get_ylim())
 
     # TEST-UNIT-099
     # Requirements: REQ-SIM-004
     def test_render_frame_updates_required_information(self):
-        view = SimulationView(); view.initialize(self.plan)
-        point = Mock(point=Mock(index=3, aoa=1.0, aos=2.0), command=Mock(x=3.0,y=4.0,z=5.0,a=6.0), rotational_error=False, x_saturated=False, y_saturated=False)
+        view = SimulationView()
+        view.initialize(self.plan)
+        point = Mock(
+            point=Mock(index=3, aoa=1.0, aos=2.0),
+            command=Mock(x=3.0, y=4.0, z=5.0, a=6.0),
+            rotational_error=False,
+            x_saturated=False,
+            y_saturated=False,
+        )
         view.render_frame(point, 0.5)
         text = view.status_text
-        for token in ("3", "1.0", "2.0", "3.0", "4.0", "5.0", "6.0", "50"):
+        for token in ("4", "1.00", "2.00", "3.00", "4.00", "5.00", "6.00", "50"):
             self.assertIn(token, text)
+        xdata = list(view._progress_artist.get_xdata())
+        self.assertAlmostEqual(0.50, xdata[-1], places=2)
 
 
-if __name__ == "__main__": unittest.main()
+if __name__ == "__main__":
+    unittest.main()
