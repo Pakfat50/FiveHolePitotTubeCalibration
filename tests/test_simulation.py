@@ -19,7 +19,10 @@ class TestSimulation(unittest.TestCase):
             )
             for i in range(5)
         ]
-        self.plan = Mock(points=self.points)
+        self.plan = Mock(
+            points=self.points,
+            settings=Mock(tip_offset_x=100.0, tip_offset_y=20.0),
+        )
 
     # TEST-UNIT-093
     # Requirements: REQ-SIM-002
@@ -57,9 +60,24 @@ class TestSimulation(unittest.TestCase):
         initial_xlim = view.side_axes.get_xlim()
         initial_ylim = view.side_axes.get_ylim()
 
-        view.render_frame(self.points[0], 0.0)
+        zero_point = Mock(
+            point=Mock(index=0, aoa=0.0, aos=0.0),
+            command=Mock(x=0.0, y=0.0, z=0.0, a=0.0),
+            rotational_error=False,
+            x_saturated=False,
+            y_saturated=False,
+        )
+        view.render_frame(zero_point, 0.0)
         first_xlim = view.side_axes.get_xlim()
         first_ylim = view.side_axes.get_ylim()
+
+        self.assertGreaterEqual(len(view.side_axes.lines), 2)
+        ly_line = view.side_axes.lines[0]
+        lx_line = view.side_axes.lines[1]
+        self.assertEqual([0.0, 0.0], list(ly_line.get_xdata()))
+        self.assertEqual([0.0, 20.0], list(ly_line.get_ydata()))
+        self.assertEqual([0.0, 100.0], list(lx_line.get_xdata()))
+        self.assertEqual([20.0, 20.0], list(lx_line.get_ydata()))
 
         tilted_point = Mock(
             point=Mock(index=4, aoa=30.0, aos=0.0),
@@ -70,13 +88,31 @@ class TestSimulation(unittest.TestCase):
         )
         view.render_frame(tilted_point, 1.0)
 
-        self.assertGreaterEqual(len(view.side_axes.lines), 1)
+        theta = math.radians(30.0)
+        expected_elbow_x = 4.0 - 20.0 * math.sin(theta)
+        expected_elbow_y = 4.0 + 20.0 * math.cos(theta)
+        expected_tip_x = expected_elbow_x + 100.0 * math.cos(theta)
+        expected_tip_y = expected_elbow_y + 100.0 * math.sin(theta)
+
+        ly_line = view.side_axes.lines[0]
+        lx_line = view.side_axes.lines[1]
+        self.assertAlmostEqual(4.0, ly_line.get_xdata()[0], places=6)
+        self.assertAlmostEqual(4.0, ly_line.get_ydata()[0], places=6)
+        self.assertAlmostEqual(expected_elbow_x, ly_line.get_xdata()[1], places=6)
+        self.assertAlmostEqual(expected_elbow_y, ly_line.get_ydata()[1], places=6)
+        self.assertAlmostEqual(expected_elbow_x, lx_line.get_xdata()[0], places=6)
+        self.assertAlmostEqual(expected_elbow_y, lx_line.get_ydata()[0], places=6)
+        self.assertAlmostEqual(expected_tip_x, lx_line.get_xdata()[1], places=6)
+        self.assertAlmostEqual(expected_tip_y, lx_line.get_ydata()[1], places=6)
+
         self.assertEqual(initial_xlim, first_xlim)
         self.assertEqual(initial_ylim, first_ylim)
         self.assertEqual(initial_xlim, view.side_axes.get_xlim())
         self.assertEqual(initial_ylim, view.side_axes.get_ylim())
+
         labels = [text.get_text() for text in view.side_axes.texts]
-        self.assertTrue(any(label in ("先端", "Tip") for label in labels))
+        for prohibited in ("Lx", "Ly", "先端", "Tip", "ピッチ中心", "Pitch center"):
+            self.assertFalse(any(prohibited in label for label in labels))
 
         arrows = [
             text for text in view.side_axes.texts
@@ -84,7 +120,8 @@ class TestSimulation(unittest.TestCase):
         ]
         self.assertEqual(1, len(arrows))
         tip_arrow = arrows[0]
-        self.assertNotAlmostEqual(tip_arrow.xy[1], tip_arrow.xyann[1], places=6)
+        self.assertAlmostEqual(expected_tip_x, tip_arrow.xy[0], places=6)
+        self.assertAlmostEqual(expected_tip_y, tip_arrow.xy[1], places=6)
 
     # TEST-UNIT-098
     # Requirements: REQ-SIM-003
