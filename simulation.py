@@ -140,7 +140,7 @@ class SimulationView:
 
     # 対応要求: REQ-SIM-003
     def _calculate_side_limits(self, plan: CalibrationPlan) -> None:
-        """全較正点のピボットと先端を含む固定横面図範囲を算出する。"""
+        """全較正点のL字形状を含む固定横面図範囲を算出する。"""
         self._plan = plan
         lx, ly = self._get_dimensions()
         xs: list[float] = []
@@ -153,10 +153,13 @@ class SimulationView:
                 theta = math.radians(float(point.command.z))
             except (TypeError, ValueError):
                 continue
-            tip_x = pivot_x + lx * math.cos(theta) - ly * math.sin(theta)
-            tip_y = pivot_y + lx * math.sin(theta) + ly * math.cos(theta)
-            xs.extend((pivot_x, tip_x))
-            ys.extend((pivot_y, tip_y))
+
+            elbow_x = pivot_x - ly * math.sin(theta)
+            elbow_y = pivot_y + ly * math.cos(theta)
+            tip_x = elbow_x + lx * math.cos(theta)
+            tip_y = elbow_y + lx * math.sin(theta)
+            xs.extend((pivot_x, elbow_x, tip_x))
+            ys.extend((pivot_y, elbow_y, tip_y))
 
         if not xs or not ys:
             self._side_xlim = (-150.0, 150.0)
@@ -417,7 +420,18 @@ class SimulationView:
 
     # 対応要求: REQ-SIM-003
     def _draw_side_view(self, point: PointEvaluation) -> None:
-        """X/Y並進位置とピッチ姿勢を固定範囲の横面図へ描画する。"""
+        """Lx/LyのL字オフセットと実ピッチ姿勢を固定範囲の横面図へ描画する。
+
+        ピッチ回転中心からLy方向へ延びた後、そこからピトー管軸方向へLxだけ
+        延びるL字形状を剛体としてZ角で回転させる。Lx側線分の向きが実際の
+        ピトー管軸方向を表す。
+
+        引数:
+            point: 現在表示する較正点評価結果。
+
+        対応要求:
+            REQ-SIM-003
+        """
         axes = self.side_axes
         axes.clear()
         self._configure_side_axes()
@@ -426,16 +440,21 @@ class SimulationView:
         theta = math.radians(point.command.z)
         pivot_x = point.command.x
         pivot_y = point.command.y
-        tip_x = pivot_x + lx * math.cos(theta) - ly * math.sin(theta)
-        tip_y = pivot_y + lx * math.sin(theta) + ly * math.cos(theta)
 
-        body_line = axes.plot([pivot_x, tip_x], [pivot_y, tip_y], linewidth=5)[0]
-        body_color = body_line.get_color()
+        # 基準姿勢のLyベクトル(0, Ly)とLxベクトル(Lx, 0)を同じZ角で回転する。
+        elbow_x = pivot_x - ly * math.sin(theta)
+        elbow_y = pivot_y + ly * math.cos(theta)
+        tip_x = elbow_x + lx * math.cos(theta)
+        tip_y = elbow_y + lx * math.sin(theta)
+
+        ly_line = axes.plot([pivot_x, elbow_x], [pivot_y, elbow_y], linewidth=5)[0]
+        body_color = ly_line.get_color()
+        axes.plot([elbow_x, tip_x], [elbow_y, tip_y], linewidth=5, color=body_color)
         axes.scatter([pivot_x], [pivot_y], marker="o", s=55, color=body_color)
 
-        # 固定向きの三角マーカーではなく、ピトー管本体の方向ベクトルに沿う矢印を描く。
-        direction_x = tip_x - pivot_x
-        direction_y = tip_y - pivot_y
+        # Lx側線分の末端だけに矢印を重ね、ピトー管軸方向を一意に示す。
+        direction_x = tip_x - elbow_x
+        direction_y = tip_y - elbow_y
         direction_length = math.hypot(direction_x, direction_y)
         if direction_length > 0.0:
             unit_x = direction_x / direction_length
@@ -455,7 +474,6 @@ class SimulationView:
                 },
             )
 
-        axes.text(tip_x, tip_y, self._text("先端", "Tip"), va="bottom", ha="left")
         axes.text(
             0.02, 0.96,
             f"Z={point.command.z:.2f}°\nX={pivot_x:.2f} mm\nY={pivot_y:.2f} mm",
