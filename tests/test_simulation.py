@@ -1,3 +1,4 @@
+import math
 import unittest
 from unittest.mock import Mock
 
@@ -99,7 +100,7 @@ class TestSimulation(unittest.TestCase):
         first_ylim = view.front_axes.get_ylim()
         view.render_frame(self.points[-1], 1.0)
 
-        self.assertGreaterEqual(len(view.front_axes.lines), 2)
+        self.assertGreaterEqual(len(view.front_axes.lines), 1)
         self.assertEqual(initial_xlim, first_xlim)
         self.assertEqual(initial_ylim, first_ylim)
         self.assertEqual(initial_xlim, view.front_axes.get_xlim())
@@ -108,6 +109,17 @@ class TestSimulation(unittest.TestCase):
         self.assertEqual("", view.front_axes.get_ylabel())
         self.assertEqual([], list(view.front_axes.get_xticks()))
         self.assertEqual([], list(view.front_axes.get_yticks()))
+
+        arrows = [
+            text for text in view.front_axes.texts
+            if getattr(text, "arrow_patch", None) is not None
+        ]
+        self.assertEqual(1, len(arrows))
+        roll_arrow = arrows[0]
+        self.assertAlmostEqual(0.0, roll_arrow.xyann[0], places=6)
+        self.assertAlmostEqual(0.0, roll_arrow.xyann[1], places=6)
+        self.assertAlmostEqual(1.0, math.hypot(*roll_arrow.xy), places=6)
+        self.assertFalse(any(text.get_text() in ("先端", "Tip", "先端方向", "Tip direction") for text in view.front_axes.texts))
 
     # TEST-UNIT-099
     # Requirements: REQ-SIM-004
