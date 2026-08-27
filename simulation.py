@@ -250,12 +250,20 @@ class SimulationView:
 
     # 対応要求: REQ-SIM-003
     def _configure_front_axes(self) -> None:
-        """正面図の見出しと固定軸範囲を設定する。"""
+        """正面図の見出しと固定表示範囲を設定する。
+
+        正面図の座標値は物理量を表さないため、軸ラベルと数値目盛は表示しない。
+
+        対応要求:
+            REQ-SIM-003
+        """
         axes = self.front_axes
         axes.set_title(self._text("正面図（ロール）", "Front View (Roll)"))
-        axes.set_xlabel(self._text("水平", "Horizontal"))
-        axes.set_ylabel(self._text("垂直", "Vertical"))
-        axes.grid(True, alpha=0.25)
+        axes.set_xlabel("")
+        axes.set_ylabel("")
+        axes.set_xticks([])
+        axes.set_yticks([])
+        axes.grid(False)
         axes.set_aspect("equal", adjustable="box")
         axes.set_xlim(-self.FRONT_LIMIT, self.FRONT_LIMIT)
         axes.set_ylim(-self.FRONT_LIMIT, self.FRONT_LIMIT)
