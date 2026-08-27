@@ -104,6 +104,10 @@ class TestSimulation(unittest.TestCase):
         self.assertEqual(initial_ylim, first_ylim)
         self.assertEqual(initial_xlim, view.front_axes.get_xlim())
         self.assertEqual(initial_ylim, view.front_axes.get_ylim())
+        self.assertEqual("", view.front_axes.get_xlabel())
+        self.assertEqual("", view.front_axes.get_ylabel())
+        self.assertEqual([], list(view.front_axes.get_xticks()))
+        self.assertEqual([], list(view.front_axes.get_yticks()))
 
     # TEST-UNIT-099
     # Requirements: REQ-SIM-004
