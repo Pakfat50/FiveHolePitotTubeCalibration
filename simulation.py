@@ -465,7 +465,17 @@ class SimulationView:
 
     # 対応要求: REQ-SIM-003
     def _draw_front_view(self, point: PointEvaluation) -> None:
-        """ピトー管のロール姿勢を固定範囲の正面図へ描画する。"""
+        """ピトー管のロール方向を半径矢印で正面図へ描画する。
+
+        反転時にも方向を一意に識別できるよう、中心から外周へ向かう矢印のみで
+        ロール方向を表し、反対側まで延びる直径線や角度円弧、方向文字は描画しない。
+
+        引数:
+            point: 現在表示する較正点評価結果。
+
+        対応要求:
+            REQ-SIM-003
+        """
         axes = self.front_axes
         axes.clear()
         self._configure_front_axes()
@@ -476,7 +486,16 @@ class SimulationView:
         axes.add_patch(circle)
         dx = radius * math.cos(angle)
         dy = radius * math.sin(angle)
-        axes.plot([-dx, dx], [-dy, dy], linewidth=5)
+        axes.annotate(
+            "",
+            xy=(dx, dy),
+            xytext=(0.0, 0.0),
+            arrowprops={
+                "arrowstyle": "-|>",
+                "linewidth": 5,
+                "mutation_scale": 16,
+            },
+        )
         axes.plot([0.0], [0.0], marker="o", markersize=7)
         axes.text(0.02, 0.96, f"A={point.command.a:.2f}°", transform=axes.transAxes, va="top")
 
