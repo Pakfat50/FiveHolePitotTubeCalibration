@@ -269,7 +269,29 @@ class SimulationView:
         body_line = axes.plot([pivot_x, tip_x], [pivot_y, tip_y], linewidth=5)[0]
         body_color = body_line.get_color()
         axes.scatter([pivot_x], [pivot_y], marker="o", s=55, color=body_color)
-        axes.scatter([tip_x], [tip_y], marker=">", s=75, color=body_color)
+
+        # 固定向きの三角マーカーではなく、ピトー管本体の方向ベクトルに沿う矢印を描く。
+        direction_x = tip_x - pivot_x
+        direction_y = tip_y - pivot_y
+        direction_length = math.hypot(direction_x, direction_y)
+        if direction_length > 0.0:
+            unit_x = direction_x / direction_length
+            unit_y = direction_y / direction_length
+            arrow_length = min(direction_length * 0.25, max(8.0, direction_length * 0.12))
+            arrow_start_x = tip_x - unit_x * arrow_length
+            arrow_start_y = tip_y - unit_y * arrow_length
+            axes.annotate(
+                "",
+                xy=(tip_x, tip_y),
+                xytext=(arrow_start_x, arrow_start_y),
+                arrowprops={
+                    "arrowstyle": "-|>",
+                    "color": body_color,
+                    "linewidth": 2.5,
+                    "mutation_scale": 14,
+                },
+            )
+
         axes.text(tip_x, tip_y, self._text("先端", "Tip"), va="bottom", ha="left")
         axes.text(
             0.02, 0.96,
