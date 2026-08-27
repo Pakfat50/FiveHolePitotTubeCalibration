@@ -161,7 +161,7 @@ class TestSimulation(unittest.TestCase):
         self.assertAlmostEqual(self.points[4].point.aos, second_offset[0])
         self.assertAlmostEqual(self.points[4].point.aoa, second_offset[1])
         self.assertEqual(self.points[4].point.index, view.current_point_index)
-        self.assertEqual([], view.calibration_axes.texts)
+        self.assertEqual(0, len(view.calibration_axes.texts))
         self.assertIsNone(view.calibration_axes.get_legend())
 
 
