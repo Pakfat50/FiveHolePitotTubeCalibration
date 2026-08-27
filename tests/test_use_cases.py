@@ -262,7 +262,7 @@ class TestUseCases(unittest.TestCase):
             offset=view._current_calibration_artist.get_offsets()[0]
             self.assertEqual(point.point.index,view.current_point_index)
             self.assertAlmostEqual(point.point.aos,offset[0]); self.assertAlmostEqual(point.point.aoa,offset[1])
-            self.assertEqual([],view.calibration_axes.texts); self.assertIsNone(view.calibration_axes.get_legend())
+            self.assertEqual(0,len(view.calibration_axes.texts)); self.assertIsNone(view.calibration_axes.get_legend())
 
     # TEST-UC-06-01
     # UseCase: UC-06
