@@ -29,7 +29,7 @@
 | UC-02 | 初期化Gコードを読み込む | テキストファイルから初期化Gコードを読み込む |
 | UC-03 | 設定を保存する | 現在の入力条件・オプションをCSV設定ファイルへ保存する |
 | UC-04 | 設定を読み込む | CSV設定ファイルから入力条件・オプションを復元し、再検証・再計算する |
-| UC-05 | シミュレーションする | 有効な較正計画を約10秒で可視化する |
+| UC-05 | シミュレーションする | 有効な較正計画を約10秒で可視化し、機構姿勢とAoA/AoS較正点の対応を同時表示する |
 | UC-06 | Gコードを生成する | 有効な較正計画から `.nc` Gコードを生成・保存する |
 
 ```mermaid
@@ -187,8 +187,14 @@ sequenceDiagram
     Controller-->>MainWindow: CalibrationPlan
     MainWindow->>SimController: start(plan, duration=10s)
     SimController->>SimView: initialize(plan)
+    Note over SimView: 横面図・正面図・全較正点マップを初期化
     loop フレーム更新
+        SimController->>SimController: 現在点を選択
         SimController->>SimView: render_frame(point, progress)
+        SimView->>SimView: 横面図を更新
+        SimView->>SimView: 正面図を更新
+        SimView->>SimView: 較正点マップの現在点色を更新
+        SimView->>SimView: 状態・進捗を更新
     end
     SimController->>SimView: show_final_state()
 ```
@@ -356,6 +362,9 @@ classDiagram
         +initialize(plan)
         +render_frame(point, progress)
         +show_final_state()
+        -configure_calibration_axes()
+        -draw_calibration_map()
+        -update_current_calibration_point()
     }
 
     AxisLimits *-- AxisRange
@@ -470,7 +479,7 @@ flowchart TB
     Eval[PointEvaluation list]
     Plan[CalibrationPlan]
     GUI[MainWindow / CalibrationMapView]
-    Simulation[SimulationController / View]
+    Simulation[SimulationController / SimulationView\n横面図・正面図・較正点マップ・状態表示]
     GCode[GCodeGenerator]
     NC[G-code text]
 
@@ -531,7 +540,8 @@ flowchart TB
 7. Z/AとX/Yをまとめた `AxisCommand` を `LimitEvaluator` が評価し、`PointEvaluation` を返す。
 8. 全点の `PointEvaluation` を `CalibrationService` が集約して `CalibrationPlan` を生成する。
 9. `CalibrationPlan` は較正点マップ、シミュレーション、Gコード生成の共通入力とする。
-10. Gコード生成時に座標計算をやり直さず、同一の `CalibrationPlan` を使用する。
+10. シミュレーションでは同一の `CalibrationPlan` から全較正点マップと現在点の横面図・正面図・強調表示を生成し、別経路で較正点を再計算しない。
+11. Gコード生成時に座標計算をやり直さず、同一の `CalibrationPlan` を使用する。
 
 この「単一計算結果の共有」により、GUI表示・シミュレーション・出力Gコードの不一致を防止する。
 
@@ -551,8 +561,8 @@ flowchart TB
 | `controller.py` | アプリケーション制御 | `CalibrationController` | GUIイベントを受け、入力検証と較正計画再生成を制御し、現在状態を保持する |
 | `gcode.py` | Gコード生成 | `GCodeGenerator.generate()` | 初期化コード、`$H`, `G21`, `G90`, `G94`, `G01 ... F...`, `G04`、任意コメントを文字列化する |
 | `repositories.py` | ファイル入出力 | `SettingsRepository`, `InitializationGCodeRepository`, `GCodeRepository` | CSV設定、初期化Gコード、`.nc`ファイルの読み書きを担当する。CSV読込時の欠損・空欄・型変換・I/Oエラーを防御的に処理する |
-| `map_view.py` | 較正点マップ表示 | `CalibrationMapView` | MatplotlibでAoA/AoS点列と警告・エラー状態を表示する |
-| `simulation.py` | 動作シミュレーション | `SimulationController`, `SimulationView` | 約10秒の再生、横面図・正面図、現在点・軸値・進捗を表示する |
+| `map_view.py` | 較正点マップ表示 | `CalibrationMapView` | メインGUIでAoA/AoS点列と警告・エラー状態を表示する |
+| `simulation.py` | 動作シミュレーション | `SimulationController`, `SimulationView` | 約10秒の再生、横面図・正面図、全較正点マップ、現在点強調、現在点・軸値・進捗を表示する |
 | `gui.py` | GUI | `MainWindow` | Tkinter画面、入力フィールド、ボタン、非モーダルエラー表示、ファイルダイアログを提供する |
 | `main.py` | エントリポイント | `main()` | アプリケーションを初期化してGUIを起動する |
 
@@ -620,6 +630,7 @@ classDiagram
 - X/Y範囲超過時のみ `command` を飽和させる。
 - Z/A範囲超過時は `command` を飽和させず、`rotational_error` を設定する。
 - GUI、シミュレーション、Gコード生成は同一 `CalibrationPlan` を参照する。
+- シミュレーションの横面図・正面図・較正点マップの現在点強調は、同一の `PointEvaluation` を参照する。
 
 ---
 
@@ -655,7 +666,7 @@ stateDiagram-v2
 | GenerationBlocked | 表示可 | 無効 | 無効 | Z/A生成禁止エラー |
 | ReadyWithWarning | 表示可 | 有効 | 有効 | X/Y飽和警告・最大偏差 |
 | Ready | 表示可 | 有効 | 有効 | 正常 |
-| Simulating | 表示可 | 実行中 | 原則無効 | 進捗・現在点 |
+| Simulating | メインGUI表示可、シミュレーション画面では現在点を色で強調 | 実行中 | 原則無効 | 横面図・正面図・較正点マップ・進捗・現在点 |
 | SavingGCode | 表示可 | 原則無効 | 実行中 | 保存状態 |
 
 ---
@@ -717,6 +728,8 @@ stateDiagram-v2
 | REQ-SIM-002 | `SimulationController.start`, `SimulationController._frame_at` | 約10秒、保持時間非再現 |
 | REQ-SIM-003 | `SimulationView.initialize`, `SimulationView.render_frame` | 横面図・正面図 |
 | REQ-SIM-004 | `SimulationView.render_frame` | 点番号、AoA/AoS、X/Y/Z/A、状態、進捗 |
+| REQ-SIM-005 | `SimulationView.initialize`, `SimulationView._draw_calibration_map` | シミュレーション用AoA/AoS全点マップ |
+| REQ-SIM-006 | `SimulationView.render_frame`, `SimulationView._update_current_calibration_point` | 現在点を別色で同期更新、凡例・文字注記なし |
 
 ## 10.6 GUI
 
@@ -751,7 +764,11 @@ stateDiagram-v2
 | repositories | `GCodeRepository.save` | path/text | None | ファイルI/O |
 | controller | `CalibrationController.on_settings_changed` | GUI入力 | 状態更新 | 内部状態更新 |
 | simulation | `SimulationController.start` | plan | None | UI更新/タイマー |
-| map_view | `CalibrationMapView.render` | plan | None | 描画 |
+| simulation | `SimulationView.initialize` | plan | None | 横面図・正面図・全較正点マップ・状態領域を初期化 |
+| simulation | `SimulationView.render_frame` | current point, progress | None | 3表示と状態を同一現在点で更新 |
+| simulation | `SimulationView._draw_calibration_map` | plan | None | 全較正点をAoS横軸・AoA縦軸で描画 |
+| simulation | `SimulationView._update_current_calibration_point` | current point | None | マップ上の現在点だけを別色へ更新 |
+| map_view | `CalibrationMapView.render` | plan | None | メインGUIの較正点マップ描画 |
 | gui | `MainWindow`各イベント | ユーザー操作 | None | GUI/ダイアログ |
 
 ---
@@ -762,16 +779,18 @@ stateDiagram-v2
 2. `CalibrationService.build_plan()` はGUI状態を参照せず、引数だけで同じ結果を返す決定的処理とする。
 3. 浮動小数点比較はテスト仕様で定義した許容誤差に従う。
 4. `CalibrationPlan` を較正点マップ・シミュレーション・Gコード生成の単一ソースとする。
-5. X/Yの飽和前値を必ず保持し、偏差計算・警告表示に使用する。
-6. Z/Aは範囲超過時に値を改変しない。
-7. 設定保存形式は標準ライブラリ `csv` を用いるCSV形式とし、スキーマバージョン番号は保持しない。
-8. `SettingsRepository.load()` は必要なCSV項目をすべて取得・型変換できた場合のみ `CalibrationSettings` を生成する。必須項目欠損、空欄、構造不正、数値変換不能、I/Oエラー等は読込失敗として処理し、未処理例外によってアプリケーションを終了させない。
-9. 設定読込結果は全項目の読込成功後にのみGUI/Controllerへ適用する。読込途中の値を部分適用してはならない。
-10. GUI入力値のパース失敗と、パース成功後の意味的検証エラーを区別する。
-11. 入力変更イベントはモーダルダイアログを発生させない。
-12. ファイル選択・保存・CSV読込失敗などユーザー起点I/Oの失敗は、アプリケーションを終了させずGUI上で非モーダルに通知する。
-13. コード内の各関数・メソッドには `Requirements: REQ-...` を記載する。
-14. テストコードには後続で定義する `TEST-...` IDをコメントで記載する。
+5. シミュレーション用較正点マップは `SimulationView` の責務とし、メインGUI用 `CalibrationMapView` へシミュレーション固有の現在点状態を持たせない。
+6. シミュレーションでは全較正点と現在点を同一 `CalibrationPlan` / `PointEvaluation` 系列から描画し、横面図・正面図・現在点強調を同期させる。
+7. X/Yの飽和前値を必ず保持し、偏差計算・警告表示に使用する。
+8. Z/Aは範囲超過時に値を改変しない。
+9. 設定保存形式は標準ライブラリ `csv` を用いるCSV形式とし、スキーマバージョン番号は保持しない。
+10. `SettingsRepository.load()` は必要なCSV項目をすべて取得・型変換できた場合のみ `CalibrationSettings` を生成する。必須項目欠損、空欄、構造不正、数値変換不能、I/Oエラー等は読込失敗として処理し、未処理例外によってアプリケーションを終了させない。
+11. 設定読込結果は全項目の読込成功後にのみGUI/Controllerへ適用する。読込途中の値を部分適用してはならない。
+12. GUI入力値のパース失敗と、パース成功後の意味的検証エラーを区別する。
+13. 入力変更イベントはモーダルダイアログを発生させない。
+14. ファイル選択・保存・CSV読込失敗などユーザー起点I/Oの失敗は、アプリケーションを終了させずGUI上で非モーダルに通知する。
+15. コード内の各関数・メソッドには `Requirements: REQ-...` を記載する。
+16. テストコードには後続で定義する `TEST-...` IDをコメントで記載する。
 
 ---
 
