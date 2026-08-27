@@ -245,6 +245,25 @@ class TestUseCases(unittest.TestCase):
         plan=self.h.service.build_plan(make_settings()); view=SimulationView(); view.initialize(plan); view.render_frame(plan.points[1],0.2)
         self.assertEqual(plan.points[1].point.index,view.current_point_index)
 
+    # TEST-UC-05-07
+    # UseCase: UC-05
+    def test_uc05_simulation_displays_all_calibration_points_without_legend(self):
+        plan=self.h.service.build_plan(make_settings(aoa_points=3,aos_points=4)); view=SimulationView(); view.initialize(plan)
+        self.assertEqual(len(plan.points),len(view._calibration_points_artist.get_offsets()))
+        self.assertEqual("AoS [deg]",view.calibration_axes.get_xlabel()); self.assertEqual("AoA [deg]",view.calibration_axes.get_ylabel())
+        self.assertIsNone(view.calibration_axes.get_legend())
+
+    # TEST-UC-05-08
+    # UseCase: UC-05
+    def test_uc05_three_views_share_same_current_point(self):
+        plan=self.h.service.build_plan(make_settings()); view=SimulationView(); view.initialize(plan)
+        for progress,index in ((0.2,1),(0.8,len(plan.points)-2)):
+            point=plan.points[index]; view.render_frame(point,progress)
+            offset=view._current_calibration_artist.get_offsets()[0]
+            self.assertEqual(point.point.index,view.current_point_index)
+            self.assertAlmostEqual(point.point.aos,offset[0]); self.assertAlmostEqual(point.point.aoa,offset[1])
+            self.assertEqual(0,len(view.calibration_axes.texts)); self.assertIsNone(view.calibration_axes.get_legend())
+
     # TEST-UC-06-01
     # UseCase: UC-06
     def test_uc06_generate_valid_nc(self):

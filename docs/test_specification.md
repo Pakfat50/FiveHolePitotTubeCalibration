@@ -218,6 +218,8 @@
 | TEST-UNIT-097 | REQ-SIM-003 | 横面図初期化 | valid plan | pitch/X/Yを表現する描画要素生成 |
 | TEST-UNIT-098 | REQ-SIM-003 | 正面図初期化 | valid plan | rollを表現する描画要素生成 |
 | TEST-UNIT-099 | REQ-SIM-004 | 情報表示 | 任意点 | point番号、AoA/AoS、X/Y/Z/A、状態、進捗を更新 |
+| TEST-UNIT-122 | REQ-SIM-005 | 較正点マップ初期化 | 複数較正点を持つvalid plan | AoS横軸、AoA縦軸で全較正点を表示し、凡例を表示しない |
+| TEST-UNIT-123 | REQ-SIM-006 | 現在較正点の強調・同期 | 異なる2点を連続描画 | 現在点だけが通常点と異なる色で表示され、横面図・正面図と同じ点へ同期更新され、文字注記を追加しない |
 
 ## 4.12 `gui.py` — `MainWindow`
 
@@ -273,6 +275,8 @@
 | REQ-SIM-002 | TEST-UNIT-093,094,095,096 |
 | REQ-SIM-003 | TEST-UNIT-097,098 |
 | REQ-SIM-004 | TEST-UNIT-099 |
+| REQ-SIM-005 | TEST-UNIT-122 |
+| REQ-SIM-006 | TEST-UNIT-123 |
 | REQ-GUI-001 | TEST-UNIT-100 |
 | REQ-GUI-002 | TEST-UNIT-090,091,092 |
 | REQ-GUI-003 | TEST-UNIT-076,077,078,079,089,107,108,117,118,119,120,121 |
@@ -303,7 +307,7 @@
 | `CalibrationController.on_settings_changed/apply_settings/can_generate` | TEST-UNIT-084..089 |
 | `CalibrationMapView.render` | TEST-UNIT-090..092 |
 | `SimulationController.start/_frame_at` | TEST-UNIT-093..096 |
-| `SimulationView.initialize/render_frame` | TEST-UNIT-097..099 |
+| `SimulationView.initialize/render_frame` | TEST-UNIT-097..099,122,123 |
 | `MainWindow` | TEST-UNIT-100..110,121 |
 
 ---
@@ -393,6 +397,8 @@
 | TEST-UC-05-04 | UC-05 | 保持時間変更 | hold_timeを大きく変更 | シミュレーション総時間は実保持時間に比例しない |
 | TEST-UC-05-05 | UC-05 | 表示情報整合 | 任意中間点 | point番号/AoA/AoS/X/Y/Z/A/状態/進捗がplanと一致 |
 | TEST-UC-05-06 | UC-05 | 2ビュー同期 | 任意点列 | 横面図と正面図が同一CalibrationPlan・同一点を表示 |
+| TEST-UC-05-07 | UC-05 | 較正点マップ表示 | 複数点の正常plan | シミュレーション画面に全較正点がAoA/AoS位置で表示され、凡例がない |
+| TEST-UC-05-08 | UC-05 | 3ビュー現在点同期 | 走査中に複数点を切替 | 横面図・正面図・較正点マップ強調が常に同一較正点を示し、強調点だけ色が異なり文字注記がない |
 
 ## 7.6 UC-06 Gコードを生成する
 
@@ -425,7 +431,7 @@
 | UC-02 | 初期化Gコードを読み込む | TEST-UC-02-01 ～ TEST-UC-02-04 |
 | UC-03 | 設定を保存する | TEST-UC-03-01 ～ TEST-UC-03-04 |
 | UC-04 | 設定を読み込む | TEST-UC-04-01 ～ TEST-UC-04-11 |
-| UC-05 | シミュレーションする | TEST-UC-05-01 ～ TEST-UC-05-06 |
+| UC-05 | シミュレーションする | TEST-UC-05-01 ～ TEST-UC-05-08 |
 | UC-06 | Gコードを生成する | TEST-UC-06-01 ～ TEST-UC-06-12 |
 
 ---
