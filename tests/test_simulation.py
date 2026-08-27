@@ -59,7 +59,15 @@ class TestSimulation(unittest.TestCase):
         view.render_frame(self.points[0], 0.0)
         first_xlim = view.side_axes.get_xlim()
         first_ylim = view.side_axes.get_ylim()
-        view.render_frame(self.points[-1], 1.0)
+
+        tilted_point = Mock(
+            point=Mock(index=4, aoa=30.0, aos=0.0),
+            command=Mock(x=4.0, y=4.0, z=30.0, a=0.0),
+            rotational_error=False,
+            x_saturated=False,
+            y_saturated=False,
+        )
+        view.render_frame(tilted_point, 1.0)
 
         self.assertGreaterEqual(len(view.side_axes.lines), 1)
         self.assertEqual(initial_xlim, first_xlim)
@@ -68,6 +76,14 @@ class TestSimulation(unittest.TestCase):
         self.assertEqual(initial_ylim, view.side_axes.get_ylim())
         labels = [text.get_text() for text in view.side_axes.texts]
         self.assertTrue(any(label in ("先端", "Tip") for label in labels))
+
+        arrows = [
+            text for text in view.side_axes.texts
+            if getattr(text, "arrow_patch", None) is not None
+        ]
+        self.assertEqual(1, len(arrows))
+        tip_arrow = arrows[0]
+        self.assertNotAlmostEqual(tip_arrow.xy[1], tip_arrow.xyann[1], places=6)
 
     # TEST-UNIT-098
     # Requirements: REQ-SIM-003
