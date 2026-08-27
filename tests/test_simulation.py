@@ -8,7 +8,16 @@ class TestSimulation(unittest.TestCase):
     def setUp(self):
         self.view = Mock(spec=SimulationView)
         self.controller = SimulationController(self.view)
-        self.points = [Mock(point=Mock(index=i), command=Mock(x=i, y=i, z=i, a=i)) for i in range(5)]
+        self.points = [
+            Mock(
+                point=Mock(index=i, aoa=float(i), aos=float(i)),
+                command=Mock(x=float(i), y=float(i), z=float(i), a=float(i)),
+                rotational_error=False,
+                x_saturated=False,
+                y_saturated=False,
+            )
+            for i in range(5)
+        ]
         self.plan = Mock(points=self.points)
 
     # TEST-UNIT-093
@@ -44,15 +53,21 @@ class TestSimulation(unittest.TestCase):
         view = SimulationView()
         view.initialize(self.plan)
         self.assertTrue(hasattr(view, "side_axes"))
-        point = Mock(
-            point=Mock(index=0, aoa=0.0, aos=0.0),
-            command=Mock(x=1.0, y=2.0, z=10.0, a=20.0),
-            rotational_error=False,
-            x_saturated=False,
-            y_saturated=False,
-        )
-        view.render_frame(point, 0.25)
+        initial_xlim = view.side_axes.get_xlim()
+        initial_ylim = view.side_axes.get_ylim()
+
+        view.render_frame(self.points[0], 0.0)
+        first_xlim = view.side_axes.get_xlim()
+        first_ylim = view.side_axes.get_ylim()
+        view.render_frame(self.points[-1], 1.0)
+
         self.assertGreaterEqual(len(view.side_axes.lines), 1)
+        self.assertEqual(initial_xlim, first_xlim)
+        self.assertEqual(initial_ylim, first_ylim)
+        self.assertEqual(initial_xlim, view.side_axes.get_xlim())
+        self.assertEqual(initial_ylim, view.side_axes.get_ylim())
+        labels = [text.get_text() for text in view.side_axes.texts]
+        self.assertTrue(any(label in ("先端", "Tip") for label in labels))
 
     # TEST-UNIT-098
     # Requirements: REQ-SIM-003
@@ -60,15 +75,19 @@ class TestSimulation(unittest.TestCase):
         view = SimulationView()
         view.initialize(self.plan)
         self.assertTrue(hasattr(view, "front_axes"))
-        point = Mock(
-            point=Mock(index=0, aoa=0.0, aos=0.0),
-            command=Mock(x=1.0, y=2.0, z=10.0, a=20.0),
-            rotational_error=False,
-            x_saturated=False,
-            y_saturated=False,
-        )
-        view.render_frame(point, 0.25)
+        initial_xlim = view.front_axes.get_xlim()
+        initial_ylim = view.front_axes.get_ylim()
+
+        view.render_frame(self.points[0], 0.0)
+        first_xlim = view.front_axes.get_xlim()
+        first_ylim = view.front_axes.get_ylim()
+        view.render_frame(self.points[-1], 1.0)
+
         self.assertGreaterEqual(len(view.front_axes.lines), 2)
+        self.assertEqual(initial_xlim, first_xlim)
+        self.assertEqual(initial_ylim, first_ylim)
+        self.assertEqual(initial_xlim, view.front_axes.get_xlim())
+        self.assertEqual(initial_ylim, view.front_axes.get_ylim())
 
     # TEST-UNIT-099
     # Requirements: REQ-SIM-004
