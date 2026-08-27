@@ -124,6 +124,46 @@ class TestSimulation(unittest.TestCase):
         xdata = list(view._progress_artist.get_xdata())
         self.assertAlmostEqual(0.50, xdata[-1], places=2)
 
+    # TEST-UNIT-122
+    # Requirements: REQ-SIM-005
+    def test_calibration_map_displays_all_points_without_legend(self):
+        view = SimulationView()
+        view.initialize(self.plan)
+
+        self.assertIsNotNone(view.calibration_axes)
+        self.assertEqual("AoS [deg]", view.calibration_axes.get_xlabel())
+        self.assertEqual("AoA [deg]", view.calibration_axes.get_ylabel())
+        offsets = view._calibration_points_artist.get_offsets()
+        self.assertEqual(len(self.points), len(offsets))
+        expected = {(float(point.point.aos), float(point.point.aoa)) for point in self.points}
+        actual = {(float(x), float(y)) for x, y in offsets}
+        self.assertEqual(expected, actual)
+        self.assertIsNone(view.calibration_axes.get_legend())
+
+    # TEST-UNIT-123
+    # Requirements: REQ-SIM-006
+    def test_current_calibration_point_color_tracks_rendered_point(self):
+        view = SimulationView()
+        view.initialize(self.plan)
+
+        view.render_frame(self.points[1], 0.25)
+        first_offset = view._current_calibration_artist.get_offsets()[0]
+        self.assertAlmostEqual(self.points[1].point.aos, first_offset[0])
+        self.assertAlmostEqual(self.points[1].point.aoa, first_offset[1])
+        self.assertEqual(self.points[1].point.index, view.current_point_index)
+
+        normal_color = view._calibration_points_artist.get_facecolors()[0]
+        current_color = view._current_calibration_artist.get_facecolors()[0]
+        self.assertFalse((normal_color == current_color).all())
+
+        view.render_frame(self.points[4], 0.75)
+        second_offset = view._current_calibration_artist.get_offsets()[0]
+        self.assertAlmostEqual(self.points[4].point.aos, second_offset[0])
+        self.assertAlmostEqual(self.points[4].point.aoa, second_offset[1])
+        self.assertEqual(self.points[4].point.index, view.current_point_index)
+        self.assertEqual([], view.calibration_axes.texts)
+        self.assertIsNone(view.calibration_axes.get_legend())
+
 
 if __name__ == "__main__":
     unittest.main()
