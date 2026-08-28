@@ -28,6 +28,18 @@ class MainWindow:
         "y_min": "-1000.0", "y_max": "1000.0", "z_min": "-180.0", "z_max": "180.0",
         "a_min": "-720.0", "a_max": "720.0",
     }
+    ENTRY_NORMAL_STYLE = "TEntry"
+    ENTRY_ERROR_STYLE = "ValidationError.TEntry"
+    ENTRY_ERROR_BACKGROUND = "#FFECEC"
+    INTEGER_FIELDS = frozenset(("aoa_points", "aos_points"))
+    VALIDATION_FIELD_ENTRIES = {
+        "aoa_range": ("aoa_min", "aoa_max"),
+        "aos_range": ("aos_min", "aos_max"),
+        "x_range": ("x_min", "x_max"),
+        "y_range": ("y_min", "y_max"),
+        "z_range": ("z_min", "z_max"),
+        "a_range": ("a_min", "a_max"),
+    }
 
     def __init__(self, root, controller, settings_repository, initialization_repository,
                  gcode_generator, gcode_repository, map_view, simulation_controller,
@@ -65,6 +77,7 @@ class MainWindow:
         self.root.title("5孔ピトー管 較正Gコード生成")
         self.root.geometry("1180x780")
         self.root.minsize(960, 680)
+        self._configure_validation_styles()
         self.main_frame = ttk.Frame(self.root, padding=10)
         self.main_frame.pack(fill="both", expand=True)
         self.main_frame.columnconfigure(1, weight=1)
@@ -75,6 +88,20 @@ class MainWindow:
         self._build_map_panel(self.main_frame)
         self._build_status_and_actions(self.main_frame)
         self._update_action_state()
+
+    # 対応要求: REQ-VALID-001, REQ-GUI-005
+    def _configure_validation_styles(self) -> None:
+        """入力エラー用Entry styleへ承認済みの背景色だけを設定する。
+
+        TEntryの枠やレイアウト設定は上書きせず、エラー時も通常Entryと同じ枠表現を
+        維持する。これにより既存GUIの配置・サイズ・枠表示を変更せず背景色だけを
+        切り替える。
+
+        対応要求:
+            REQ-VALID-001, REQ-GUI-005
+        """
+        style = ttk.Style(self.root)
+        style.configure(self.ENTRY_ERROR_STYLE, fieldbackground=self.ENTRY_ERROR_BACKGROUND)
 
     def _build_input_panel(self, parent) -> None:
         """左側の較正条件、装置条件、可動範囲、オプションを構築する。"""
@@ -191,15 +218,82 @@ class MainWindow:
             serpentine=bool(self.serpentine_var.get()), output_comments=bool(self.output_comments_var.get()))
 
     # 対応要求: REQ-VALID-001, REQ-VALID-002
+    def _find_numeric_parse_errors(self) -> set[str]:
+        """数値へ変換できないEntryをフィールド単位で特定する。
+
+        戻り値:
+            数値変換に失敗したEntryキーの集合。
+
+        対応要求:
+            REQ-VALID-001, REQ-VALID-002
+        """
+        invalid_fields: set[str] = set()
+        for key, variable in self._widget_vars.items():
+            if key not in self.DEFAULT_VALUES:
+                continue
+            converter = int if key in self.INTEGER_FIELDS else float
+            try:
+                converter(variable.get())
+            except (TypeError, ValueError):
+                invalid_fields.add(key)
+        return invalid_fields
+
+    # 対応要求: REQ-VALID-001, REQ-GUI-005
+    def _entry_keys_for_validation_field(self, field: str) -> tuple[str, ...]:
+        """ValidationIssueのfield名を実際に強調するEntryキーへ変換する。
+
+        範囲エラーはmin/maxの関係で成立するため両Entryを対象とし、単一値エラーは
+        同名Entryだけを対象とする。
+
+        引数:
+            field: ValidationIssueが示すフィールド名。
+
+        戻り値:
+            背景色をエラー表示へ切り替えるEntryキー。
+
+        対応要求:
+            REQ-VALID-001, REQ-GUI-005
+        """
+        if field in self.VALIDATION_FIELD_ENTRIES:
+            return self.VALIDATION_FIELD_ENTRIES[field]
+        if field in self.DEFAULT_VALUES:
+            return (field,)
+        return ()
+
+    # 対応要求: REQ-VALID-001, REQ-GUI-005
+    def _apply_validation_highlights(self, invalid_entry_keys: set[str]) -> None:
+        """該当Entryだけの背景styleをエラー状態へ切り替える。
+
+        枠色、配置、サイズ、追加文字、アイコンは変更しない。
+
+        引数:
+            invalid_entry_keys: 背景色をエラー表示へ切り替えるEntryキー集合。
+
+        対応要求:
+            REQ-VALID-001, REQ-GUI-005
+        """
+        for key, entry in self._entry_widgets.items():
+            style = self.ENTRY_ERROR_STYLE if key in invalid_entry_keys else self.ENTRY_NORMAL_STYLE
+            entry.configure(style=style)
+
+    # 対応要求: REQ-VALID-001, REQ-VALID-002
     def _on_gui_input_changed(self) -> None:
         """GUI入力を解析し、一時的な不正入力を非モーダルに処理する。"""
-        if self._updating_widgets: return
-        try: settings = self._settings_from_widgets()
-        except (TypeError, ValueError):
-            self.field_errors = {"input": "数値として解釈できない入力があります。"}
-            self.status_message = self.field_errors["input"]
-            self.simulation_enabled = False; self.gcode_enabled = False
-            self._refresh_status_widget(); self._update_button_widgets(); return
+        if self._updating_widgets:
+            return
+
+        parse_errors = self._find_numeric_parse_errors()
+        if parse_errors:
+            # 数値変換不能時は理由文字を表示せず、該当Entryの背景色だけを変更する。
+            self.field_errors = {key: "" for key in parse_errors}
+            self._apply_validation_highlights(parse_errors)
+            self.modal_dialog_requested = False
+            self.simulation_enabled = False
+            self.gcode_enabled = False
+            self._update_button_widgets()
+            return
+
+        settings = self._settings_from_widgets()
         self._on_input_changed(settings)
 
     # 対応要求: REQ-VALID-001
@@ -214,13 +308,25 @@ class MainWindow:
             if self.map_canvas is not None: self.map_canvas.draw_idle()
         self._update_action_state()
 
-    # 対応要求: REQ-VALID-001, REQ-LIMIT-002, REQ-GUI-005
+    # 対応要求: REQ-VALID-001, REQ-GUI-005
     def _update_validation_display(self, validation_result) -> None:
-        """非モーダルなフィールド強調表示とエラーメッセージを更新する。"""
+        """検証結果に対応するEntry背景色を非モーダルに更新する。
+
+        入力エラー理由の文字表示やアイコン追加は行わず、既存の状態表示領域にも
+        入力エラー理由を出力しない。
+
+        引数:
+            validation_result: フィールド単位の検証結果。
+
+        対応要求:
+            REQ-VALID-001, REQ-GUI-005
+        """
         self.field_errors = {issue.field: issue.message for issue in validation_result.issues}
-        if self.field_errors: self.status_message = " / ".join(self.field_errors.values())
-        elif not self.status_message.startswith("X逸脱"): self.status_message = "入力値は有効です。"
-        self.modal_dialog_requested = False; self._refresh_status_widget()
+        invalid_entry_keys: set[str] = set()
+        for issue in validation_result.issues:
+            invalid_entry_keys.update(self._entry_keys_for_validation_field(issue.field))
+        self._apply_validation_highlights(invalid_entry_keys)
+        self.modal_dialog_requested = False
 
     # 対応要求: REQ-LIMIT-002, REQ-LIMIT-003, REQ-GUI-005
     def _update_plan_status(self, plan) -> None:
