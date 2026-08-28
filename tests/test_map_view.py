@@ -1,20 +1,22 @@
 """メインGUI較正点マップ表示の単体テスト。
 
 @file test_map_view.py
-@brief CalibrationMapView の軸方向、飽和点、回転エラー点の視覚分類を検証する。
-@details docs/test_specification.md に対応する較正点マップ表示テストを実装する。
+@brief CalibrationMapView の軸方向、飽和点、回転エラー点、日本語フォント選択を検証する。
+@details docs/test_specification.md および docs/test_specification_map_font_addendum.md に対応する較正点マップ表示テストを実装する。
 """
 
+from types import SimpleNamespace
 import unittest
-from unittest.mock import Mock
+from unittest.mock import Mock, patch
 
+from matplotlib import rcParams
 from matplotlib.colors import to_rgba
 
 from map_view import CalibrationMapView
 
 
 class TestCalibrationMapView(unittest.TestCase):
-    """@brief 較正点の状態がGUI上で仕様どおり識別可能に描画されることを確認する。"""
+    """@brief 較正点の状態と日本語表示がGUI上で仕様どおり描画されることを確認する。"""
 
     def setUp(self):
         """@brief 各テストで独立した CalibrationMapView を生成する。"""
@@ -73,7 +75,8 @@ class TestCalibrationMapView(unittest.TestCase):
         colors = {tuple(collection.get_edgecolors()[0]) for collection in self.view.axes.collections}
         self.assertEqual({to_rgba(self.view.NORMAL_COLOR)}, colors)
         legend_labels = self.view.axes.get_legend_handles_labels()[1]
-        self.assertTrue(any("生成禁止" in label for label in legend_labels))
+        expected_term = "生成禁止" if self.view._japanese_graph_text else "generation disabled"
+        self.assertTrue(any(expected_term in label for label in legend_labels))
 
     # TEST-UNIT-122
     # Requirements: REQ-GUI-002, REQ-LIMIT-001, REQ-LIMIT-003
@@ -92,7 +95,45 @@ class TestCalibrationMapView(unittest.TestCase):
         collection = self.view.axes.collections[0]
         self.assertEqual(to_rgba(self.view.SATURATED_COLOR), tuple(collection.get_edgecolors()[0]))
         legend_labels = self.view.axes.get_legend_handles_labels()[1]
-        self.assertEqual(["X/Y飽和・Z/A範囲外（生成禁止）"], legend_labels)
+        expected_label = (
+            "X/Y飽和・Z/A範囲外（生成禁止）"
+            if self.view._japanese_graph_text
+            else "X/Y saturated - Z/A out of range (generation disabled)"
+        )
+        self.assertEqual([expected_label], legend_labels)
+
+    # TEST-UNIT-124
+    # Requirements: REQ-GUI-001
+    def test_japanese_font_selection_and_english_fallback(self):
+        """@brief 日本語フォントの選択と、未搭載環境での英語フォールバックを確認する。
+
+        @test TEST-UNIT-124: 日本語対応フォントありでは日本語文字列、なしでは英語文字列を選択すること。
+        @details Figure生成後にフォント一覧だけをMock化し、Meiryoが存在するケースと日本語フォントが存在しないケースでフォント選択処理を直接呼び出す。
+        @par 検証根拠
+        MatplotlibのFigure生成・内部フォント探索を偽フォント一覧から分離し、製品コードのフォント候補判定結果と_text()の言語選択を直接観測する。これによりOS依存なしに日本語表示経路と文字化け回避経路を検証できる。
+        @see REQ-GUI-001
+        """
+        original_family = list(rcParams["font.family"])
+        try:
+            with patch(
+                "map_view.font_manager.fontManager.ttflist",
+                [SimpleNamespace(name="Meiryo")],
+            ):
+                self.view._configure_matplotlib_font()
+                self.assertTrue(self.view._japanese_graph_text)
+                self.assertEqual("Meiryo", self.view._graph_font_family)
+                self.assertEqual("非飽和", self.view._text("非飽和", "Unsaturated"))
+
+            with patch(
+                "map_view.font_manager.fontManager.ttflist",
+                [SimpleNamespace(name="DejaVu Sans")],
+            ):
+                self.view._configure_matplotlib_font()
+                self.assertFalse(self.view._japanese_graph_text)
+                self.assertEqual("DejaVu Sans", self.view._graph_font_family)
+                self.assertEqual("Unsaturated", self.view._text("非飽和", "Unsaturated"))
+        finally:
+            rcParams["font.family"] = original_family
 
 
 if __name__ == "__main__":
