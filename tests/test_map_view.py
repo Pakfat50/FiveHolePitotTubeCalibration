@@ -5,6 +5,7 @@
 @details docs/test_specification.md および docs/test_specification_map_font_addendum.md に対応する較正点マップ表示テストを実装する。
 """
 
+from types import SimpleNamespace
 import unittest
 from unittest.mock import Mock, patch
 
@@ -61,7 +62,7 @@ class TestCalibrationMapView(unittest.TestCase):
         """@brief Z/A生成禁止点が識別可能で、不要な第3色を導入しないことを確認する。
 
         @test TEST-UNIT-092: 正常点と回転エラー点が別collectionとなり、色は通常色のまま生成禁止ラベルで識別できること。
-        @details edgecolor集合とlegend labelを同時に確認する。凡例文言はフォント環境に応じた日本語/英語のどちらでも同じ意味を持つことを確認する。
+        @details edgecolor集合とlegend labelを同時に確認する。
         @par 検証根拠
         色設計と生成禁止の意味表示を別々に観測するため、エラー点が識別可能でありながら規定外色を追加していないことを確認できる。
         @see REQ-GUI-002, REQ-LIMIT-003
@@ -73,8 +74,8 @@ class TestCalibrationMapView(unittest.TestCase):
         colors = {tuple(collection.get_edgecolors()[0]) for collection in self.view.axes.collections}
         self.assertEqual({to_rgba(self.view.NORMAL_COLOR)}, colors)
         legend_labels = self.view.axes.get_legend_handles_labels()[1]
-        expected_phrase = "生成禁止" if self.view._japanese_graph_text else "generation disabled"
-        self.assertTrue(any(expected_phrase in label for label in legend_labels))
+        expected_term = "生成禁止" if self.view._japanese_graph_text else "generation disabled"
+        self.assertTrue(any(expected_term in label for label in legend_labels))
 
     # TEST-UNIT-122
     # Requirements: REQ-GUI-002, REQ-LIMIT-001, REQ-LIMIT-003
@@ -82,7 +83,7 @@ class TestCalibrationMapView(unittest.TestCase):
         """@brief X/Y飽和とZ/A範囲外が同時発生した点の複合表示を確認する。
 
         @test TEST-UNIT-122: 複合状態点は飽和色を維持し、凡例でZ/A生成禁止も識別できること。
-        @details x_saturated=Trueかつrotational_error=Trueの1点を描画し、色とフォント環境に応じた凡例文言を確認する。
+        @details x_saturated=Trueかつrotational_error=Trueの1点を描画し、色と凡例文言を確認する。
         @par 検証根拠
         2種類の状態を同一点に同時付与し、双方の視覚情報が失われていないことを観測するため、状態優先順位・複合表現を直接検証できる。
         @see REQ-GUI-002, REQ-LIMIT-001, REQ-LIMIT-003
@@ -93,9 +94,10 @@ class TestCalibrationMapView(unittest.TestCase):
         collection = self.view.axes.collections[0]
         self.assertEqual(to_rgba(self.view.SATURATED_COLOR), tuple(collection.get_edgecolors()[0]))
         legend_labels = self.view.axes.get_legend_handles_labels()[1]
-        expected_label = self.view._text(
-            "X/Y飽和・Z/A範囲外（生成禁止）",
-            "X/Y saturated - Z/A out of range (generation disabled)",
+        expected_label = (
+            "X/Y飽和・Z/A範囲外（生成禁止）"
+            if self.view._japanese_graph_text
+            else "X/Y saturated - Z/A out of range (generation disabled)"
         )
         self.assertEqual([expected_label], legend_labels)
 
@@ -107,20 +109,26 @@ class TestCalibrationMapView(unittest.TestCase):
         @test TEST-UNIT-124: 日本語対応フォントありでは日本語凡例、なしでは英語凡例を使用すること。
         @details Matplotlibのフォント一覧をMock化し、Meiryoが存在するケースと日本語フォントが存在しないケースを順に描画する。
         @par 検証根拠
-        利用可能フォント集合を決定論的に切り替えたうえで、選択されたfamilyと実際の凡例ラベルを同時に観測するため、OS依存なしに日本語表示経路と文字化け回避経路の両方を確認できる。
+        実際のMatplotlib FontEntryと同じname属性を持つ簡易オブジェクトで利用可能フォント集合を決定論的に切り替え、選択されたfamilyと実際の凡例ラベルを同時に観測する。これによりOS依存なしに日本語表示経路と文字化け回避経路の両方を確認できる。
         @see REQ-GUI-001
         """
         point = Mock(point=Mock(aos=0, aoa=0), x_saturated=False, y_saturated=False, rotational_error=False)
         plan = Mock(points=[point])
 
-        with patch("map_view.font_manager.fontManager.ttflist", [Mock(name="Meiryo")]):
+        with patch(
+            "map_view.font_manager.fontManager.ttflist",
+            [SimpleNamespace(name="Meiryo")],
+        ):
             japanese_view = CalibrationMapView()
             japanese_view.render(plan)
             self.assertTrue(japanese_view._japanese_graph_text)
             self.assertEqual("Meiryo", japanese_view._graph_font_family)
             self.assertEqual(["非飽和"], japanese_view.axes.get_legend_handles_labels()[1])
 
-        with patch("map_view.font_manager.fontManager.ttflist", [Mock(name="DejaVu Sans")]):
+        with patch(
+            "map_view.font_manager.fontManager.ttflist",
+            [SimpleNamespace(name="DejaVu Sans")],
+        ):
             fallback_view = CalibrationMapView()
             fallback_view.render(plan)
             self.assertFalse(fallback_view._japanese_graph_text)
