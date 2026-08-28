@@ -264,7 +264,7 @@ class MainWindow:
     def _apply_validation_highlights(self, invalid_entry_keys: set[str]) -> None:
         """該当Entryだけの背景styleをエラー状態へ切り替える。
 
-        枠色、配置、サイズ、追加文字、アイコンは変更しない。
+        枠色、配置、サイズ、新規の文字表示やアイコンは変更しない。
 
         引数:
             invalid_entry_keys: 背景色をエラー表示へ切り替えるEntryキー集合。
@@ -284,12 +284,14 @@ class MainWindow:
 
         parse_errors = self._find_numeric_parse_errors()
         if parse_errors:
-            # 数値変換不能時は理由文字を表示せず、該当Entryの背景色だけを変更する。
-            self.field_errors = {key: "" for key in parse_errors}
+            message = "数値として解釈できない入力があります。"
+            self.field_errors = {key: message for key in parse_errors}
             self._apply_validation_highlights(parse_errors)
+            self.status_message = message
             self.modal_dialog_requested = False
             self.simulation_enabled = False
             self.gcode_enabled = False
+            self._refresh_status_widget()
             self._update_button_widgets()
             return
 
@@ -310,10 +312,10 @@ class MainWindow:
 
     # 対応要求: REQ-VALID-001, REQ-GUI-005
     def _update_validation_display(self, validation_result) -> None:
-        """検証結果に対応するEntry背景色を非モーダルに更新する。
+        """検証結果に対応するEntry背景色と既存メッセージ領域を更新する。
 
-        入力エラー理由の文字表示やアイコン追加は行わず、既存の状態表示領域にも
-        入力エラー理由を出力しない。
+        入力欄近傍へ新規の文字表示やアイコンを追加せず、既存の固定メッセージ領域へ
+        入力エラー理由を表示する。
 
         引数:
             validation_result: フィールド単位の検証結果。
@@ -326,7 +328,12 @@ class MainWindow:
         for issue in validation_result.issues:
             invalid_entry_keys.update(self._entry_keys_for_validation_field(issue.field))
         self._apply_validation_highlights(invalid_entry_keys)
+        if self.field_errors:
+            self.status_message = " / ".join(self.field_errors.values())
+        elif not self.status_message.startswith("X逸脱"):
+            self.status_message = "入力値は有効です。"
         self.modal_dialog_requested = False
+        self._refresh_status_widget()
 
     # 対応要求: REQ-LIMIT-002, REQ-LIMIT-003, REQ-GUI-005
     def _update_plan_status(self, plan) -> None:
