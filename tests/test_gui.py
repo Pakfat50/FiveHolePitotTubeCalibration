@@ -6,7 +6,7 @@
 """
 
 import unittest
-from unittest.mock import Mock
+from unittest.mock import Mock, patch
 
 from gui import MainWindow
 from repositories import SettingsLoadError
@@ -53,33 +53,77 @@ class TestMainWindow(unittest.TestCase):
 
     # TEST-UNIT-101
     # Requirements: REQ-VALID-001, REQ-GUI-005
-    def test_validation_error_is_non_modal_and_field_specific(self):
-        """@brief 入力エラーがフィールド単位で記録され、モーダルダイアログを要求しないことを確認する。
+    def test_validation_error_changes_target_background_and_shows_existing_message(self):
+        """@brief 入力エラー時に該当Entryの背景だけを変え、既存メッセージ領域へ理由を表示することを確認する。
 
-        @test TEST-UNIT-101: feed_rate issueがfield_errorsへ登録され、modal_dialog_requested=Falseであること。
+        @test TEST-UNIT-101: feed_rateエラー時、feed_rateだけをエラーstyleとし、status_messageへ理由を表示し、モーダル表示しないこと。
+        @details エラー用背景色はレビュー承認済みの薄い赤 #FFECEC とする。エラーstyleはfieldbackgroundだけを設定し、枠設定や新規GUI要素を追加しない。
         @par 検証根拠
-        具体的なfield名を持つValidationIssue相当を入力し、フィールド状態とモーダル要求を同時観測するため、非モーダル・該当欄特定の両要件を確認できる。
+        実Entry相当Mockへのstyle適用とstatus_messageを同時観測するため、対象欄の視覚強調と既存メッセージ領域への理由表示を確認できる。さらにStyle.configureの引数を確認することで、枠色等を上書きせず背景色だけを変更することを確認できる。
         @see REQ-VALID-001, REQ-GUI-005
         """
+        feed_entry = Mock()
+        hold_entry = Mock()
+        self.window._entry_widgets = {
+            "feed_rate": feed_entry,
+            "hold_time_s": hold_entry,
+        }
+
         issue = Mock(field="feed_rate", message="Feed rateが不正", severity=Mock(name="ERROR"))
         self.window._update_validation_display(Mock(issues=[issue]))
+
+        self.assertEqual("#FFECEC", self.window.ENTRY_ERROR_BACKGROUND)
+        feed_entry.configure.assert_called_with(style=self.window.ENTRY_ERROR_STYLE)
+        hold_entry.configure.assert_called_with(style=self.window.ENTRY_NORMAL_STYLE)
         self.assertIn("feed_rate", self.window.field_errors)
+        self.assertEqual("Feed rateが不正", self.window.status_message)
+        self.assertFalse(self.window.modal_dialog_requested)
+
+        style = Mock()
+        with patch("gui.ttk.Style", return_value=style):
+            self.window._configure_validation_styles()
+        style.configure.assert_called_once_with(
+            self.window.ENTRY_ERROR_STYLE,
+            fieldbackground=self.window.ENTRY_ERROR_BACKGROUND,
+        )
+
+        # 数値へ変換できない入力も、汎用inputエラーではなく該当Entryを特定する。
+        self.window._widget_vars = {
+            "feed_rate": Mock(get=Mock(return_value="abc")),
+            "hold_time_s": Mock(get=Mock(return_value="1.0")),
+        }
+        self.assertEqual({"feed_rate"}, self.window._find_numeric_parse_errors())
+        self.window._on_gui_input_changed()
+        self.assertIn("数値として解釈できない", self.window.status_message)
         self.assertFalse(self.window.modal_dialog_requested)
 
     # TEST-UNIT-102
     # Requirements: REQ-VALID-001, REQ-GUI-005
-    def test_validation_error_clears_after_recovery(self):
-        """@brief 入力不正が解消された後にフィールドエラー状態が自動解除されることを確認する。
+    def test_validation_error_background_and_message_clear_after_recovery(self):
+        """@brief 入力不正解消後にEntry背景と既存メッセージ領域のエラー理由が自動解除されることを確認する。
 
-        @test TEST-UNIT-102: issue有り→issue無しの更新後にfeed_rateがfield_errorsから消えること。
+        @test TEST-UNIT-102: issue有り→issue無しの連続更新後、feed_rateへ通常styleが再適用され、入力エラー理由が消えること。
         @par 検証根拠
-        同一MainWindowへ連続した検証状態を与えるため、エラー表示が残留せず最新検証結果へ追従することを確認できる。
+        同一Entryへのstyle呼出し順とstatus_messageの遷移を観測するため、内部field_errorsだけ消えて背景色またはエラーメッセージが残留する不具合を検出できる。
         @see REQ-VALID-001, REQ-GUI-005
         """
+        feed_entry = Mock()
+        self.window._entry_widgets = {"feed_rate": feed_entry}
         issue = Mock(field="feed_rate", message="error", severity=Mock(name="ERROR"))
+
         self.window._update_validation_display(Mock(issues=[issue]))
+        self.assertEqual("error", self.window.status_message)
         self.window._update_validation_display(Mock(issues=[]))
+
+        self.assertEqual(
+            [
+                unittest.mock.call(style=self.window.ENTRY_ERROR_STYLE),
+                unittest.mock.call(style=self.window.ENTRY_NORMAL_STYLE),
+            ],
+            feed_entry.configure.call_args_list,
+        )
         self.assertNotIn("feed_rate", self.window.field_errors)
+        self.assertEqual("入力値は有効です。", self.window.status_message)
 
     # TEST-UNIT-103
     # Requirements: REQ-LIMIT-002, REQ-GUI-005
@@ -180,6 +224,7 @@ class TestMainWindow(unittest.TestCase):
         @see REQ-SIM-001, REQ-GUI-004
         """
         plan = Mock(); self.controller.get_current_plan.return_value = plan
+        self._prepare_generation_state(True)
         self.window._on_simulate()
         self.sim_controller.start.assert_called_once_with(plan, duration_s=10.0)
 
@@ -196,6 +241,7 @@ class TestMainWindow(unittest.TestCase):
         plan = Mock(); settings = make_settings()
         self.controller.get_current_plan.return_value = plan
         self.controller.get_current_settings.return_value = settings
+        self._prepare_generation_state(True)
         self.gcode_generator.generate.return_value = "G21\n"
         self.window.initialization_text = ""
         self.window._on_generate_gcode("out.nc")
@@ -221,6 +267,10 @@ class TestMainWindow(unittest.TestCase):
         self.controller.apply_settings.assert_not_called()
         self.assertIn("feed_rate", self.window.status_message)
         self.assertFalse(self.window.modal_dialog_requested)
+
+    def _prepare_generation_state(self, can_generate: bool) -> None:
+        """@brief 操作イベントテスト用にControllerの生成可否を固定する。"""
+        self.controller.can_generate.return_value = can_generate
 
 
 if __name__ == "__main__":
