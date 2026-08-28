@@ -1,3 +1,10 @@
+"""シミュレーション制御・表示の単体テスト。
+
+@file test_simulation.py
+@brief SimulationController のフレーム選択と SimulationView の横面図・正面図・状態表示・較正点マップ同期を検証する。
+@details docs/test_specification.md の TEST-UNIT-093..099,122,123 に対応する。
+"""
+
 import math
 import unittest
 from unittest.mock import Mock
@@ -6,7 +13,10 @@ from simulation import SimulationController, SimulationView
 
 
 class TestSimulation(unittest.TestCase):
+    """@brief シミュレーションが同一planの走査順と現在点を正しく可視化することを確認する。"""
+
     def setUp(self):
+        """@brief Controller用Mock Viewと、View描画にも利用できる代表的なplanを準備する。"""
         self.view = Mock(spec=SimulationView)
         self.controller = SimulationController(self.view)
         self.points = [
@@ -27,21 +37,49 @@ class TestSimulation(unittest.TestCase):
     # TEST-UNIT-093
     # Requirements: REQ-SIM-002
     def test_start_frame_is_first_point(self):
+        """@brief 再生進捗0.0が最初の較正点へ対応することを確認する。
+
+        @test TEST-UNIT-093: _frame_at(plan,0.0)がpoints[0]を返すこと。
+        @par 検証根拠
+        正規化進捗の始端を直接入力して同一オブジェクト参照を確認するため、開始フレームのマッピングを一意に検証できる。
+        @see REQ-SIM-002
+        """
         self.assertIs(self.points[0], self.controller._frame_at(self.plan, 0.0))
 
     # TEST-UNIT-094
     # Requirements: REQ-SIM-002
     def test_end_frame_is_last_point(self):
+        """@brief 再生進捗1.0が最後の較正点へ対応することを確認する。
+
+        @test TEST-UNIT-094: _frame_at(plan,1.0)がpoints[-1]を返すこと。
+        @par 検証根拠
+        正規化進捗の終端と走査列終端を直接対応付けるため、最終点が再生から欠落しないことを確認できる。
+        @see REQ-SIM-002
+        """
         self.assertIs(self.points[-1], self.controller._frame_at(self.plan, 1.0))
 
     # TEST-UNIT-095
     # Requirements: REQ-SIM-002
     def test_middle_progress_maps_to_scan_order(self):
+        """@brief 中間進捗が走査順の中央点へ対応することを確認する。
+
+        @test TEST-UNIT-095: 5点planのprogress=0.5でpoints[2]を返すこと。
+        @par 検証根拠
+        始端・終端以外の代表点を確認することで、単純な端点特例ではなく走査順全体の進捗マッピング式を検証できる。
+        @see REQ-SIM-002
+        """
         self.assertIs(self.points[2], self.controller._frame_at(self.plan, 0.5))
 
     # TEST-UNIT-096
     # Requirements: REQ-SIM-002
     def test_playback_duration_is_independent_of_hold_time(self):
+        """@brief シミュレーション再生時間がplanの保持時間ではなく指定duration_sで決まることを確認する。
+
+        @test TEST-UNIT-096: start(plan,10.0)がViewへduration_s=10.0と同一planを渡し、frame_providerが始端・終端を正しく返すこと。
+        @par 検証根拠
+        ControllerがViewへ渡す再生設定と生成したframe_providerを直接観測するため、Gコード保持時間に依存しない約10秒再生構成を確認できる。
+        @see REQ-SIM-002
+        """
         self.controller.start(self.plan, duration_s=10.0)
         self.assertEqual(10.0, self.controller.duration_s)
         self.view.start_animation.assert_called_once()
@@ -54,6 +92,14 @@ class TestSimulation(unittest.TestCase):
     # TEST-UNIT-097
     # Requirements: REQ-SIM-003
     def test_side_view_is_initialized(self):
+        """@brief 横面図がLx/LyのL字形状を実ピッチ角で剛体回転して表示することを確認する。
+
+        @test TEST-UNIT-097: Z=0でpivot→Ly→Lxの基準L字となり、Z=30度では両線分が理論回転座標へ移ること。表示範囲は固定され、不要なLx/Ly/先端/中心文字や寸法矢印を持たず、先端方向矢印は1本だけであること。
+        @details Lx=100,Ly=20について基準姿勢と30度姿勢の線分端点をMatplotlib Line2Dから取得し、回転式で独立計算した座標と比較する。
+        @par 検証根拠
+        見た目の画像比較ではなく、描画に使用された2線分の数値座標を仕様幾何と直接比較するため、L字の構造・回転方向・寸法反映を精密に検証できる。さらにAxes範囲、文字Artist、矢印Artistを直接観測することで、表示上の禁止要素と固定スケールも確認できる。
+        @see REQ-SIM-003
+        """
         view = SimulationView()
         view.initialize(self.plan)
         self.assertTrue(hasattr(view, "side_axes"))
@@ -126,6 +172,14 @@ class TestSimulation(unittest.TestCase):
     # TEST-UNIT-098
     # Requirements: REQ-SIM-003
     def test_front_view_is_initialized(self):
+        """@brief 正面図がロール方向を中心から外周への半径矢印だけで表示することを確認する。
+
+        @test TEST-UNIT-098: 軸ラベル・数値目盛を持たず固定範囲を維持し、矢印始点が中心、終点半径が1.0で、方向説明文字を表示しないこと。
+        @details 複数フレーム描画後にAxes範囲、ticks、Annotation座標、Text内容を取得して比較する。
+        @par 検証根拠
+        ロール方向を表すAnnotationの幾何を直接測定するため、直径線への退行や逆方向表示を検出できる。不要情報もAxesの公開Artistから確認することで表示仕様を自動検証できる。
+        @see REQ-SIM-003
+        """
         view = SimulationView()
         view.initialize(self.plan)
         self.assertTrue(hasattr(view, "front_axes"))
@@ -161,6 +215,13 @@ class TestSimulation(unittest.TestCase):
     # TEST-UNIT-099
     # Requirements: REQ-SIM-004
     def test_render_frame_updates_required_information(self):
+        """@brief 現在点情報と進捗表示がrender_frameで更新されることを確認する。
+
+        @test TEST-UNIT-099: point番号、AoA/AoS、X/Y/Z/A、50%進捗がstatus_textに反映され、progress bar終点が0.50になること。
+        @par 検証根拠
+        各値を互いに異なる数値に設定して文字列中の存在と進捗Artist座標を確認するため、フィールド取り違えや更新漏れを検出できる。
+        @see REQ-SIM-004
+        """
         view = SimulationView()
         view.initialize(self.plan)
         point = Mock(
@@ -180,6 +241,13 @@ class TestSimulation(unittest.TestCase):
     # TEST-UNIT-122
     # Requirements: REQ-SIM-005
     def test_calibration_map_displays_all_points_without_legend(self):
+        """@brief シミュレーション較正点マップが全点をAoS横軸・AoA縦軸で凡例なし表示することを確認する。
+
+        @test TEST-UNIT-122: 全plan点の(AoS,AoA)座標集合とscatter offsetsが一致し、軸ラベルが単位付きで凡例を持たないこと。
+        @par 検証根拠
+        描画済みscatterの実座標集合をplanの全点から構成した期待集合と比較するため、点の欠落・軸逆転・余分な点を直接検出できる。
+        @see REQ-SIM-005
+        """
         view = SimulationView()
         view.initialize(self.plan)
 
@@ -196,6 +264,14 @@ class TestSimulation(unittest.TestCase):
     # TEST-UNIT-123
     # Requirements: REQ-SIM-006
     def test_current_calibration_point_color_tracks_rendered_point(self):
+        """@brief 現在較正点の強調がrender_frame対象点へ同期し、色だけで識別されることを確認する。
+
+        @test TEST-UNIT-123: 2つの異なる点を連続描画したときcurrent scatter座標とcurrent_point_indexが各点へ追従し、通常点と色が異なり、文字注記・凡例を追加しないこと。
+        @details 現在点Artistのoffsetとfacecolorを直接取得し、2回のrender_frame前後で比較する。
+        @par 検証根拠
+        同一Artistが異なる点へ実際に移動することを観測するため、初期表示だけでなくフレーム間同期を検証できる。また通常点ArtistとのRGBA比較とText/Legend不在確認により、色のみ強調という仕様を直接確認できる。
+        @see REQ-SIM-006
+        """
         view = SimulationView()
         view.initialize(self.plan)
 
