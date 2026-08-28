@@ -1,12 +1,12 @@
 """メインGUI較正点マップ表示の単体テスト。
 
 @file test_map_view.py
-@brief CalibrationMapView の軸方向、飽和点、回転エラー点の視覚分類を検証する。
-@details docs/test_specification.md に対応する較正点マップ表示テストを実装する。
+@brief CalibrationMapView の軸方向、飽和点、回転エラー点、日本語フォント選択を検証する。
+@details docs/test_specification.md および docs/test_specification_map_font_addendum.md に対応する較正点マップ表示テストを実装する。
 """
 
 import unittest
-from unittest.mock import Mock
+from unittest.mock import Mock, patch
 
 from matplotlib.colors import to_rgba
 
@@ -14,7 +14,7 @@ from map_view import CalibrationMapView
 
 
 class TestCalibrationMapView(unittest.TestCase):
-    """@brief 較正点の状態がGUI上で仕様どおり識別可能に描画されることを確認する。"""
+    """@brief 較正点の状態と日本語表示がGUI上で仕様どおり描画されることを確認する。"""
 
     def setUp(self):
         """@brief 各テストで独立した CalibrationMapView を生成する。"""
@@ -93,6 +93,34 @@ class TestCalibrationMapView(unittest.TestCase):
         self.assertEqual(to_rgba(self.view.SATURATED_COLOR), tuple(collection.get_edgecolors()[0]))
         legend_labels = self.view.axes.get_legend_handles_labels()[1]
         self.assertEqual(["X/Y飽和・Z/A範囲外（生成禁止）"], legend_labels)
+
+    # TEST-UNIT-124
+    # Requirements: REQ-GUI-001
+    def test_japanese_font_selection_and_english_fallback(self):
+        """@brief 日本語フォントの選択と、未搭載環境での英語フォールバックを確認する。
+
+        @test TEST-UNIT-124: 日本語対応フォントありでは日本語凡例、なしでは英語凡例を使用すること。
+        @details Matplotlibのフォント一覧をMock化し、Meiryoが存在するケースと日本語フォントが存在しないケースを順に描画する。
+        @par 検証根拠
+        利用可能フォント集合を決定論的に切り替えたうえで、選択されたfamilyと実際の凡例ラベルを同時に観測するため、OS依存なしに日本語表示経路と文字化け回避経路の両方を確認できる。
+        @see REQ-GUI-001
+        """
+        point = Mock(point=Mock(aos=0, aoa=0), x_saturated=False, y_saturated=False, rotational_error=False)
+        plan = Mock(points=[point])
+
+        with patch("map_view.font_manager.fontManager.ttflist", [Mock(name="Meiryo")]):
+            japanese_view = CalibrationMapView()
+            japanese_view.render(plan)
+            self.assertTrue(japanese_view._japanese_graph_text)
+            self.assertEqual("Meiryo", japanese_view._graph_font_family)
+            self.assertEqual(["非飽和"], japanese_view.axes.get_legend_handles_labels()[1])
+
+        with patch("map_view.font_manager.fontManager.ttflist", [Mock(name="DejaVu Sans")]):
+            fallback_view = CalibrationMapView()
+            fallback_view.render(plan)
+            self.assertFalse(fallback_view._japanese_graph_text)
+            self.assertEqual("DejaVu Sans", fallback_view._graph_font_family)
+            self.assertEqual(["Unsaturated"], fallback_view.axes.get_legend_handles_labels()[1])
 
 
 if __name__ == "__main__":
