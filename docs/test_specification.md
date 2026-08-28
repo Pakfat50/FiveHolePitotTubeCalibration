@@ -199,13 +199,15 @@
 | TEST-UNIT-088 | REQ-VALID-003, REQ-LIMIT-003 | ZAエラーplan | generation error=True | `can_generate=False` |
 | TEST-UNIT-089 | REQ-GUI-003 | 設定適用 | loadしたsettings | current settings更新後にvalidate/build |
 
-## 4.10 `map_view.py` — `CalibrationMapView.render`
+## 4.10 `map_view.py` — `CalibrationMapView`
 
 | テストID | 要求ID | テスト内容 | 入力/条件 | 期待結果 |
 |---|---|---|---|---|
 | TEST-UNIT-090 | REQ-GUI-002 | 正常点表示 | warning/errorなし | AoS横軸、AoA縦軸で点描画 |
 | TEST-UNIT-091 | REQ-GUI-002, REQ-LIMIT-001 | XY飽和点識別 | x/y_saturated=True | 正常点と視覚的に異なる表現 |
 | TEST-UNIT-092 | REQ-GUI-002, REQ-LIMIT-003 | ZAエラー点識別 | rotational_error=True | 生成禁止点として識別可能 |
+| TEST-UNIT-124 | REQ-GUI-001 | 較正点マップの日本語フォント選択とフォールバック | 日本語対応フォントあり／なしをそれぞれ模擬 | 対応フォントありでは優先候補を選択して日本語文字列を使用し、なしではDejaVu Sansと英語文字列へフォールバックする |
+| TEST-UNIT-125 | REQ-GUI-002, REQ-LIMIT-001, REQ-LIMIT-003 | XY飽和とZA範囲外の複合表示 | x_saturatedまたはy_saturated=True、かつrotational_error=True | XY飽和色を維持し、Z/A生成禁止をエラーマーカーと凡例で同時に識別できる |
 
 ## 4.11 `simulation.py` — `SimulationController`, `SimulationView`
 
@@ -260,9 +262,9 @@
 | REQ-TRANS-004 | TEST-UNIT-033,034,035,064 |
 | REQ-POS-001 | TEST-UNIT-041,042,043,044,045,060,065 |
 | REQ-POS-002 | TEST-UNIT-046 |
-| REQ-LIMIT-001 | TEST-UNIT-047,048,049,050,051,058,059,063,065,075,087 |
+| REQ-LIMIT-001 | TEST-UNIT-047,048,049,050,051,058,059,063,065,075,087,125 |
 | REQ-LIMIT-002 | TEST-UNIT-052,053,061,063,103 |
-| REQ-LIMIT-003 | TEST-UNIT-054,055,056,057,059,062,088,092,104 |
+| REQ-LIMIT-003 | TEST-UNIT-054,055,056,057,059,062,088,092,104,125 |
 | REQ-SCAN-001 | TEST-UNIT-017,018,019,023,024,060,084 |
 | REQ-SCAN-002 | TEST-UNIT-020,024,064 |
 | REQ-SCAN-003 | TEST-UNIT-021,022,064 |
@@ -277,8 +279,8 @@
 | REQ-SIM-004 | TEST-UNIT-099 |
 | REQ-SIM-005 | TEST-UNIT-122 |
 | REQ-SIM-006 | TEST-UNIT-123 |
-| REQ-GUI-001 | TEST-UNIT-100 |
-| REQ-GUI-002 | TEST-UNIT-090,091,092 |
+| REQ-GUI-001 | TEST-UNIT-100,124 |
+| REQ-GUI-002 | TEST-UNIT-090,091,092,125 |
 | REQ-GUI-003 | TEST-UNIT-076,077,078,079,089,107,108,117,118,119,120,121 |
 | REQ-GUI-004 | TEST-UNIT-100,107,108,109,110 |
 | REQ-GUI-005 | TEST-UNIT-101,102,103,104,105,121 |
@@ -305,7 +307,8 @@
 | `InitializationGCodeRepository.load` | TEST-UNIT-080,081 |
 | `GCodeRepository.save` | TEST-UNIT-082,083 |
 | `CalibrationController.on_settings_changed/apply_settings/can_generate` | TEST-UNIT-084..089 |
-| `CalibrationMapView.render` | TEST-UNIT-090..092 |
+| `CalibrationMapView.render` | TEST-UNIT-090..092,125 |
+| `CalibrationMapView._configure_matplotlib_font/_text` | TEST-UNIT-124 |
 | `SimulationController.start/_frame_at` | TEST-UNIT-093..096 |
 | `SimulationView.initialize/render_frame` | TEST-UNIT-097..099,122,123 |
 | `MainWindow` | TEST-UNIT-100..110,121 |
