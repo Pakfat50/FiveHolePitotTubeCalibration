@@ -2,7 +2,7 @@
 
 @file test_map_view.py
 @brief CalibrationMapView の軸方向、飽和点、回転エラー点、日本語フォント選択を検証する。
-@details docs/test_specification.md および docs/test_specification_map_font_addendum.md に対応する較正点マップ表示テストを実装する。
+@details docs/test_specification.md に対応する較正点マップ表示テストを実装する。
 """
 
 from types import SimpleNamespace
@@ -78,12 +78,12 @@ class TestCalibrationMapView(unittest.TestCase):
         expected_term = "生成禁止" if self.view._japanese_graph_text else "generation disabled"
         self.assertTrue(any(expected_term in label for label in legend_labels))
 
-    # TEST-UNIT-122
+    # TEST-UNIT-125
     # Requirements: REQ-GUI-002, REQ-LIMIT-001, REQ-LIMIT-003
     def test_saturated_rotational_error_keeps_saturation_color_and_error_marker_group(self):
         """@brief X/Y飽和とZ/A範囲外が同時発生した点の複合表示を確認する。
 
-        @test TEST-UNIT-122: 複合状態点は飽和色を維持し、凡例でZ/A生成禁止も識別できること。
+        @test TEST-UNIT-125: 複合状態点は飽和色を維持し、凡例でZ/A生成禁止も識別できること。
         @details x_saturated=Trueかつrotational_error=Trueの1点を描画し、色と凡例文言を確認する。
         @par 検証根拠
         2種類の状態を同一点に同時付与し、双方の視覚情報が失われていないことを観測するため、状態優先順位・複合表現を直接検証できる。
