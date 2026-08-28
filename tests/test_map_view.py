@@ -9,6 +9,7 @@ from types import SimpleNamespace
 import unittest
 from unittest.mock import Mock, patch
 
+from matplotlib import rcParams
 from matplotlib.colors import to_rgba
 
 from map_view import CalibrationMapView
@@ -106,34 +107,33 @@ class TestCalibrationMapView(unittest.TestCase):
     def test_japanese_font_selection_and_english_fallback(self):
         """@brief 日本語フォントの選択と、未搭載環境での英語フォールバックを確認する。
 
-        @test TEST-UNIT-124: 日本語対応フォントありでは日本語凡例、なしでは英語凡例を使用すること。
-        @details Matplotlibのフォント一覧をMock化し、Meiryoが存在するケースと日本語フォントが存在しないケースを順に描画する。
+        @test TEST-UNIT-124: 日本語対応フォントありでは日本語文字列、なしでは英語文字列を選択すること。
+        @details Figure生成後にフォント一覧だけをMock化し、Meiryoが存在するケースと日本語フォントが存在しないケースでフォント選択処理を直接呼び出す。
         @par 検証根拠
-        実際のMatplotlib FontEntryと同じname属性を持つ簡易オブジェクトで利用可能フォント集合を決定論的に切り替え、選択されたfamilyと実際の凡例ラベルを同時に観測する。これによりOS依存なしに日本語表示経路と文字化け回避経路の両方を確認できる。
+        MatplotlibのFigure生成・内部フォント探索を偽フォント一覧から分離し、製品コードのフォント候補判定結果と_text()の言語選択を直接観測する。これによりOS依存なしに日本語表示経路と文字化け回避経路を検証できる。
         @see REQ-GUI-001
         """
-        point = Mock(point=Mock(aos=0, aoa=0), x_saturated=False, y_saturated=False, rotational_error=False)
-        plan = Mock(points=[point])
+        original_family = list(rcParams["font.family"])
+        try:
+            with patch(
+                "map_view.font_manager.fontManager.ttflist",
+                [SimpleNamespace(name="Meiryo")],
+            ):
+                self.view._configure_matplotlib_font()
+                self.assertTrue(self.view._japanese_graph_text)
+                self.assertEqual("Meiryo", self.view._graph_font_family)
+                self.assertEqual("非飽和", self.view._text("非飽和", "Unsaturated"))
 
-        with patch(
-            "map_view.font_manager.fontManager.ttflist",
-            [SimpleNamespace(name="Meiryo")],
-        ):
-            japanese_view = CalibrationMapView()
-            japanese_view.render(plan)
-            self.assertTrue(japanese_view._japanese_graph_text)
-            self.assertEqual("Meiryo", japanese_view._graph_font_family)
-            self.assertEqual(["非飽和"], japanese_view.axes.get_legend_handles_labels()[1])
-
-        with patch(
-            "map_view.font_manager.fontManager.ttflist",
-            [SimpleNamespace(name="DejaVu Sans")],
-        ):
-            fallback_view = CalibrationMapView()
-            fallback_view.render(plan)
-            self.assertFalse(fallback_view._japanese_graph_text)
-            self.assertEqual("DejaVu Sans", fallback_view._graph_font_family)
-            self.assertEqual(["Unsaturated"], fallback_view.axes.get_legend_handles_labels()[1])
+            with patch(
+                "map_view.font_manager.fontManager.ttflist",
+                [SimpleNamespace(name="DejaVu Sans")],
+            ):
+                self.view._configure_matplotlib_font()
+                self.assertFalse(self.view._japanese_graph_text)
+                self.assertEqual("DejaVu Sans", self.view._graph_font_family)
+                self.assertEqual("Unsaturated", self.view._text("非飽和", "Unsaturated"))
+        finally:
+            rcParams["font.family"] = original_family
 
 
 if __name__ == "__main__":
