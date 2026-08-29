@@ -17,15 +17,22 @@ from tests.test_support import make_settings
 class TestRepositories(unittest.TestCase):
     """Repository群が正常データを損失なく保持し、異常データを明示的に失敗として扱うことを確認する。"""
 
-    # TEST-UNIT-076
-    # Requirements: REQ-GUI-003
     def test_settings_csv_round_trip(self):
-        """設定CSVの保存→読込で全設定値が一致することを確認する。
+        """TEST-UNIT-076
 
-        TEST ID: TEST-UNIT-076: SettingsRepository.save/load の往復後に元のCalibrationSettingsと一致すること。
+        テスト目的:
+            設定CSVの保存→読込で全設定値が一致することを確認する。
+
+        テスト手順:
+            1. テスト対象の処理を実行し、結果を確認する。
+            2. テスト対象のメソッドを呼び出して結果を取得する。
+            3. 取得した結果を期待値と比較する。
+
+        パスクライテリア:
+            SettingsRepository.save/load の往復後に元のCalibrationSettingsと一致すること。
+
         検証根拠:
-        同一オブジェクト内容を保存前後で完全比較するため、各フィールドの欠落・型変換・値変化をまとめて検出できる。
-        対応要求: REQ-GUI-003
+            同一オブジェクト内容を保存前後で完全比較するため、各フィールドの欠落・型変換・値変化をまとめて検出できる。
         """
         repo = SettingsRepository()
         settings = make_settings()
@@ -35,15 +42,22 @@ class TestRepositories(unittest.TestCase):
             loaded = repo.load(path)
         self.assertEqual(settings, loaded)
 
-    # TEST-UNIT-077
-    # Requirements: REQ-GUI-003
     def test_options_round_trip(self):
-        """boolオプションの全組合せがCSV往復で保持されることを確認する。
+        """TEST-UNIT-077
 
-        TEST ID: TEST-UNIT-077: serpentine/output_commentsの4組合せが保存前後で一致すること。
+        テスト目的:
+            boolオプションの全組合せがCSV往復で保持されることを確認する。
+
+        テスト手順:
+            1. テスト対象の処理を実行し、結果を確認する。
+            2. テスト対象のメソッドを呼び出して結果を取得する。
+            3. 取得した結果を期待値と比較する。
+
+        パスクライテリア:
+            serpentine/output_commentsの4組合せが保存前後で一致すること。
+
         検証根拠:
-        True/False直積を全列挙するため、文字列化・bool復元の片側だけが壊れる実装を検出できる。
-        対応要求: REQ-GUI-003
+            True/False直積を全列挙するため、文字列化・bool復元の片側だけが壊れる実装を検出できる。
         """
         repo = SettingsRepository()
         for serpentine in (False, True):
@@ -54,30 +68,44 @@ class TestRepositories(unittest.TestCase):
                     loaded = repo.load(p)
                     self.assertEqual((serpentine, comments), (loaded.serpentine, loaded.output_comments))
 
-    # TEST-UNIT-078
-    # Requirements: REQ-GUI-003
     def test_axis_ranges_round_trip(self):
-        """X/Y/Z/A可動範囲がCSV往復で保持されることを確認する。
+        """TEST-UNIT-078
 
-        TEST ID: TEST-UNIT-078: loaded.axis_limitsが保存前axis_limitsと一致すること。
+        テスト目的:
+            X/Y/Z/A可動範囲がCSV往復で保持されることを確認する。
+
+        テスト手順:
+            1. テスト対象の処理を実行し、結果を確認する。
+            2. テスト対象のメソッドを呼び出して結果を取得する。
+            3. 取得した結果を期待値と比較する。
+
+        パスクライテリア:
+            loaded.axis_limitsが保存前axis_limitsと一致すること。
+
         検証根拠:
-        AxisLimits全体を等価比較するため、8個のmin/max値のどれか1つでも欠落・取り違えがあれば検出できる。
-        対応要求: REQ-GUI-003
+            AxisLimits全体を等価比較するため、8個のmin/max値のどれか1つでも欠落・取り違えがあれば検出できる。
         """
         repo = SettingsRepository(); settings = make_settings()
         with tempfile.TemporaryDirectory() as d:
             p = os.path.join(d, "settings.csv"); repo.save(p, settings); loaded = repo.load(p)
         self.assertEqual(settings.axis_limits, loaded.axis_limits)
 
-    # TEST-UNIT-079
-    # Requirements: REQ-GUI-003
     def test_structurally_invalid_csv_returns_explicit_error(self):
-        """構造不正CSVをSettingsLoadErrorとして拒否することを確認する。
+        """TEST-UNIT-079
 
-        TEST ID: TEST-UNIT-079: key/value形式でないCSV読込が明示的な設定読込エラーになること。
+        テスト目的:
+            構造不正CSVをSettingsLoadErrorとして拒否することを確認する。
+
+        テスト手順:
+            1. テスト対象の処理を実行し、結果を確認する。
+            2. テスト対象のメソッドを呼び出して結果を取得する。
+            3. 取得した結果を期待値と比較する。
+
+        パスクライテリア:
+            key/value形式でないCSV読込が明示的な設定読込エラーになること。
+
         検証根拠:
-        実ファイルへ不正行構造を書き込み公開load()を呼ぶため、CSV parserからRepository例外への防御経路を実際に確認できる。
-        対応要求: REQ-GUI-003
+            実ファイルへ不正行構造を書き込み公開load()を呼ぶため、CSV parserからRepository例外への防御経路を実際に確認できる。
         """
         with tempfile.NamedTemporaryFile("w", suffix=".csv", delete=False, newline="", encoding="utf-8") as f:
             f.write("this,is,not,key,value\n")
@@ -86,15 +114,22 @@ class TestRepositories(unittest.TestCase):
             with self.assertRaises(SettingsLoadError): SettingsRepository().load(path)
         finally: os.remove(path)
 
-    # TEST-UNIT-080
-    # Requirements: REQ-INPUT-006
     def test_initialization_gcode_utf8_multiline(self):
-        """UTF-8日本語を含む複数行初期化Gコードをそのまま読み込めることを確認する。
+        """TEST-UNIT-080
 
-        TEST ID: TEST-UNIT-080: ファイル内容とload()戻り値が完全一致すること。
+        テスト目的:
+            UTF-8日本語を含む複数行初期化Gコードをそのまま読み込めることを確認する。
+
+        テスト手順:
+            1. テスト対象の処理を実行し、結果を確認する。
+            2. テスト対象のメソッドを呼び出して結果を取得する。
+            3. 取得した結果を期待値と比較する。
+
+        パスクライテリア:
+            ファイル内容とload()戻り値が完全一致すること。
+
         検証根拠:
-        日本語・コメント・複数行を含む文字列全体を比較するため、文字コード・改行・行順の保持を同時に確認できる。
-        対応要求: REQ-INPUT-006
+            日本語・コメント・複数行を含む文字列全体を比較するため、文字コード・改行・行順の保持を同時に確認できる。
         """
         content = "; 初期化\nG92 X0\nM5\n"
         with tempfile.NamedTemporaryFile("w", delete=False, encoding="utf-8") as f:
@@ -102,89 +137,138 @@ class TestRepositories(unittest.TestCase):
         try: self.assertEqual(content, InitializationGCodeRepository().load(path))
         finally: os.remove(path)
 
-    # TEST-UNIT-081
-    # Requirements: REQ-INPUT-006
     def test_missing_initialization_file_raises_ioerror(self):
-        """存在しない初期化GコードファイルでI/Oエラーが通知されることを確認する。
+        """TEST-UNIT-081
 
-        TEST ID: TEST-UNIT-081: missing pathに対するload()がOSErrorを送出すること。
+        テスト目的:
+            存在しない初期化GコードファイルでI/Oエラーが通知されることを確認する。
+
+        テスト手順:
+            1. テスト対象の処理を実行し、結果を確認する。
+            2. テスト対象のメソッドを呼び出して結果を取得する。
+            3. 取得した結果を期待値と比較する。
+
+        パスクライテリア:
+            missing pathに対するload()がOSErrorを送出すること。
+
         検証根拠:
-        確実に存在しないパスを公開APIへ渡すため、読込失敗が成功扱いや空文字扱いにならないことを確認できる。
-        対応要求: REQ-INPUT-006
+            確実に存在しないパスを公開APIへ渡すため、読込失敗が成功扱いや空文字扱いにならないことを確認できる。
         """
         with self.assertRaises(OSError): InitializationGCodeRepository().load("__missing_init__.txt")
 
-    # TEST-UNIT-082
-    # Requirements: REQ-GCODE-001
     def test_save_nc_file(self):
-        """Gコードを指定した.ncファイルへUTF-8で保存できることを確認する。
+        """TEST-UNIT-082
 
-        TEST ID: TEST-UNIT-082: save後の実ファイル内容が入力テキストと一致すること。
+        テスト目的:
+            Gコードを指定した.ncファイルへUTF-8で保存できることを確認する。
+
+        テスト手順:
+            1. テスト対象の処理を実行し、結果を確認する。
+            2. テスト対象のメソッドを呼び出して結果を取得する。
+            3. 取得した結果を期待値と比較する。
+
+        パスクライテリア:
+            save後の実ファイル内容が入力テキストと一致すること。
+
         検証根拠:
-        一時ディレクトリ上の実ファイルを再オープンして内容比較するため、Repositoryの書込副作用そのものを確認できる。
-        対応要求: REQ-GCODE-001
+            一時ディレクトリ上の実ファイルを再オープンして内容比較するため、Repositoryの書込副作用そのものを確認できる。
         """
         with tempfile.TemporaryDirectory() as d:
             path = os.path.join(d, "out.nc"); GCodeRepository().save(path, "G21\n")
             with open(path, encoding="utf-8") as f: self.assertEqual("G21\n", f.read())
 
-    # TEST-UNIT-083
-    # Requirements: REQ-GCODE-001
     def test_gcode_save_failure_is_reported(self):
-        """Gコード保存失敗がOSErrorとして呼出し元へ通知されることを確認する。
+        """TEST-UNIT-083
 
-        TEST ID: TEST-UNIT-083: 存在しないディレクトリへのsaveがOSErrorを送出すること。
+        テスト目的:
+            Gコード保存失敗がOSErrorとして呼出し元へ通知されることを確認する。
+
+        テスト手順:
+            1. テスト対象の処理を実行し、結果を確認する。
+            2. テスト対象のメソッドを呼び出して結果を取得する。
+            3. 取得した結果を期待値と比較する。
+
+        パスクライテリア:
+            存在しないディレクトリへのsaveがOSErrorを送出すること。
+
         検証根拠:
-        書込不能パスを使用することで実I/O失敗を発生させ、例外が握り潰されないことを確認できる。
-        対応要求: REQ-GCODE-001
+            書込不能パスを使用することで実I/O失敗を発生させ、例外が握り潰されないことを確認できる。
         """
         with self.assertRaises(OSError): GCodeRepository().save(os.path.join("__missing_dir__", "out.nc"), "G21\n")
 
-    # TEST-UNIT-117
-    # Requirements: REQ-GUI-003
     def test_missing_required_csv_key(self):
-        """必須CSVキー欠損を読込失敗として扱うことを確認する。
+        """TEST-UNIT-117
 
-        TEST ID: TEST-UNIT-117: feed_rateキー欠損でSettingsLoadErrorとなること。
+        テスト目的:
+            必須CSVキー欠損を読込失敗として扱うことを確認する。
+
+        テスト手順:
+            1. テスト対象の処理を実行し、結果を確認する。
+            2. テスト対象のメソッドを呼び出して結果を取得する。
+            3. 取得した結果を期待値と比較する。
+
+        パスクライテリア:
+            feed_rateキー欠損でSettingsLoadErrorとなること。
+
         検証根拠:
-        正常CSV集合から必須キー1件だけを除去するため、欠損検出ロジックを他の構造異常から分離して確認できる。
-        対応要求: REQ-GUI-003
+            正常CSV集合から必須キー1件だけを除去するため、欠損検出ロジックを他の構造異常から分離して確認できる。
         """
         self._assert_bad_csv({"feed_rate": None})
 
-    # TEST-UNIT-118
-    # Requirements: REQ-GUI-003
     def test_blank_required_csv_value(self):
-        """必須CSV値が空欄の場合を読込失敗として扱うことを確認する。
+        """TEST-UNIT-118
 
-        TEST ID: TEST-UNIT-118: feed_rate=""でSettingsLoadErrorとなること。
+        テスト目的:
+            必須CSV値が空欄の場合を読込失敗として扱うことを確認する。
+
+        テスト手順:
+            1. テスト対象の処理を実行し、結果を確認する。
+            2. テスト対象のメソッドを呼び出して結果を取得する。
+            3. 取得した結果を期待値と比較する。
+
+        パスクライテリア:
+            feed_rate=""でSettingsLoadErrorとなること。
+
         検証根拠:
-        キーは存在するが値だけ空欄という条件を作るため、キー欠損とは別の空値検証を確認できる。
-        対応要求: REQ-GUI-003
+            キーは存在するが値だけ空欄という条件を作るため、キー欠損とは別の空値検証を確認できる。
         """
         self._assert_bad_csv({"feed_rate": ""}, omit_none=False)
 
-    # TEST-UNIT-119
-    # Requirements: REQ-GUI-003
     def test_non_numeric_csv_value(self):
-        """数値項目に変換不能文字列がある場合を読込失敗として扱うことを確認する。
+        """TEST-UNIT-119
 
-        TEST ID: TEST-UNIT-119: feed_rate="abc"でSettingsLoadErrorとなること。
+        テスト目的:
+            数値項目に変換不能文字列がある場合を読込失敗として扱うことを確認する。
+
+        テスト手順:
+            1. テスト対象の処理を実行し、結果を確認する。
+            2. テスト対象のメソッドを呼び出して結果を取得する。
+            3. 取得した結果を期待値と比較する。
+
+        パスクライテリア:
+            feed_rate="abc"でSettingsLoadErrorとなること。
+
         検証根拠:
-        CSV構造と必須値存在を正常に保ったまま型変換だけを失敗させるため、数値変換エラー処理を分離して検証できる。
-        対応要求: REQ-GUI-003
+            CSV構造と必須値存在を正常に保ったまま型変換だけを失敗させるため、数値変換エラー処理を分離して検証できる。
         """
         self._assert_bad_csv({"feed_rate": "abc"}, omit_none=False)
 
-    # TEST-UNIT-120
-    # Requirements: REQ-GUI-003
     def test_settings_io_failure_is_wrapped(self):
-        """設定ファイルI/O失敗がSettingsLoadErrorへ統一されることを確認する。
+        """TEST-UNIT-120
 
-        TEST ID: TEST-UNIT-120: 存在しない設定CSV読込でSettingsLoadErrorとなること。
+        テスト目的:
+            設定ファイルI/O失敗がSettingsLoadErrorへ統一されることを確認する。
+
+        テスト手順:
+            1. テスト対象の処理を実行し、結果を確認する。
+            2. テスト対象のメソッドを呼び出して結果を取得する。
+            3. 取得した結果を期待値と比較する。
+
+        パスクライテリア:
+            存在しない設定CSV読込でSettingsLoadErrorとなること。
+
         検証根拠:
-        OSレベルのfile-not-foundを発生させてRepository公開例外型を確認するため、呼出し側が一貫して処理できる例外ラップを検証できる。
-        対応要求: REQ-GUI-003
+            OSレベルのfile-not-foundを発生させてRepository公開例外型を確認するため、呼出し側が一貫して処理できる例外ラップを検証できる。
         """
         with self.assertRaises(SettingsLoadError): SettingsRepository().load("__missing_settings__.csv")
 
