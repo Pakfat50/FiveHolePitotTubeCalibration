@@ -27,7 +27,7 @@ function linkTraceabilityIds() {
       link.href = id.startsWith("REQ-")
         ? `../pitot_calibration_gui_spec/#${id.toLowerCase()}`
         : id.startsWith("TEST-")
-          ? `../test-specification/#${id.toLowerCase()}`
+          ? `../test_specification/#${id.toLowerCase()}`
           : `../architecture_design/#${id.toLowerCase()}`;
       fragment.append(link);
       offset = position + id.length;
