@@ -397,8 +397,14 @@ class SimulationView:
         self.seek_slider.handle.set_markeredgecolor("tab:blue")
         self.seek_slider.valtext.set_visible(False)
         self.seek_slider.on_changed(self._on_seek)
+        button_position = [
+            slider_position[0] + slider_position[2] + status_position.width * 0.04,
+            slider_position[1] - slider_position[3] * 0.75,
+            status_position.width * 0.12,
+            slider_position[3] * 2.5,
+        ]
         self.playback_button = Button(
-            self.figure.add_axes((0.86, 0.08, 0.10, 0.08)),
+            self.figure.add_axes(button_position),
             "▶",
             color="0.90",
             hovercolor="0.75",
