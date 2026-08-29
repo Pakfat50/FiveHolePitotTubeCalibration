@@ -294,5 +294,131 @@ class TestSimulation(unittest.TestCase):
         self.assertIsNone(view.calibration_axes.get_legend())
 
 
+    # TEST-UNIT-126
+    # Requirements: REQ-SIM-007
+    def test_start_sets_playing_state_at_first_point(self):
+        """開始時に先頭点・再生中状態・一時停止ボタンが設定される。"""
+        self.controller.start(self.plan, duration_s=10.0)
+        self.assertEqual("playing", self.controller.playback_state)
+        self.assertEqual(0, self.controller.current_point_index)
+        self.view.set_playback_state.assert_called_with("playing")
+
+    # TEST-UNIT-127
+    # Requirements: REQ-SIM-008
+    def test_pause_stops_animation_and_keeps_current_point(self):
+        """一時停止で現在点を保持し、タイマーを停止する。"""
+        self.controller.start(self.plan, duration_s=10.0)
+        self.controller.current_point_index = 2
+        self.controller.pause()
+        self.assertEqual("paused", self.controller.playback_state)
+        self.assertEqual(2, self.controller.current_point_index)
+        self.view.pause_animation.assert_called_once()
+        self.view.set_playback_state.assert_called_with("paused")
+
+    # TEST-UNIT-128
+    # Requirements: REQ-SIM-009
+    def test_resume_restarts_from_current_point(self):
+        """一時停止から現在位置で再生を再開する。"""
+        self.controller.start(self.plan, duration_s=10.0)
+        self.controller.current_point_index = 2
+        self.controller.pause()
+        self.controller.resume()
+        self.assertEqual("playing", self.controller.playback_state)
+        self.assertEqual(2, self.controller.current_point_index)
+        self.view.resume_animation.assert_called_once()
+
+    # TEST-UNIT-129
+    # Requirements: REQ-SIM-010
+    def test_seek_while_paused_selects_point(self):
+        """一時停止中のシークが指定点を保持する。"""
+        self.controller.start(self.plan, duration_s=10.0)
+        self.controller.pause()
+        self.controller.seek_to_point(3)
+        self.assertEqual("paused", self.controller.playback_state)
+        self.assertEqual(3, self.controller.current_point_index)
+        self.view.render_frame.assert_called()
+        point, progress = self.view.render_frame.call_args.args
+        self.assertIs(self.points[3], point)
+        self.assertAlmostEqual(0.75, progress)
+
+    # TEST-UNIT-130
+    # Requirements: REQ-SIM-011
+    def test_seek_while_playing_pauses_automatically(self):
+        """再生中のシーク開始で自動一時停止する。"""
+        self.controller.start(self.plan, duration_s=10.0)
+        self.controller.seek_to_point(3)
+        self.assertEqual("paused", self.controller.playback_state)
+        self.view.pause_animation.assert_called_once()
+        self.view.set_playback_state.assert_called_with("paused")
+
+    # TEST-UNIT-131
+    # Requirements: REQ-SIM-012
+    def test_seek_renders_selected_point_immediately(self):
+        """シーク時に指定点の描画と進捗が即時更新される。"""
+        self.controller.start(self.plan, duration_s=10.0)
+        self.view.reset_mock()
+        self.controller.seek_to_point(4)
+        self.view.render_frame.assert_called_once_with(self.points[4], 1.0)
+
+    # TEST-UNIT-132
+    # Requirements: REQ-SIM-013
+    def test_animation_completion_stays_at_last_point(self):
+        """再生完了で最終点に留まり、自動ループしない。"""
+        self.controller.start(self.plan, duration_s=10.0)
+        self.controller.on_animation_complete()
+        self.assertEqual("completed", self.controller.playback_state)
+        self.assertEqual(4, self.controller.current_point_index)
+        self.view.set_playback_state.assert_called_with("completed")
+
+    # TEST-UNIT-133
+    # Requirements: REQ-SIM-009
+    def test_resume_after_completion_restarts_at_first_point(self):
+        """完了後の再生で先頭へ戻る。"""
+        self.controller.start(self.plan, duration_s=10.0)
+        self.controller.on_animation_complete()
+        self.controller.resume()
+        self.assertEqual("playing", self.controller.playback_state)
+        self.assertEqual(0, self.controller.current_point_index)
+        self.view.render_frame.assert_called()
+        point, progress = self.view.render_frame.call_args.args
+        self.assertIs(self.points[0], point)
+        self.assertEqual(0.0, progress)
+
+    # TEST-UNIT-134
+    # Requirements: REQ-SIM-014, REQ-SIM-015
+    def test_view_has_point_based_seek_bar_with_large_handle(self):
+        """シークバーが既存進捗表示を置換し、点単位・大きなつまみを持つ。"""
+        view = SimulationView()
+        view.initialize(self.plan)
+        self.assertIsNotNone(view.seek_slider)
+        self.assertEqual(0, view.seek_slider.valmin)
+        self.assertEqual(4, view.seek_slider.valmax)
+        self.assertGreaterEqual(view.seek_slider.handle.get_markersize(), 10)
+        self.assertIsNotNone(view.playback_button)
+
+    # TEST-UNIT-135
+    # Requirements: REQ-SIM-016
+    def test_playback_button_label_follows_state(self):
+        """再生状態に応じてⅡ/▶を表示する。"""
+        view = SimulationView()
+        view.initialize(self.plan)
+        view.set_playback_state("playing")
+        self.assertIn("Ⅱ", view.playback_button.label.get_text())
+        view.set_playback_state("paused")
+        self.assertIn("▶", view.playback_button.label.get_text())
+        view.set_playback_state("completed")
+        self.assertIn("▶", view.playback_button.label.get_text())
+
+    # TEST-UNIT-136
+    # Requirements: REQ-SIM-014
+    def test_progress_text_uses_point_count_not_time(self):
+        """進捗表示が現在点/全点であり、時間表示を使用しない。"""
+        view = SimulationView()
+        view.initialize(self.plan)
+        view.render_frame(self.points[2], 0.5)
+        self.assertIn("3 / 5", view.status_text)
+        self.assertNotIn("10.0 s", view.status_text)
+
+
 if __name__ == "__main__":
     unittest.main()
