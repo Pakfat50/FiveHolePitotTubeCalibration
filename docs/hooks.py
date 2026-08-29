@@ -6,9 +6,9 @@ from mkdocs.plugins import event_priority
 
 
 _TRACE_TARGETS = {
-    "ARCH:REQ-SIM-007": (
-        "REQ-SIM-007",
-        "../architecture_design/#architecture-req-sim-007",
+    "ARCH:UC-05": (
+        "UC-05（シミュレーションする）",
+        "../architecture_design/#uc-05",
     ),
     "CODE:simulation.SimulationController.start": (
         "SimulationController.start",
@@ -25,6 +25,10 @@ _TRACE_TARGETS = {
     "TEST:TEST-UNIT-126": (
         "TEST-UNIT-126",
         "../test_specification/#test-unit-126",
+    ),
+    "UCTEST:UC-05": (
+        "UC-05のユースケーステスト",
+        "../test_specification/#test-uc-05",
     ),
     "TESTCODE:tests.test_simulation.TestSimulation.test_start_sets_playing_state_at_first_point": (
         "test_start_sets_playing_state_at_first_point",
