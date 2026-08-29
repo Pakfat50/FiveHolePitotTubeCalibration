@@ -368,9 +368,17 @@ class SimulationView:
         self._status_artist = status_axes.text(0.02, 0.92, "", transform=status_axes.transAxes, va="top")
         # 旧プログレスバーの内部互換用Artist。表示は透明化し、実UIはSliderへ置換する。
         self._progress_artist = status_axes.plot([0.02, 0.02], [0.08, 0.08], linewidth=0, alpha=0.0)[0]
+        status_position = status_axes.get_position()
+        slider_position = [
+            status_position.x0 + status_position.width * 0.02,
+            status_position.y0 + status_position.height * 0.10,
+            status_position.width * 0.76,
+            status_position.height * 0.045,
+        ]
+        slider_axes = self.figure.add_axes(slider_position)
         slider_max = max(0, len(getattr(plan, "points", ())) - 1)
         self.seek_slider = Slider(
-            ax=status_axes,
+            ax=slider_axes,
             label="",
             valmin=0,
             valmax=max(1, slider_max),
@@ -383,7 +391,11 @@ class SimulationView:
         self.seek_slider.valmax = slider_max
         # Matplotlibの版によりSliderのつまみ属性名が異なるため公開別名を設定する。
         self.seek_slider.handle = getattr(self.seek_slider, "handle", self.seek_slider._handle)
-        self.seek_slider.handle.set_markersize(16)
+        self.seek_slider.handle.set_marker("s")
+        self.seek_slider.handle.set_markersize(10)
+        self.seek_slider.handle.set_markerfacecolor("white")
+        self.seek_slider.handle.set_markeredgecolor("tab:blue")
+        self.seek_slider.valtext.set_visible(False)
         self.seek_slider.on_changed(self._on_seek)
         self.playback_button = Button(
             self.figure.add_axes((0.86, 0.08, 0.10, 0.08)),
@@ -853,3 +865,4 @@ class SimulationView:
             REQ-SIM-002, REQ-SIM-004, REQ-SIM-006, REQ-SIM-013
         """
         self.final_state_visible = True
+
