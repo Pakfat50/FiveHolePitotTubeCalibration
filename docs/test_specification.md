@@ -334,7 +334,7 @@
 | `SimulationController.start/_frame_at` | [093](#test-unit-093), [094](#test-unit-094), [095](#test-unit-095), [096](#test-unit-096), [126](#test-unit-126) |
 | `SimulationController.pause/resume/seek_to_point/restart_from_beginning/on_animation_complete` | [127](#test-unit-127), [128](#test-unit-128), [129](#test-unit-129), [130](#test-unit-130), [131](#test-unit-131), [132](#test-unit-132), [133](#test-unit-133) |
 | `SimulationView.initialize/render_frame` | [097](#test-unit-097), [098](#test-unit-098), [099](#test-unit-099), [122](#test-unit-122), [123](#test-unit-123), [131](#test-unit-131), [136](#test-unit-136) |
-| `SimulationView.start_animation/set_playback_state/_on_seek/_on_play_pause/_update_seek_bar/_update_playback_button` | [126](#test-unit-126), [127](#test-unit-127), [128](#test-unit-128), [129](#test-unit-129), [130](#test-unit-130), [131](#test-unit-131), [132](#test-unit-132), [133](#test-unit-133), [134](#test-unit-134), [135](#test-unit-135), [136](#test-unit-136) |
+| `SimulationView.start_animation/set_playback_state/_on_seek/_on_play_pause/_update_seek_bar/set_playback_state` | [126](#test-unit-126), [127](#test-unit-127), [128](#test-unit-128), [129](#test-unit-129), [130](#test-unit-130), [131](#test-unit-131), [132](#test-unit-132), [133](#test-unit-133), [134](#test-unit-134), [135](#test-unit-135), [136](#test-unit-136) |
 | `MainWindow` | [100](#test-unit-100), [101](#test-unit-101), [102](#test-unit-102), [103](#test-unit-103), [104](#test-unit-104), [105](#test-unit-105), [106](#test-unit-106), [107](#test-unit-107), [108](#test-unit-108), [109](#test-unit-109), [110](#test-unit-110), [121](#test-unit-121) |
 
 ---
