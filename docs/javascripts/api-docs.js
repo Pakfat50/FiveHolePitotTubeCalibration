@@ -9,10 +9,46 @@
     ["値:", "overview"]
   ]);
 
+  const convertParameters = (paragraph) => {
+    const text = paragraph.textContent.replace(/\s+/g, " ").trim();
+    if (!text.startsWith("引数:")) return false;
+
+    const body = text.slice("引数:".length).trim();
+    const matches = [...body.matchAll(/(?:^|\s)([A-Za-z_]\w*):\s*(.*?)(?=\s+[A-Za-z_]\w*:\s*|$)/gs)];
+    if (!matches.length) return false;
+
+    const label = document.createElement("span");
+    label.className = "doc-section-label";
+    label.dataset.section = "parameters";
+    label.textContent = "引数";
+
+    const table = document.createElement("table");
+    table.className = "api-parameters";
+    table.innerHTML = "<thead><tr><th>引数名</th><th>説明</th></tr></thead>";
+    const tbody = document.createElement("tbody");
+
+    matches.forEach((match) => {
+      const row = document.createElement("tr");
+      const name = document.createElement("code");
+      name.textContent = match[1];
+      const nameCell = document.createElement("td");
+      nameCell.appendChild(name);
+      const descriptionCell = document.createElement("td");
+      descriptionCell.textContent = match[2].trim();
+      row.append(nameCell, descriptionCell);
+      tbody.appendChild(row);
+    });
+
+    table.appendChild(tbody);
+    paragraph.replaceChildren(label, table);
+    return true;
+  };
+
   const decorate = () => {
     document.querySelectorAll(".doc.doc-object .doc-contents p").forEach((paragraph) => {
       if (paragraph.dataset.apiDecorated === "true") return;
       paragraph.dataset.apiDecorated = "true";
+      if (convertParameters(paragraph)) return;
 
       const walker = document.createTreeWalker(paragraph, NodeFilter.SHOW_TEXT);
       const nodes = [];
