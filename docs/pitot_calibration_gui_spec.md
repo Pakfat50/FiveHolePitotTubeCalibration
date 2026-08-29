@@ -564,7 +564,7 @@ Gコードの終了時は、最終較正点に留まるものとし、原点復�
 **関連成果物**
 
 - アーキテクチャ設計: [[ARCH:UC-05]]
-- 製品コード: [[API:simulation.SimulationController.seek_to_point]]、[[API:simulation.SimulationView.render_frame]]、[[API:simulation.SimulationView._update_seek_bar]]
+- 製品コード: [[API:simulation.SimulationController.seek_to_point]]、[[API:simulation.SimulationView.render_frame]]、[[API:simulation.SimulationView._update_seek_slider]]
 - テスト仕様: [[TESTSPEC:TEST-UNIT-131]]
 
 #### REQ-SIM-013（再生完了）
@@ -592,7 +592,7 @@ Gコードの終了時は、最終較正点に留まるものとし、原点復�
 **関連成果物**
 
 - アーキテクチャ設計: [[ARCH:UC-05]]
-- 製品コード: [[API:simulation.SimulationView.initialize]]、[[API:simulation.SimulationView._update_seek_bar]]
+- 製品コード: [[API:simulation.SimulationView.initialize]]、[[API:simulation.SimulationView._update_seek_slider]]
 - テスト仕様: [[TESTSPEC:TEST-UNIT-134]]、[[TESTSPEC:TEST-UNIT-136]]
 
 #### REQ-SIM-015（シークバー操作性）
