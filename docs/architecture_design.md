@@ -511,6 +511,7 @@ GUI表示、シミュレーション、ファイルI/Oは、必要なユーザ�
 色だけに依存せず、ノード名によってもモジュールとデータを識別できるようにする。
 
 ```mermaid
+%%{init: {"theme":"base","themeVariables":{"primaryTextColor":"#111827","lineColor":"#374151","primaryBorderColor":"#2563eb","primaryColor":"#dbeafe","secondaryColor":"#dcfce7","tertiaryColor":"#fef3c7","edgeLabelBackground":"#ffffff","fontFamily":"Noto Sans JP, sans-serif"}}}%%
 flowchart TB
     Raw[GUI Raw Input]
     Settings[CalibrationSettings]
