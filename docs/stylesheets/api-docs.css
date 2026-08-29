@@ -1,0 +1,38 @@
+/* Improve visual separation of generated API docstring sections. */
+.md-typeset .doc.doc-object > .doc-contents > p:first-of-type {
+  padding: 0.7rem 0.9rem;
+  border-left: 0.25rem solid var(--md-primary-fg-color);
+  border-radius: 0.2rem;
+  background: var(--md-code-bg-color);
+}
+
+.md-typeset .doc-section-label {
+  display: inline-block;
+  margin: 0.35rem 0.25rem 0.15rem 0;
+  padding: 0.12rem 0.5rem;
+  border-radius: 0.25rem;
+  background: var(--md-primary-fg-color);
+  color: var(--md-primary-bg-color);
+  font-weight: 700;
+  letter-spacing: 0.02em;
+}
+
+.md-typeset .doc-section-label[data-section="requirements"] {
+  background: var(--md-accent-fg-color);
+  color: var(--md-accent-bg-color);
+}
+
+.md-typeset .doc-section-label[data-section="parameters"] {
+  background: #2563eb;
+  color: #ffffff;
+}
+
+.md-typeset .doc-section-label[data-section="returns"] {
+  background: #16a34a;
+  color: #ffffff;
+}
+
+.md-typeset .doc-section-label[data-section="rationale"] {
+  background: #d97706;
+  color: #ffffff;
+}
