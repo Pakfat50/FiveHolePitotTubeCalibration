@@ -2,8 +2,7 @@
 
 File: test_map_view.py
 CalibrationMapView の軸方向、飽和点、回転エラー点、日本語フォント選択を検証する。
-Details:
-    docs/test_specification.md に対応する較正点マップ表示テストを実装する。
+Details: docs/test_specification.md に対応する較正点マップ表示テストを実装する。
 """
 
 from types import SimpleNamespace
@@ -17,25 +16,22 @@ from map_view import CalibrationMapView
 
 
 class TestCalibrationMapView(unittest.TestCase):
-    """@brief 較正点の状態と日本語表示がGUI上で仕様どおり描画されることを確認する。"""
+    """較正点の状態と日本語表示がGUI上で仕様どおり描画されることを確認する。"""
 
     def setUp(self):
-        """@brief 各テストで独立した CalibrationMapView を生成する。"""
+        """各テストで独立した CalibrationMapView を生成する。"""
         self.view = CalibrationMapView()
 
     # TEST-UNIT-090
     # Requirements: REQ-GUI-002
     def test_axes_are_aos_horizontal_aoa_vertical(self):
-        """@brief 較正点マップの横軸がAoS、縦軸がAoAであることを確認する。
+        """較正点マップの横軸がAoS、縦軸がAoAであることを確認する。
 
-        Test:
-            TEST-UNIT-090: render後のxlabel="AoS"、ylabel="AoA"であること。
-        Details:
-            点を含まないplanを描画し、軸設定だけを分離して観測する。
+        Test: TEST-UNIT-090: render後のxlabel="AoS"、ylabel="AoA"であること。
+        Details: 点を含まないplanを描画し、軸設定だけを分離して観測する。
         Verification rationale:
-            Matplotlib Axesの公開ラベル値を直接確認するため、表示軸の取り違えを確実に検出できる。
-        See Also:
-            REQ-GUI-002
+        Matplotlib Axesの公開ラベル値を直接確認するため、表示軸の取り違えを確実に検出できる。
+        See Also: REQ-GUI-002
         """
         plan = Mock(points=[])
         self.view.render(plan)
@@ -45,16 +41,13 @@ class TestCalibrationMapView(unittest.TestCase):
     # TEST-UNIT-091
     # Requirements: REQ-GUI-002, REQ-LIMIT-001
     def test_saturated_points_use_distinct_visual_group(self):
-        """@brief X/Y飽和点が正常点と異なる色グループで描画されることを確認する。
+        """X/Y飽和点が正常点と異なる色グループで描画されることを確認する。
 
-        Test:
-            TEST-UNIT-091: 正常点と飽和点を同時描画したときNORMAL_COLORとSATURATED_COLORの2 collectionが存在すること。
-        Details:
-            状態以外の条件を単純化した2点を描画し、collection数とfacecolorを確認する。
+        Test: TEST-UNIT-091: 正常点と飽和点を同時描画したときNORMAL_COLORとSATURATED_COLORの2 collectionが存在すること。
+        Details: 状態以外の条件を単純化した2点を描画し、collection数とfacecolorを確認する。
         Verification rationale:
-            正常点・警告点を同一図上で比較し実際の描画色をRGBA値で照合するため、視覚的識別性をプログラム的に直接検証できる。
-        See Also:
-            REQ-GUI-002, REQ-LIMIT-001
+        正常点・警告点を同一図上で比較し実際の描画色をRGBA値で照合するため、視覚的識別性をプログラム的に直接検証できる。
+        See Also: REQ-GUI-002, REQ-LIMIT-001
         """
         normal = Mock(point=Mock(aos=0, aoa=0), x_saturated=False, y_saturated=False, rotational_error=False)
         saturated = Mock(point=Mock(aos=1, aoa=1), x_saturated=True, y_saturated=False, rotational_error=False)
@@ -67,16 +60,13 @@ class TestCalibrationMapView(unittest.TestCase):
     # TEST-UNIT-092
     # Requirements: REQ-GUI-002, REQ-LIMIT-003
     def test_rotational_error_points_use_distinct_visual_group_without_third_color(self):
-        """@brief Z/A生成禁止点が識別可能で、不要な第3色を導入しないことを確認する。
+        """Z/A生成禁止点が識別可能で、不要な第3色を導入しないことを確認する。
 
-        Test:
-            TEST-UNIT-092: 正常点と回転エラー点が別collectionとなり、色は通常色のまま生成禁止ラベルで識別できること。
-        Details:
-            edgecolor集合とlegend labelを同時に確認する。
+        Test: TEST-UNIT-092: 正常点と回転エラー点が別collectionとなり、色は通常色のまま生成禁止ラベルで識別できること。
+        Details: edgecolor集合とlegend labelを同時に確認する。
         Verification rationale:
-            色設計と生成禁止の意味表示を別々に観測するため、エラー点が識別可能でありながら規定外色を追加していないことを確認できる。
-        See Also:
-            REQ-GUI-002, REQ-LIMIT-003
+        色設計と生成禁止の意味表示を別々に観測するため、エラー点が識別可能でありながら規定外色を追加していないことを確認できる。
+        See Also: REQ-GUI-002, REQ-LIMIT-003
         """
         normal = Mock(point=Mock(aos=0, aoa=0), x_saturated=False, y_saturated=False, rotational_error=False)
         error = Mock(point=Mock(aos=1, aoa=1), x_saturated=False, y_saturated=False, rotational_error=True)
@@ -91,16 +81,13 @@ class TestCalibrationMapView(unittest.TestCase):
     # TEST-UNIT-125
     # Requirements: REQ-GUI-002, REQ-LIMIT-001, REQ-LIMIT-003
     def test_saturated_rotational_error_keeps_saturation_color_and_error_marker_group(self):
-        """@brief X/Y飽和とZ/A範囲外が同時発生した点の複合表示を確認する。
+        """X/Y飽和とZ/A範囲外が同時発生した点の複合表示を確認する。
 
-        Test:
-            TEST-UNIT-125: 複合状態点は飽和色を維持し、凡例でZ/A生成禁止も識別できること。
-        Details:
-            x_saturated=Trueかつrotational_error=Trueの1点を描画し、色と凡例文言を確認する。
+        Test: TEST-UNIT-125: 複合状態点は飽和色を維持し、凡例でZ/A生成禁止も識別できること。
+        Details: x_saturated=Trueかつrotational_error=Trueの1点を描画し、色と凡例文言を確認する。
         Verification rationale:
-            2種類の状態を同一点に同時付与し、双方の視覚情報が失われていないことを観測するため、状態優先順位・複合表現を直接検証できる。
-        See Also:
-            REQ-GUI-002, REQ-LIMIT-001, REQ-LIMIT-003
+        2種類の状態を同一点に同時付与し、双方の視覚情報が失われていないことを観測するため、状態優先順位・複合表現を直接検証できる。
+        See Also: REQ-GUI-002, REQ-LIMIT-001, REQ-LIMIT-003
         """
         error = Mock(point=Mock(aos=1, aoa=1), x_saturated=True, y_saturated=False, rotational_error=True)
         self.view.render(Mock(points=[error]))
@@ -118,16 +105,13 @@ class TestCalibrationMapView(unittest.TestCase):
     # TEST-UNIT-124
     # Requirements: REQ-GUI-001
     def test_japanese_font_selection_and_english_fallback(self):
-        """@brief 日本語フォントの選択と、未搭載環境での英語フォールバックを確認する。
+        """日本語フォントの選択と、未搭載環境での英語フォールバックを確認する。
 
-        Test:
-            TEST-UNIT-124: 日本語対応フォントありでは日本語文字列、なしでは英語文字列を選択すること。
-        Details:
-            Figure生成後にフォント一覧だけをMock化し、Meiryoが存在するケースと日本語フォントが存在しないケースでフォント選択処理を直接呼び出す。
+        Test: TEST-UNIT-124: 日本語対応フォントありでは日本語文字列、なしでは英語文字列を選択すること。
+        Details: Figure生成後にフォント一覧だけをMock化し、Meiryoが存在するケースと日本語フォントが存在しないケースでフォント選択処理を直接呼び出す。
         Verification rationale:
-            MatplotlibのFigure生成・内部フォント探索を偽フォント一覧から分離し、製品コードのフォント候補判定結果と_text()の言語選択を直接観測する。これによりOS依存なしに日本語表示経路と文字化け回避経路を検証できる。
-        See Also:
-            REQ-GUI-001
+        MatplotlibのFigure生成・内部フォント探索を偽フォント一覧から分離し、製品コードのフォント候補判定結果と_text()の言語選択を直接観測する。これによりOS依存なしに日本語表示経路と文字化け回避経路を検証できる。
+        See Also: REQ-GUI-001
         """
         original_family = list(rcParams["font.family"])
         try:
