@@ -92,8 +92,7 @@ Feed rateは **1 unit/min以上** でなければならない。
 - 製品コード: [[API:models.AxisLimits]]、[[API:models.AxisRange]]、[[API:gui.MainWindow._build_widgets]]
 - テスト仕様: [[TESTSPEC:TEST-UNIT-012]]、[[TESTSPEC:TEST-UNIT-013]]、[[TESTSPEC:TEST-UNIT-014]]、[[TESTSPEC:TEST-UNIT-015]]
 
-<a id="req-input-006"></a>
-#### REQ-INPUT-006（初期化Gコード）
+#### REQ-INPUT-006（初期化Gコード） { #req-input-006 }
 
 ソフトウェアは、初期化用Gコードをテキストファイルから読み込めなければならない。初期化Gコード入力欄をGUIに設けてもよいが、基本操作はファイル選択とする。
 
@@ -169,8 +168,7 @@ Feed rateは **1 unit/min以上** でなければならない。
 - 製品コード: [[API:transform.AngleTransformer.transform]]
 - テスト仕様: [[TESTSPEC:TEST-UNIT-025]]
 
-<a id="req-trans-002"></a>
-#### REQ-TRANS-002（AoA/AoSから実軸角への変換）
+#### REQ-TRANS-002（AoA/AoSから実軸角への変換） { #req-trans-002 }
 
 ソフトウェアは、入力されたAoA=α、AoS=βを再現するよう、実ピッチ角θおよび実ロール角φを次式で求めなければならない。
 
