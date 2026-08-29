@@ -313,29 +313,29 @@
 
 | モジュール/メソッド | テストID |
 |---|---|
-| `InputValidator.validate` | [001](#test-unit-001), [002](#test-unit-002), [003](#test-unit-003), [004](#test-unit-004), [005](#test-unit-005), [006](#test-unit-006), [007](#test-unit-007), [008](#test-unit-008), [009](#test-unit-009), [010](#test-unit-010), [011](#test-unit-011), [012](#test-unit-012), [013](#test-unit-013), [014](#test-unit-014), [015](#test-unit-015), [016](#test-unit-016), [111](#test-unit-111), [112](#test-unit-112), [113](#test-unit-113), [114](#test-unit-114), [115](#test-unit-115), [116](#test-unit-116) |
-| `ScanPlanner.generate_points` | [017](#test-unit-017), [018](#test-unit-018), [019](#test-unit-019), [020](#test-unit-020), [021](#test-unit-021), [022](#test-unit-022), [023](#test-unit-023), [024](#test-unit-024) |
-| `AngleTransformer.transform` | [025](#test-unit-025), [026](#test-unit-026), [027](#test-unit-027), [028](#test-unit-028), [029](#test-unit-029), [030](#test-unit-030), [031](#test-unit-031), [032](#test-unit-032), [040](#test-unit-040) |
-| `AngleTransformer._unwrap_angle` | [033](#test-unit-033), [034](#test-unit-034), [035](#test-unit-035) |
-| `AngleTransformer._select_solution` | [036](#test-unit-036), [037](#test-unit-037), [038](#test-unit-038), [039](#test-unit-039) |
-| `AngleTransformer._generate_equivalent_solutions` | [040](#test-unit-040) |
-| `PositionCompensator.calculate_xy` | [041](#test-unit-041), [042](#test-unit-042), [043](#test-unit-043), [044](#test-unit-044), [045](#test-unit-045), [046](#test-unit-046) |
-| `LimitEvaluator.evaluate` | [047](#test-unit-047), [048](#test-unit-048), [049](#test-unit-049), [050](#test-unit-050), [051](#test-unit-051), [052](#test-unit-052), [053](#test-unit-053), [054](#test-unit-054), [055](#test-unit-055), [056](#test-unit-056), [057](#test-unit-057), [058](#test-unit-058), [059](#test-unit-059) |
-| `CalibrationService.build_plan` | [060](#test-unit-060), [061](#test-unit-061), [062](#test-unit-062), [063](#test-unit-063), [064](#test-unit-064), [065](#test-unit-065) |
-| `GCodeGenerator._format_header` | [066](#test-unit-066), [067](#test-unit-067) |
-| `GCodeGenerator._format_point` | [068](#test-unit-068), [069](#test-unit-069), [070](#test-unit-070), [071](#test-unit-071), [072](#test-unit-072), [073](#test-unit-073), [075](#test-unit-075) |
-| `GCodeGenerator.generate` | [066](#test-unit-066), [067](#test-unit-067), [068](#test-unit-068), [069](#test-unit-069), [070](#test-unit-070), [071](#test-unit-071), [072](#test-unit-072), [073](#test-unit-073), [074](#test-unit-074), [075](#test-unit-075) |
-| `SettingsRepository.save/load` | [076](#test-unit-076), [077](#test-unit-077), [078](#test-unit-078), [079](#test-unit-079), [117](#test-unit-117), [118](#test-unit-118), [119](#test-unit-119), [120](#test-unit-120) |
-| `InitializationGCodeRepository.load` | [080](#test-unit-080), [081](#test-unit-081) |
-| `GCodeRepository.save` | [082](#test-unit-082), [083](#test-unit-083) |
-| `CalibrationController.on_settings_changed/apply_settings/can_generate` | [084](#test-unit-084), [085](#test-unit-085), [086](#test-unit-086), [087](#test-unit-087), [088](#test-unit-088), [089](#test-unit-089) |
-| `CalibrationMapView.render` | [090](#test-unit-090), [091](#test-unit-091), [092](#test-unit-092), [125](#test-unit-125) |
-| `CalibrationMapView._configure_matplotlib_font/_text` | [124](#test-unit-124) |
-| `SimulationController.start/_frame_at` | [093](#test-unit-093), [094](#test-unit-094), [095](#test-unit-095), [096](#test-unit-096), [126](#test-unit-126) |
-| `SimulationController.pause/resume/seek_to_point/restart_from_beginning/on_animation_complete` | [127](#test-unit-127), [128](#test-unit-128), [129](#test-unit-129), [130](#test-unit-130), [131](#test-unit-131), [132](#test-unit-132), [133](#test-unit-133) |
-| `SimulationView.initialize/render_frame` | [097](#test-unit-097), [098](#test-unit-098), [099](#test-unit-099), [122](#test-unit-122), [123](#test-unit-123), [131](#test-unit-131), [136](#test-unit-136) |
-| `SimulationView.start_animation/set_playback_state/_on_seek/_on_play_pause/_update_seek_bar/set_playback_state` | [126](#test-unit-126), [127](#test-unit-127), [128](#test-unit-128), [129](#test-unit-129), [130](#test-unit-130), [131](#test-unit-131), [132](#test-unit-132), [133](#test-unit-133), [134](#test-unit-134), [135](#test-unit-135), [136](#test-unit-136) |
-| `MainWindow` | [100](#test-unit-100), [101](#test-unit-101), [102](#test-unit-102), [103](#test-unit-103), [104](#test-unit-104), [105](#test-unit-105), [106](#test-unit-106), [107](#test-unit-107), [108](#test-unit-108), [109](#test-unit-109), [110](#test-unit-110), [121](#test-unit-121) |
+| [[API:validation.InputValidator.validate]] | [001](#test-unit-001), [002](#test-unit-002), [003](#test-unit-003), [004](#test-unit-004), [005](#test-unit-005), [006](#test-unit-006), [007](#test-unit-007), [008](#test-unit-008), [009](#test-unit-009), [010](#test-unit-010), [011](#test-unit-011), [012](#test-unit-012), [013](#test-unit-013), [014](#test-unit-014), [015](#test-unit-015), [016](#test-unit-016), [111](#test-unit-111), [112](#test-unit-112), [113](#test-unit-113), [114](#test-unit-114), [115](#test-unit-115), [116](#test-unit-116) |
+| [[API:scan.ScanPlanner.generate_points]] | [017](#test-unit-017), [018](#test-unit-018), [019](#test-unit-019), [020](#test-unit-020), [021](#test-unit-021), [022](#test-unit-022), [023](#test-unit-023), [024](#test-unit-024) |
+| [[API:transform.AngleTransformer.transform]] | [025](#test-unit-025), [026](#test-unit-026), [027](#test-unit-027), [028](#test-unit-028), [029](#test-unit-029), [030](#test-unit-030), [031](#test-unit-031), [032](#test-unit-032), [040](#test-unit-040) |
+| [[API:transform.AngleTransformer._unwrap_angle]] | [033](#test-unit-033), [034](#test-unit-034), [035](#test-unit-035) |
+| [[API:transform.AngleTransformer._select_solution]] | [036](#test-unit-036), [037](#test-unit-037), [038](#test-unit-038), [039](#test-unit-039) |
+| [[API:transform.AngleTransformer._generate_equivalent_solutions]] | [040](#test-unit-040) |
+| [[API:positioning.PositionCompensator.calculate_xy]] | [041](#test-unit-041), [042](#test-unit-042), [043](#test-unit-043), [044](#test-unit-044), [045](#test-unit-045), [046](#test-unit-046) |
+| [[API:limits.LimitEvaluator.evaluate]] | [047](#test-unit-047), [048](#test-unit-048), [049](#test-unit-049), [050](#test-unit-050), [051](#test-unit-051), [052](#test-unit-052), [053](#test-unit-053), [054](#test-unit-054), [055](#test-unit-055), [056](#test-unit-056), [057](#test-unit-057), [058](#test-unit-058), [059](#test-unit-059) |
+| [[API:calibration_service.CalibrationService.build_plan]] | [060](#test-unit-060), [061](#test-unit-061), [062](#test-unit-062), [063](#test-unit-063), [064](#test-unit-064), [065](#test-unit-065) |
+| [[API:gcode.GCodeGenerator._format_header]] | [066](#test-unit-066), [067](#test-unit-067) |
+| [[API:gcode.GCodeGenerator._format_point]] | [068](#test-unit-068), [069](#test-unit-069), [070](#test-unit-070), [071](#test-unit-071), [072](#test-unit-072), [073](#test-unit-073), [075](#test-unit-075) |
+| [[API:gcode.GCodeGenerator.generate]] | [066](#test-unit-066), [067](#test-unit-067), [068](#test-unit-068), [069](#test-unit-069), [070](#test-unit-070), [071](#test-unit-071), [072](#test-unit-072), [073](#test-unit-073), [074](#test-unit-074), [075](#test-unit-075) |
+| [[API:repositories.SettingsRepository.save]] / [[API:repositories.SettingsRepository.load]] | [076](#test-unit-076), [077](#test-unit-077), [078](#test-unit-078), [079](#test-unit-079), [117](#test-unit-117), [118](#test-unit-118), [119](#test-unit-119), [120](#test-unit-120) |
+| [[API:repositories.InitializationGCodeRepository.load]] | [080](#test-unit-080), [081](#test-unit-081) |
+| [[API:repositories.GCodeRepository.save]] | [082](#test-unit-082), [083](#test-unit-083) |
+| [[API:controller.CalibrationController.on_settings_changed]] / [[API:controller.CalibrationController.apply_settings]] / [[API:controller.CalibrationController.can_generate]] | [084](#test-unit-084), [085](#test-unit-085), [086](#test-unit-086), [087](#test-unit-087), [088](#test-unit-088), [089](#test-unit-089) |
+| [[API:map_view.CalibrationMapView.render]] | [090](#test-unit-090), [091](#test-unit-091), [092](#test-unit-092), [125](#test-unit-125) |
+| [[API:map_view.CalibrationMapView._configure_matplotlib_font]] / [[API:map_view.CalibrationMapView._text]] | [124](#test-unit-124) |
+| [[API:simulation.SimulationController.start]] / [[API:simulation.SimulationController._frame_at]] | [093](#test-unit-093), [094](#test-unit-094), [095](#test-unit-095), [096](#test-unit-096), [126](#test-unit-126) |
+| [[API:simulation.SimulationController.pause]] / [[API:simulation.SimulationController.resume]] / [[API:simulation.SimulationController.seek_to_point]] / [[API:simulation.SimulationController.restart_from_beginning]] / [[API:simulation.SimulationController.on_animation_complete]] | [127](#test-unit-127), [128](#test-unit-128), [129](#test-unit-129), [130](#test-unit-130), [131](#test-unit-131), [132](#test-unit-132), [133](#test-unit-133) |
+| [[API:simulation.SimulationView.initialize]] / [[API:simulation.SimulationView.render_frame]] | [097](#test-unit-097), [098](#test-unit-098), [099](#test-unit-099), [122](#test-unit-122), [123](#test-unit-123), [131](#test-unit-131), [136](#test-unit-136) |
+| [[API:simulation.SimulationView.start_animation]] / [[API:simulation.SimulationView.set_playback_state]] / [[API:simulation.SimulationView._on_seek]] / [[API:simulation.SimulationView._on_play_pause]] / [[API:simulation.SimulationView._update_seek_slider]] | [126](#test-unit-126), [127](#test-unit-127), [128](#test-unit-128), [129](#test-unit-129), [130](#test-unit-130), [131](#test-unit-131), [132](#test-unit-132), [133](#test-unit-133), [134](#test-unit-134), [135](#test-unit-135), [136](#test-unit-136) |
+| [[API:gui.MainWindow|MainWindow]] | [100](#test-unit-100), [101](#test-unit-101), [102](#test-unit-102), [103](#test-unit-103), [104](#test-unit-104), [105](#test-unit-105), [106](#test-unit-106), [107](#test-unit-107), [108](#test-unit-108), [109](#test-unit-109), [110](#test-unit-110), [121](#test-unit-121) |
 
 ---
 
