@@ -13,7 +13,7 @@
 | テスト仕様書 | `docs/test_specification.md` | 単体テスト/ユースケーステストと各IDの対応を定義する |
 | 製品コードAPI | `docs/api.md` | 製品コードのDocstringからAPIを自動生成する |
 | テストコードAPI | `docs/test-api.md` | テストコードのDocstringからテストAPIを自動生成する |
-| テストコード記述規約 | `docs/test_doxygen_guideline.md` | テストコードのID・検証根拠の記述方法を定義する |
+| テストコード開発ルール | `docs/test_doxygen_guideline.md` | テストコードのID・検証根拠の記述方法を定義する |
 
 ## 2. 基本原則
 
