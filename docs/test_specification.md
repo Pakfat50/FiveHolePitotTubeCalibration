@@ -224,7 +224,6 @@
 | <a id="test-unit-123"></a>TEST-UNIT-123 | REQ-SIM-006 | 現在較正点の強調・同期 | 異なる2点を連続描画 | 現在点だけが通常点と異なる色で表示され、横面図・正面図と同じ点へ同期更新され、文字注記を追加しない |
 | <a id="test-unit-126"></a>TEST-UNIT-126 | REQ-SIM-007 | シミュレーション開始状態 | 有効なplanで開始 | 先頭較正点から再生を開始し、再生中状態と一時停止ボタン「Ⅱ」を表示する |
 
-対象テスト: [[TESTCODE:tests.test_simulation.TestSimulation.test_start_sets_playing_state_at_first_point]]
 | <a id="test-unit-127"></a>TEST-UNIT-127 | REQ-SIM-008 | 一時停止 | 再生中に一時停止操作 | タイマーが停止し、現在較正点を保持し、再生ボタン「▶」を表示する |
 | <a id="test-unit-128"></a>TEST-UNIT-128 | REQ-SIM-009 | 一時停止からの再生再開 | 中間点で一時停止後に再生 | 現在位置から再生を再開する |
 | <a id="test-unit-129"></a>TEST-UNIT-129 | REQ-SIM-010 | 一時停止中の較正点シーク | 一時停止中に指定点へ移動 | 指定した較正点を現在点として保持する |
@@ -235,6 +234,8 @@
 | <a id="test-unit-134"></a>TEST-UNIT-134 | REQ-SIM-014, REQ-SIM-015 | シークバー設定 | 複数較正点のplanを初期化 | 既存プログレスバーを表示せず、較正点インデックス単位で操作でき、大きなつまみを持つ |
 | <a id="test-unit-135"></a>TEST-UNIT-135 | REQ-SIM-016 | 再生状態とボタン表示 | 再生中/停止中/完了後 | 再生中は「Ⅱ」、停止中および完了後は「▶」を表示する |
 | <a id="test-unit-136"></a>TEST-UNIT-136 | REQ-SIM-014 | 進捗表示 | 任意の現在点 | 表示が「現在の較正点 / 全較正点」となり、時間表示を使用しない |
+
+対象テスト: [[TESTCODE:tests.test_simulation.TestSimulation.test_start_sets_playing_state_at_first_point]]
 
 ## 4.12 `gui.py` — `MainWindow`
 
