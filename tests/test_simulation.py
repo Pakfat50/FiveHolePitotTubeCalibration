@@ -297,13 +297,17 @@ class TestSimulation(unittest.TestCase):
     # TEST-UNIT-126
     # Requirements: REQ-SIM-007
     def test_start_sets_playing_state_at_first_point(self):
-        """開始時に先頭点・再生中状態・一時停止ボタンが設定される。
+        """@brief 開始時に先頭点・再生中状態・一時停止ボタンが設定される。
 
-        @test TEST-UNIT-126: 有効planの開始後に先頭インデックス、``playing`` 状態、状態通知を確認する。
-        @par 検証根拠
-        開始処理が再生位置と再生状態を初期化し、Viewのボタン表示制御へ伝達する経路を直接検証する。
-        @see REQ-SIM-007
+@test TEST-UNIT-126: 有効planの開始後に先頭インデックス、playing状態、状態通知を確認する。
+@details start()を実行し、Controllerの状態とViewへの再生状態通知を検証する。
+@par 検証根拠
+開始処理が再生位置と再生状態を初期化し、Viewの操作ボタン表示制御へ伝達する経路を直接検証する。
+@pre 複数の較正点を含むplanとViewモックが準備されている。
+@post 先頭点が選択され、再生状態がplayingになる。
+@see REQ-SIM-007
         """
+
         self.controller.start(self.plan, duration_s=10.0)
         self.assertEqual("playing", self.controller.playback_state)
         self.assertEqual(0, self.controller.current_point_index)
@@ -312,11 +316,15 @@ class TestSimulation(unittest.TestCase):
     # TEST-UNIT-127
     # Requirements: REQ-SIM-008
     def test_pause_stops_animation_and_keeps_current_point(self):
-        """一時停止で現在点を保持し、タイマーを停止する。
+        """@brief 一時停止で現在点を保持し、タイマーを停止する。
 
-        @test TEST-UNIT-127: 現在点インデックスを保持して``pause()``が呼び出されることを確認する。
-        @see REQ-SIM-008
+@test TEST-UNIT-127: 現在点インデックスを保持してpause()が呼び出されることを確認する。
+@details 再生中のControllerを現在点2へ設定して一時停止し、状態・インデックス・View呼び出しを検証する。
+@par 検証根拠
+一時停止処理が再生位置を変更せず、アニメーションタイマーだけを停止することを直接確認できる。
+@see REQ-SIM-008
         """
+
         self.controller.start(self.plan, duration_s=10.0)
         self.controller.current_point_index = 2
         self.controller.pause()
@@ -328,11 +336,15 @@ class TestSimulation(unittest.TestCase):
     # TEST-UNIT-128
     # Requirements: REQ-SIM-009
     def test_resume_restarts_from_current_point(self):
-        """一時停止から現在位置で再生を再開する。
+        """@brief 一時停止から現在位置で再生を再開する。
 
-        @test TEST-UNIT-128: ``resume()``が現在位置でViewの再開処理を呼び出すことを確認する。
-        @see REQ-SIM-009
+@test TEST-UNIT-128: resume()が現在位置でViewの再開処理を呼び出すことを確認する。
+@details 現在点2で一時停止した後に再開し、再生状態・位置・View呼び出しを検証する。
+@par 検証根拠
+一時停止からの再開で先頭へ戻らず、保持した位置から再生する仕様を確認できる。
+@see REQ-SIM-009
         """
+
         self.controller.start(self.plan, duration_s=10.0)
         self.controller.current_point_index = 2
         self.controller.pause()
@@ -344,11 +356,15 @@ class TestSimulation(unittest.TestCase):
     # TEST-UNIT-129
     # Requirements: REQ-SIM-010
     def test_seek_while_paused_selects_point(self):
-        """一時停止中のシークが指定点を保持する。
+        """@brief 一時停止中のシークが指定点を保持する。
 
-        @test TEST-UNIT-129: 指定インデックス3が進捗0.75として描画されることを確認する。
-        @see REQ-SIM-010
+@test TEST-UNIT-129: 指定インデックス3が進捗0.75として描画されることを確認する。
+@details 一時停止中に点3へシークし、状態・現在点・描画対象・正規化進捗を検証する。
+@par 検証根拠
+較正点単位のシーク結果をController状態とView描画引数の双方で確認できる。
+@see REQ-SIM-010
         """
+
         self.controller.start(self.plan, duration_s=10.0)
         self.controller.pause()
         self.controller.seek_to_point(3)
@@ -362,11 +378,15 @@ class TestSimulation(unittest.TestCase):
     # TEST-UNIT-130
     # Requirements: REQ-SIM-011
     def test_seek_while_playing_pauses_automatically(self):
-        """再生中のシーク開始で自動一時停止する。
+        """@brief 再生中のシーク開始で自動一時停止する。
 
-        @test TEST-UNIT-130: シーク前にViewの停止処理が1回呼び出されることを確認する。
-        @see REQ-SIM-011
+@test TEST-UNIT-130: シーク前にViewの停止処理が1回呼び出されることを確認する。
+@details 再生中に点3へシークし、タイマー停止、状態遷移、指定点選択を検証する。
+@par 検証根拠
+操作時に自動一時停止する要求を、停止処理の呼び出しと最終状態から直接確認できる。
+@see REQ-SIM-011
         """
+
         self.controller.start(self.plan, duration_s=10.0)
         self.controller.seek_to_point(3)
         self.assertEqual("paused", self.controller.playback_state)
@@ -376,11 +396,15 @@ class TestSimulation(unittest.TestCase):
     # TEST-UNIT-131
     # Requirements: REQ-SIM-012
     def test_seek_renders_selected_point_immediately(self):
-        """シーク時に指定点の描画と進捗が即時更新される。
+        """@brief シーク時に指定点の描画と進捗が即時更新される。
 
-        @test TEST-UNIT-131: 最終点の描画と進捗1.0を確認する。
-        @see REQ-SIM-012
+@test TEST-UNIT-131: 最終点の描画と進捗1.0を確認する。
+@details 点4へのシーク直後にrender_frameの引数を検証する。
+@par 検証根拠
+操作完了を待たずに指定点と終端進捗が描画へ反映されることを直接確認できる。
+@see REQ-SIM-012
         """
+
         self.controller.start(self.plan, duration_s=10.0)
         self.view.reset_mock()
         self.controller.seek_to_point(4)
@@ -389,11 +413,15 @@ class TestSimulation(unittest.TestCase):
     # TEST-UNIT-132
     # Requirements: REQ-SIM-013
     def test_animation_completion_stays_at_last_point(self):
-        """再生完了で最終点に留まり、自動ループしない。
+        """@brief 再生完了で最終点に留まり、自動ループしない。
 
-        @test TEST-UNIT-132: ``completed`` 状態と最終インデックスを確認する。
-        @see REQ-SIM-013
+@test TEST-UNIT-132: completed状態と最終インデックスを確認する。
+@details 完了コールバックを実行し、最終点保持、完了状態、View通知を検証する。
+@par 検証根拠
+完了後に先頭へ自動復帰せず、最後の位置で一時停止相当の完了状態になることを確認できる。
+@see REQ-SIM-013
         """
+
         self.controller.start(self.plan, duration_s=10.0)
         self.controller.on_animation_complete()
         self.assertEqual("completed", self.controller.playback_state)
@@ -403,11 +431,15 @@ class TestSimulation(unittest.TestCase):
     # TEST-UNIT-133
     # Requirements: REQ-SIM-009
     def test_resume_after_completion_restarts_at_first_point(self):
-        """完了後の再生で先頭へ戻る。
+        """@brief 完了後の再生で先頭へ戻る。
 
-        @test TEST-UNIT-133: 先頭点と進捗0.0の描画を確認する。
-        @see REQ-SIM-009
+@test TEST-UNIT-133: 先頭点と進捗0.0の描画を確認する。
+@details 完了状態から再生を実行し、先頭点描画と再生状態を検証する。
+@par 検証根拠
+完了後の再生操作でのみ先頭へ戻る仕様を、描画対象と進捗から確認できる。
+@see REQ-SIM-009
         """
+
         self.controller.start(self.plan, duration_s=10.0)
         self.controller.on_animation_complete()
         self.controller.resume()
@@ -421,11 +453,16 @@ class TestSimulation(unittest.TestCase):
     # TEST-UNIT-134
     # Requirements: REQ-SIM-014, REQ-SIM-015
     def test_view_has_point_based_seek_bar_with_large_handle(self):
-        """シークバーが既存進捗表示を置換し、点単位・大きなつまみを持つ。
+        """@brief シークバーが既存進捗表示を置換し、点単位・大きなつまみを持つ。
 
-        @test TEST-UNIT-134: 最小/最大値、整数分解能相当の構成、大きなつまみを確認する。
-        @see REQ-SIM-014, REQ-SIM-015
-        """ view = SimulationView()
+@test TEST-UNIT-134: 最小/最大値、整数分解能相当の構成、大きなつまみを確認する。
+@details Sliderの範囲、ステップ、つまみサイズ、再生ボタンの生成状態を検証する。
+@par 検証根拠
+較正点単位でドラッグ操作できる範囲と、操作しやすい大きさのつまみをUI部品の設定値から確認できる。
+@see REQ-SIM-014, REQ-SIM-015
+        """
+
+        view = SimulationView()
         view.initialize(self.plan)
         self.assertIsNotNone(view.seek_slider)
         self.assertEqual(0, view.seek_slider.valmin)
@@ -436,11 +473,16 @@ class TestSimulation(unittest.TestCase):
     # TEST-UNIT-135
     # Requirements: REQ-SIM-016
     def test_playback_button_label_follows_state(self):
-        """再生状態に応じてⅡ/▶を表示する。
+        """@brief 再生状態に応じて一時停止/再生ボタン表示を切り替える。
 
-        @test TEST-UNIT-135: playingでは「Ⅱ」、paused/completedでは「▶」を確認する。
-        @see REQ-SIM-016
-        """ view = SimulationView()
+@test TEST-UNIT-135: playingでは「Ⅱ」、paused/completedでは「▶」を確認する。
+@details 各再生状態を設定し、Buttonラベルを取得して比較する。
+@par 検証根拠
+状態と表示ラベルの対応を直接確認することで、再生中の一時停止操作と停止中の再生操作を検証できる。
+@see REQ-SIM-016
+        """
+
+        view = SimulationView()
         view.initialize(self.plan)
         view.set_playback_state("playing")
         self.assertIn("Ⅱ", view.playback_button.label.get_text())
@@ -452,11 +494,16 @@ class TestSimulation(unittest.TestCase):
     # TEST-UNIT-136
     # Requirements: REQ-SIM-014
     def test_progress_text_uses_point_count_not_time(self):
-        """進捗表示が現在点/全点であり、時間表示を使用しない。
+        """@brief 進捗表示が現在点/全点であり、時間表示を使用しない。
 
-        @test TEST-UNIT-136: 5点中3点の表示と時間表記の不在を確認する。
-        @see REQ-SIM-014
-        """ view = SimulationView()
+@test TEST-UNIT-136: 5点中3点の表示と時間表記の不在を確認する。
+@details 中間点を描画し、status_textに点数表示が含まれ、時間表記が含まれないことを検証する。
+@par 検証根拠
+シークバーと同じ意味を持つ進捗情報が時間ではなく較正点単位で表示されることを確認できる。
+@see REQ-SIM-014
+        """
+
+        view = SimulationView()
         view.initialize(self.plan)
         view.render_frame(self.points[2], 0.5)
         self.assertIn("3 / 5", view.status_text)
