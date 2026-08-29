@@ -26,7 +26,7 @@ class UseCaseHarness:
     """ユースケーステストでproduction実装を組み合わせる共通ハーネス。
 
     Details: MockではなくValidator、Service、Controller、Repository、Generatorの実クラスを接続し、製品と同じ主要データ経路を再現する。
-    @par 設計根拠
+    Design rationale:
     ユースケーステストでは個別メソッドではなく複数モジュール間の受渡しを確認する必要があるため、共通の実オブジェクト集合を一箇所で構築する。
     """
 
@@ -661,9 +661,10 @@ class TestUseCases(unittest.TestCase):
     def _with_text_file(self,text,callback):
         """指定テキストの一時ファイルを作成しcallback実行後に必ず削除する。
 
-        @param text ファイルへ書き込むUTF-8文字列。
-        @param callback 一時ファイルpathを受け取る検証関数。
-        @par 設計根拠
+        Args:
+            text: ファイルへ書き込むUTF-8文字列
+            callback: 一時ファイルpathを受け取る検証関数
+        Design rationale:
         テスト終了時の一時ファイル残留を防ぎつつ実ファイルI/O経路を再利用できる。
         """
         with tempfile.NamedTemporaryFile("w",delete=False,encoding="utf-8") as f: f.write(text); path=f.name
@@ -673,8 +674,11 @@ class TestUseCases(unittest.TestCase):
     def _round_trip_settings(self,settings):
         """設定を一時CSVへ保存・再読込し完全一致を確認する。
 
-        @param settings 保存対象CalibrationSettings。
-        @return 読み戻したCalibrationSettings。
+        Args:
+            settings: 保存対象CalibrationSettings
+
+        Returns:
+            読み戻したCalibrationSettings
         Verification rationale:
         ユースケースで繰り返し必要な実CSV round-tripを共通化し、各シナリオが設定内容の差分へ集中できる。
         """
@@ -689,9 +693,13 @@ class TestUseCases(unittest.TestCase):
     def _load_csv_text(self,text):
         """CSV文字列を実一時ファイル経由でSettingsRepositoryへ入力する。
 
-        @param text CSV内容。
-        @return 読込成功時のCalibrationSettings。
-        @par 設計根拠
+        Args:
+            text: CSV内容
+
+        Returns:
+            読込成功時のCalibrationSettings
+
+        Design rationale:
         文字列だけのparser試験ではなく実Repositoryのファイル読込経路を通すため、ユースケースに近い条件でCSV異常を確認できる。
         """
         with tempfile.NamedTemporaryFile("w",delete=False,encoding="utf-8",newline="") as f: f.write(text); path=f.name
@@ -701,8 +709,10 @@ class TestUseCases(unittest.TestCase):
     def _valid_csv(self):
         """異常CSV試験の基準となる全必須項目入り正常CSV文字列を返す。
 
-        @return key,value形式の正常CSV。
-        @par 設計根拠
+        Returns:
+            key,value形式の正常CSV
+
+        Design rationale:
         各異常試験ではこの基準文字列の対象項目だけを書き換えることで、失敗原因を一つに限定できる。
         """
         rows=[("aoa_min","-10"),("aoa_max","10"),("aos_min","-10"),("aos_max","10"),("aoa_points","3"),("aos_points","3"),("tip_offset_x","100"),("tip_offset_y","10"),("hold_time_s","1"),("feed_rate","100"),("x_min","-1000"),("x_max","1000"),("y_min","-1000"),("y_max","1000"),("z_min","-180"),("z_max","180"),("a_min","-720"),("a_max","720"),("serpentine","false"),("output_comments","true")]
