@@ -223,7 +223,6 @@
 | <a id="test-unit-122"></a>TEST-UNIT-122 | REQ-SIM-005 | 較正点マップ初期化 | 複数較正点を持つvalid plan | AoS横軸、AoA縦軸で全較正点を表示し、凡例を表示しない  | [[TESTCODE:tests.test_simulation.TestSimulation.test_calibration_map_displays_all_points_without_legend]] |
 | <a id="test-unit-123"></a>TEST-UNIT-123 | REQ-SIM-006 | 現在較正点の強調・同期 | 異なる2点を連続描画 | 現在点だけが通常点と異なる色で表示され、横面図・正面図と同じ点へ同期更新され、文字注記を追加しない  | [[TESTCODE:tests.test_simulation.TestSimulation.test_current_calibration_point_color_tracks_rendered_point]] |
 | <a id="test-unit-126"></a>TEST-UNIT-126 | REQ-SIM-007 | シミュレーション開始状態 | 有効なplanで開始 | 先頭較正点から再生を開始し、再生中状態と一時停止ボタン「Ⅱ」を表示する  | [[TESTCODE:tests.test_simulation.TestSimulation.test_start_sets_playing_state_at_first_point]] |
-
 | <a id="test-unit-127"></a>TEST-UNIT-127 | REQ-SIM-008 | 一時停止 | 再生中に一時停止操作 | タイマーが停止し、現在較正点を保持し、再生ボタン「▶」を表示する  | [[TESTCODE:tests.test_simulation.TestSimulation.test_pause_stops_animation_and_keeps_current_point]] |
 | <a id="test-unit-128"></a>TEST-UNIT-128 | REQ-SIM-009 | 一時停止からの再生再開 | 中間点で一時停止後に再生 | 現在位置から再生を再開する  | [[TESTCODE:tests.test_simulation.TestSimulation.test_resume_restarts_from_current_point]] |
 | <a id="test-unit-129"></a>TEST-UNIT-129 | REQ-SIM-010 | 一時停止中の較正点シーク | 一時停止中に指定点へ移動 | 指定した較正点を現在点として保持する  | [[TESTCODE:tests.test_simulation.TestSimulation.test_seek_while_paused_selects_point]] |
