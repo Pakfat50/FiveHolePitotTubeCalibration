@@ -225,6 +225,8 @@ sequenceDiagram
 
 ユースケーステスト: [[UCTEST:UC-05]]
 
+対応要求: [[ARCHREQ:REQ-SIM-007]]
+
 ## 3.6 UC-06 Gコードを生成する
 
 ```mermaid
@@ -742,30 +744,30 @@ stateDiagram-v2
 
 | 要求ID | 実装クラス/メソッド | 備考 |
 |---|---|---|
-| <a id="architecture-req-input-001"></a>[INPUT-001](#architecture-req-input-001) | `MainWindow._build_widgets`, `MainWindow._collect_raw_input`, `CalibrationSettings` | AoA/AoS範囲 |
-| <a id="architecture-req-input-002"></a>[INPUT-002](#architecture-req-input-002) | `MainWindow._build_widgets`, `MainWindow._collect_raw_input`, `CalibrationSettings` | 点数 |
-| <a id="architecture-req-input-003"></a>[INPUT-003](#architecture-req-input-003) | `MainWindow._build_widgets`, `MainWindow._collect_raw_input`, `CalibrationSettings` | Lx/Ly |
-| <a id="architecture-req-input-004"></a>[INPUT-004](#architecture-req-input-004) | `MainWindow._build_widgets`, `MainWindow._collect_raw_input`, `CalibrationSettings`, `GCodeGenerator._format_point` | 保持時間、Feed rate |
-| <a id="architecture-req-input-005"></a>[INPUT-005](#architecture-req-input-005) | `MainWindow._build_widgets`, `AxisLimits`, `AxisRange` | X/Y/Z/A可動範囲 |
-| <a id="architecture-req-input-006"></a>[INPUT-006](#architecture-req-input-006) | `MainWindow._on_load_initialization`, `InitializationGCodeRepository.load` | 初期化Gコード |
-| <a id="architecture-req-input-007"></a>[INPUT-007](#architecture-req-input-007) | `MainWindow._build_widgets`, `CalibrationSettings` | 蛇行走査、コメント |
+| <a id="architecture-req-input-001"></a>[INPUT-001](#architecture-req-input-001) | `MainWindow._build_widgets`, `MainWindow._collect_raw_input`, [[API:models.CalibrationSettings]] | AoA/AoS範囲 |
+| <a id="architecture-req-input-002"></a>[INPUT-002](#architecture-req-input-002) | `MainWindow._build_widgets`, `MainWindow._collect_raw_input`, [[API:models.CalibrationSettings]] | 点数 |
+| <a id="architecture-req-input-003"></a>[INPUT-003](#architecture-req-input-003) | `MainWindow._build_widgets`, `MainWindow._collect_raw_input`, [[API:models.CalibrationSettings]] | Lx/Ly |
+| <a id="architecture-req-input-004"></a>[INPUT-004](#architecture-req-input-004) | `MainWindow._build_widgets`, `MainWindow._collect_raw_input`, [[API:models.CalibrationSettings]], `GCodeGenerator._format_point` | 保持時間、Feed rate |
+| <a id="architecture-req-input-005"></a>[INPUT-005](#architecture-req-input-005) | `MainWindow._build_widgets`, [[API:models.AxisLimits]], [[API:models.AxisRange]] | X/Y/Z/A可動範囲 |
+| <a id="architecture-req-input-006"></a>[INPUT-006](#architecture-req-input-006) | `MainWindow._on_load_initialization`, [[API:repositories.InitializationGCodeRepository.load]] | 初期化Gコード |
+| <a id="architecture-req-input-007"></a>[INPUT-007](#architecture-req-input-007) | `MainWindow._build_widgets`, [[API:models.CalibrationSettings]] | 蛇行走査、コメント |
 | <a id="architecture-req-valid-001"></a>[VALID-001](#architecture-req-valid-001) | `CalibrationController.on_settings_changed`, `InputValidator.validate`, `MainWindow._on_gui_input_changed`, `MainWindow._find_numeric_parse_errors`, `MainWindow._apply_validation_highlights`, `MainWindow._update_validation_display` | リアルタイム非モーダル検証、数値パース失敗、フィールド背景強調 |
 | <a id="architecture-req-valid-002"></a>[VALID-002](#architecture-req-valid-002) | `InputValidator.validate`, `CalibrationController.can_generate` | 入力整合性 |
-| <a id="architecture-req-valid-003"></a>[VALID-003](#architecture-req-valid-003) | `LimitEvaluator.evaluate`, `CalibrationController.can_generate`, `MainWindow._update_action_state` | X/Y警告、Z/A禁止 |
+| <a id="architecture-req-valid-003"></a>[VALID-003](#architecture-req-valid-003) | [[API:limits.LimitEvaluator.evaluate]], `CalibrationController.can_generate`, `MainWindow._update_action_state` | X/Y警告、Z/A禁止 |
 
 ## 10.2 座標変換・位置補正・制限
 
 | 要求ID | 実装クラス/メソッド | 備考 |
 |---|---|---|
-| <a id="architecture-req-trans-001"></a>[TRANS-001](#architecture-req-trans-001) | `AngleTransformer.transform` | ピッチ後ロールのモデル |
-| <a id="architecture-req-trans-002"></a>[TRANS-002](#architecture-req-trans-002) | `AngleTransformer.transform`, `AngleTransformer._generate_equivalent_solutions` | AoA/AoS→Z/A |
+| <a id="architecture-req-trans-001"></a>[TRANS-001](#architecture-req-trans-001) | [[API:transform.AngleTransformer.transform]] | ピッチ後ロールのモデル |
+| <a id="architecture-req-trans-002"></a>[TRANS-002](#architecture-req-trans-002) | [[API:transform.AngleTransformer.transform]], `AngleTransformer._generate_equivalent_solutions` | AoA/AoS→Z/A |
 | <a id="architecture-req-trans-003"></a>[TRANS-003](#architecture-req-trans-003) | `AngleTransformer._select_solution` | 等価解優先順位 |
 | <a id="architecture-req-trans-004"></a>[TRANS-004](#architecture-req-trans-004) | `AngleTransformer._unwrap_angle` | ±360°ジャンプ回避 |
 | <a id="architecture-req-pos-001"></a>[POS-001](#architecture-req-pos-001) | `PositionCompensator.calculate_xy` | X/Y補正式 |
 | <a id="architecture-req-pos-002"></a>[POS-002](#architecture-req-pos-002) | `PositionCompensator.calculate_xy` | ロール非依存 |
-| <a id="architecture-req-limit-001"></a>[LIMIT-001](#architecture-req-limit-001) | `LimitEvaluator.evaluate`, `LimitEvaluator._saturate_translation` | X/Y飽和 |
-| <a id="architecture-req-limit-002"></a>[LIMIT-002](#architecture-req-limit-002) | `LimitEvaluator.evaluate`, `CalibrationService.build_plan`, `MainWindow._update_plan_status` | 最大X/Y偏差の算出・集約・表示 |
-| <a id="architecture-req-limit-003"></a>[LIMIT-003](#architecture-req-limit-003) | `LimitEvaluator.evaluate`, `LimitEvaluator._rotation_in_range`, `CalibrationController.can_generate`, `MainWindow._update_plan_status` | Z/A生成禁止判定・表示 |
+| <a id="architecture-req-limit-001"></a>[LIMIT-001](#architecture-req-limit-001) | [[API:limits.LimitEvaluator.evaluate]], `LimitEvaluator._saturate_translation` | X/Y飽和 |
+| <a id="architecture-req-limit-002"></a>[LIMIT-002](#architecture-req-limit-002) | [[API:limits.LimitEvaluator.evaluate]], `CalibrationService.build_plan`, `MainWindow._update_plan_status` | 最大X/Y偏差の算出・集約・表示 |
+| <a id="architecture-req-limit-003"></a>[LIMIT-003](#architecture-req-limit-003) | [[API:limits.LimitEvaluator.evaluate]], `LimitEvaluator._rotation_in_range`, `CalibrationController.can_generate`, `MainWindow._update_plan_status` | Z/A生成禁止判定・表示 |
 
 ## 10.3 較正点走査
 
@@ -779,31 +781,31 @@ stateDiagram-v2
 
 | 要求ID | 実装クラス/メソッド | 備考 |
 |---|---|---|
-| <a id="architecture-req-gcode-001"></a>[GCODE-001](#architecture-req-gcode-001) | `MainWindow._on_generate_gcode`, `GCodeRepository.save` | `.nc`保存 |
+| <a id="architecture-req-gcode-001"></a>[GCODE-001](#architecture-req-gcode-001) | `MainWindow._on_generate_gcode`, [[API:repositories.GCodeRepository.save]] | `.nc`保存 |
 | <a id="architecture-req-gcode-002"></a>[GCODE-002](#architecture-req-gcode-002) | `GCodeGenerator._format_header` | 初期化、`$H`, G21/G90/G94 |
 | <a id="architecture-req-gcode-003"></a>[GCODE-003](#architecture-req-gcode-003) | `GCodeGenerator._format_point` | `G01 X Y Z A F`, `G04 P` |
 | <a id="architecture-req-gcode-004"></a>[GCODE-004](#architecture-req-gcode-004) | `GCodeGenerator._format_point` | 任意コメント |
-| <a id="architecture-req-gcode-005"></a>[GCODE-005](#architecture-req-gcode-005) | `GCodeGenerator.generate` | 終了時復帰指令なし |
+| <a id="architecture-req-gcode-005"></a>[GCODE-005](#architecture-req-gcode-005) | [[API:gcode.GCodeGenerator.generate]] | 終了時復帰指令なし |
 
 ## 10.5 シミュレーション
 
 | 要求ID | 実装クラス/メソッド | 備考 |
 |---|---|---|
 | <a id="architecture-req-sim-001"></a>[SIM-001](#architecture-req-sim-001) | `MainWindow._on_simulate`, `CalibrationController.can_generate` | 任意実行 |
-| <a id="architecture-req-sim-002"></a>[SIM-002](#architecture-req-sim-002) | `SimulationController.start`, `SimulationController._frame_at`, `SimulationView.start_animation` | 約10秒、保持時間非再現、進捗から現在点を選択 |
-| <a id="architecture-req-sim-003"></a>[SIM-003](#architecture-req-sim-003) | `SimulationView.initialize`, `SimulationView._calculate_side_limits`, `SimulationView._configure_side_axes`, `SimulationView._configure_front_axes`, `SimulationView.render_frame` | 横面図・正面図と固定表示範囲 |
+| <a id="architecture-req-sim-002"></a>[SIM-002](#architecture-req-sim-002) | [[API:simulation.SimulationController.start]], `SimulationController._frame_at`, `SimulationView.start_animation` | 約10秒、保持時間非再現、進捗から現在点を選択 |
+| <a id="architecture-req-sim-003"></a>[SIM-003](#architecture-req-sim-003) | [[API:simulation.SimulationView.initialize]], `SimulationView._calculate_side_limits`, `SimulationView._configure_side_axes`, `SimulationView._configure_front_axes`, `SimulationView.render_frame` | 横面図・正面図と固定表示範囲 |
 | <a id="architecture-req-sim-004"></a>[SIM-004](#architecture-req-sim-004) | `SimulationView.render_frame` | 点番号、AoA/AoS、X/Y/Z/A、状態、進捗 |
-| <a id="architecture-req-sim-005"></a>[SIM-005](#architecture-req-sim-005) | `SimulationView.initialize`, `SimulationView._calculate_calibration_limits`, `SimulationView._configure_calibration_axes`, `SimulationView._draw_calibration_map` | シミュレーション用AoA/AoS全点マップ |
+| <a id="architecture-req-sim-005"></a>[SIM-005](#architecture-req-sim-005) | [[API:simulation.SimulationView.initialize]], `SimulationView._calculate_calibration_limits`, `SimulationView._configure_calibration_axes`, `SimulationView._draw_calibration_map` | シミュレーション用AoA/AoS全点マップ |
 | <a id="architecture-req-sim-006"></a>[SIM-006](#architecture-req-sim-006) | `SimulationView.render_frame`, `SimulationView._update_current_calibration_point` | 現在点を別色で同期更新、凡例・文字注記なし |
 | <a id="architecture-req-sim-007"></a>[SIM-007](#architecture-req-sim-007) | [[CODE:simulation.SimulationController.start]]、[[CODE:simulation.SimulationView.start_animation]]、[[CODE:simulation.SimulationView._update_playback_button]] | 先頭から再生を開始し、再生中はⅡボタンを表示 |
-| <a id="architecture-req-sim-008"></a>[SIM-008](#architecture-req-sim-008) | `SimulationController.pause`, `SimulationView._on_play_pause`, `SimulationView._update_playback_button` | 現在点を保持して一時停止し、▶ボタンを表示 |
-| <a id="architecture-req-sim-009"></a>[SIM-009](#architecture-req-sim-009) | `SimulationController.resume`, `SimulationController.restart_from_beginning` | 一時停止中は現在位置から、最終位置では先頭から再生 |
+| <a id="architecture-req-sim-008"></a>[SIM-008](#architecture-req-sim-008) | [[API:simulation.SimulationController.pause]], `SimulationView._on_play_pause`, `SimulationView._update_playback_button` | 現在点を保持して一時停止し、▶ボタンを表示 |
+| <a id="architecture-req-sim-009"></a>[SIM-009](#architecture-req-sim-009) | [[API:simulation.SimulationController.resume]], `SimulationController.restart_from_beginning` | 一時停止中は現在位置から、最終位置では先頭から再生 |
 | <a id="architecture-req-sim-010"></a>[SIM-010](#architecture-req-sim-010) | `SimulationView._on_seek`, `SimulationController.seek_to_point` | 較正点単位のシーク |
-| <a id="architecture-req-sim-011"></a>[SIM-011](#architecture-req-sim-011) | `SimulationView._on_seek`, `SimulationController.pause` | 再生中のシーク開始時に自動一時停止 |
+| <a id="architecture-req-sim-011"></a>[SIM-011](#architecture-req-sim-011) | `SimulationView._on_seek`, [[API:simulation.SimulationController.pause]] | 再生中のシーク開始時に自動一時停止 |
 | <a id="architecture-req-sim-012"></a>[SIM-012](#architecture-req-sim-012) | `SimulationController.seek_to_point`, `SimulationView.render_frame`, `SimulationView._update_seek_bar` | シーク位置を全表示へ即時反映 |
 | <a id="architecture-req-sim-013"></a>[SIM-013](#architecture-req-sim-013) | `SimulationController.on_animation_complete`, `SimulationView.show_final_state` | 最終点で停止し、自動ループしない |
-| <a id="architecture-req-sim-014"></a>[SIM-014](#architecture-req-sim-014) | `SimulationView.initialize`, `SimulationView._update_seek_bar` | 既存プログレスバーをシークバーへ置換 |
-| <a id="architecture-req-sim-015"></a>[SIM-015](#architecture-req-sim-015) | `SimulationView.initialize`, `SimulationView._on_seek` | 大きなつまみ、ドラッグ、較正点単位操作 |
+| <a id="architecture-req-sim-014"></a>[SIM-014](#architecture-req-sim-014) | [[API:simulation.SimulationView.initialize]], `SimulationView._update_seek_bar` | 既存プログレスバーをシークバーへ置換 |
+| <a id="architecture-req-sim-015"></a>[SIM-015](#architecture-req-sim-015) | [[API:simulation.SimulationView.initialize]], `SimulationView._on_seek` | 大きなつまみ、ドラッグ、較正点単位操作 |
 | <a id="architecture-req-sim-016"></a>[SIM-016](#architecture-req-sim-016) | `SimulationView._update_playback_button`, `SimulationView._on_play_pause` | 状態に応じたⅡ/▶ボタン表示と操作 |
 
 ## 10.6 GUI
@@ -811,7 +813,7 @@ stateDiagram-v2
 | 要求ID | 実装クラス/メソッド | 備考 |
 |---|---|---|
 | <a id="architecture-req-gui-001"></a>[GUI-001](#architecture-req-gui-001) | `MainWindow._build_widgets`, `CalibrationMapView._configure_matplotlib_font`, `SimulationView._configure_matplotlib_font` | Tkinter日本語GUIとMatplotlib日本語フォント選択。日本語フォント非搭載環境ではグラフ文字列を英語へフォールバック |
-| <a id="architecture-req-gui-002"></a>[GUI-002](#architecture-req-gui-002) | `CalibrationMapView.render` | AoA/AoSマップ、警告/エラー識別 |
+| <a id="architecture-req-gui-002"></a>[GUI-002](#architecture-req-gui-002) | [[API:map_view.CalibrationMapView.render]] | AoA/AoSマップ、警告/エラー識別 |
 | <a id="architecture-req-gui-003"></a>[GUI-003](#architecture-req-gui-003) | `MainWindow._on_save_settings`, `MainWindow._on_load_settings`, `SettingsRepository.save/load` | CSV設定保存読込、読込失敗時は部分適用せず通知 |
 | <a id="architecture-req-gui-004"></a>[GUI-004](#architecture-req-gui-004) | `MainWindow._build_widgets` | 4操作ボタン |
 | <a id="architecture-req-gui-005"></a>[GUI-005](#architecture-req-gui-005) | `MainWindow._on_gui_input_changed`, `MainWindow._apply_validation_highlights`, `MainWindow._update_validation_display`, `MainWindow._update_plan_status`, `MainWindow._update_action_state`, `CalibrationController.can_generate` | 入力背景強調、既存固定メッセージ領域、軸警告/エラー、ボタン制御 |
