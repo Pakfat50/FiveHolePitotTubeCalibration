@@ -797,8 +797,8 @@ stateDiagram-v2
 | <a id="architecture-req-sim-004"></a>[SIM-004](#architecture-req-sim-004) | `SimulationView.render_frame` | 点番号、AoA/AoS、X/Y/Z/A、状態、進捗 |
 | <a id="architecture-req-sim-005"></a>[SIM-005](#architecture-req-sim-005) | [[API:simulation.SimulationView.initialize]], `SimulationView._calculate_calibration_limits`, `SimulationView._configure_calibration_axes`, `SimulationView._draw_calibration_map` | シミュレーション用AoA/AoS全点マップ |
 | <a id="architecture-req-sim-006"></a>[SIM-006](#architecture-req-sim-006) | `SimulationView.render_frame`, `SimulationView._update_current_calibration_point` | 現在点を別色で同期更新、凡例・文字注記なし |
-| <a id="architecture-req-sim-007"></a>[SIM-007](#architecture-req-sim-007) | [[CODE:simulation.SimulationController.start]]、[[CODE:simulation.SimulationView.start_animation]]、[[CODE:simulation.SimulationView._update_playback_button]] | 先頭から再生を開始し、再生中はⅡボタンを表示 |
-| <a id="architecture-req-sim-008"></a>[SIM-008](#architecture-req-sim-008) | [[API:simulation.SimulationController.pause]], `SimulationView._on_play_pause`, `SimulationView._update_playback_button` | 現在点を保持して一時停止し、▶ボタンを表示 |
+| <a id="architecture-req-sim-007"></a>[SIM-007](#architecture-req-sim-007) | [[CODE:simulation.SimulationController.start]]、[[CODE:simulation.SimulationView.start_animation]]、[[CODE:simulation.SimulationView.set_playback_state]] | 先頭から再生を開始し、再生中はⅡボタンを表示 |
+| <a id="architecture-req-sim-008"></a>[SIM-008](#architecture-req-sim-008) | [[API:simulation.SimulationController.pause]], `SimulationView._on_play_pause`, `SimulationView.set_playback_state` | 現在点を保持して一時停止し、▶ボタンを表示 |
 | <a id="architecture-req-sim-009"></a>[SIM-009](#architecture-req-sim-009) | [[API:simulation.SimulationController.resume]], `SimulationController.restart_from_beginning` | 一時停止中は現在位置から、最終位置では先頭から再生 |
 | <a id="architecture-req-sim-010"></a>[SIM-010](#architecture-req-sim-010) | `SimulationView._on_seek`, `SimulationController.seek_to_point` | 較正点単位のシーク |
 | <a id="architecture-req-sim-011"></a>[SIM-011](#architecture-req-sim-011) | `SimulationView._on_seek`, [[API:simulation.SimulationController.pause]] | 再生中のシーク開始時に自動一時停止 |
@@ -806,7 +806,7 @@ stateDiagram-v2
 | <a id="architecture-req-sim-013"></a>[SIM-013](#architecture-req-sim-013) | `SimulationController.on_animation_complete`, `SimulationView.show_final_state` | 最終点で停止し、自動ループしない |
 | <a id="architecture-req-sim-014"></a>[SIM-014](#architecture-req-sim-014) | [[API:simulation.SimulationView.initialize]], `SimulationView._update_seek_bar` | 既存プログレスバーをシークバーへ置換 |
 | <a id="architecture-req-sim-015"></a>[SIM-015](#architecture-req-sim-015) | [[API:simulation.SimulationView.initialize]], `SimulationView._on_seek` | 大きなつまみ、ドラッグ、較正点単位操作 |
-| <a id="architecture-req-sim-016"></a>[SIM-016](#architecture-req-sim-016) | `SimulationView._update_playback_button`, `SimulationView._on_play_pause` | 状態に応じたⅡ/▶ボタン表示と操作 |
+| <a id="architecture-req-sim-016"></a>[SIM-016](#architecture-req-sim-016) | `SimulationView.set_playback_state`, `SimulationView._on_play_pause` | 状態に応じたⅡ/▶ボタン表示と操作 |
 
 ## 10.6 GUI
 
@@ -862,7 +862,7 @@ stateDiagram-v2
 | simulation | `SimulationView._on_seek` | point_index | None | シーク開始時に一時停止し、Controllerへ点選択を通知 |
 | simulation | `SimulationView._on_play_pause` | なし | None | 再生/一時停止操作をControllerへ通知 |
 | simulation | `SimulationView._update_seek_bar` | point_index | None | シークバーを現在較正点へ同期 |
-| simulation | `SimulationView._update_playback_button` | state | None | 状態に応じⅡ/▶を表示 |
+| simulation | `SimulationView.set_playback_state` | state | None | 状態に応じⅡ/▶を表示 |
 | simulation | `SimulationView._calculate_side_limits` | plan | None | 横面図固定表示範囲を保持 |
 | simulation | `SimulationView._calculate_calibration_limits` | plan | None | 較正点マップ固定表示範囲を保持 |
 | simulation | `SimulationView.render_frame` | current point, progress | None | 3表示と状態を同一現在点で更新 |
