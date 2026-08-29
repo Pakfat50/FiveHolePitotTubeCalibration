@@ -33,28 +33,34 @@
 
 ソフトウェアは、ユーザーがAoAおよびAoSの最小値・最大値をdeg単位で入力できなければならない。
 
-
 **関連成果物**
+
 - アーキテクチャ設計: [[ARCHREQ:REQ-INPUT-001]]
-- テスト仕様: [[TESTSPEC:TEST-UNIT-002]]
+- 製品コード: 実装API未記載
+- テスト仕様: [[TESTSPEC:TEST-UNIT-002]]、[[TESTSPEC:TEST-UNIT-003]]、[[TESTSPEC:TEST-UNIT-004]]、[[TESTSPEC:TEST-UNIT-005]]
+
 #### REQ-INPUT-002（較正点数）
 
 ソフトウェアは、AoAおよびAoSの較正点数を入力できなければならない。点数は両端を含むものとする。
 
-
 **関連成果物**
+
 - アーキテクチャ設計: [[ARCHREQ:REQ-INPUT-002]]
-- テスト仕様: [[TESTSPEC:TEST-UNIT-006]]
+- 製品コード: 実装API未記載
+- テスト仕様: [[TESTSPEC:TEST-UNIT-006]]、[[TESTSPEC:TEST-UNIT-007]]、[[TESTSPEC:TEST-UNIT-008]]
+
 #### REQ-INPUT-003（距離）
 
 ソフトウェアは、ピッチ回転中心からピトー管先端までの基準姿勢におけるX方向距離およびY方向距離をmm単位で入力できなければならない。
 
 LxおよびLyは、いずれも0より大きい有限な実数でなければならない。
 
-
 **関連成果物**
+
 - アーキテクチャ設計: [[ARCHREQ:REQ-INPUT-003]]
-- テスト仕様: [[TESTSPEC:TEST-UNIT-011]]
+- 製品コード: 実装API未記載
+- テスト仕様: [[TESTSPEC:TEST-UNIT-011]]、[[TESTSPEC:TEST-UNIT-111]]、[[TESTSPEC:TEST-UNIT-112]]
+
 #### REQ-INPUT-004（移動条件）
 
 ソフトウェアは、以下を入力できなければならない。
@@ -70,26 +76,32 @@ Feed rateは **1 unit/min以上** でなければならない。
 
 加速度、steps/mm、steps/degは入力対象外とし、GRBL側で設定する。
 
-
 **関連成果物**
+
 - アーキテクチャ設計: [[ARCHREQ:REQ-INPUT-004]]
-- テスト仕様: [[TESTSPEC:TEST-UNIT-009]]
+- 製品コード: 実装API未記載
+- テスト仕様: [[TESTSPEC:TEST-UNIT-009]]、[[TESTSPEC:TEST-UNIT-010]]、[[TESTSPEC:TEST-UNIT-070]]、[[TESTSPEC:TEST-UNIT-071]]、[[TESTSPEC:TEST-UNIT-113]]、[[TESTSPEC:TEST-UNIT-114]]、[[TESTSPEC:TEST-UNIT-115]]、[[TESTSPEC:TEST-UNIT-116]]
+
 #### REQ-INPUT-005（実軸可動範囲）
 
 ソフトウェアは、X、Y、Z、A各軸の最小値・最大値を入力できなければならない。
 
-
 **関連成果物**
+
 - アーキテクチャ設計: [[ARCHREQ:REQ-INPUT-005]]
-- テスト仕様: [[TESTSPEC:TEST-UNIT-012]]
+- 製品コード: 実装API未記載
+- テスト仕様: [[TESTSPEC:TEST-UNIT-012]]、[[TESTSPEC:TEST-UNIT-013]]、[[TESTSPEC:TEST-UNIT-014]]、[[TESTSPEC:TEST-UNIT-015]]
+
 #### REQ-INPUT-006（初期化Gコード）
 
 ソフトウェアは、初期化用Gコードをテキストファイルから読み込めなければならない。初期化Gコード入力欄をGUIに設けてもよいが、基本操作はファイル選択とする。
 
-
 **関連成果物**
+
 - アーキテクチャ設計: [[ARCHREQ:REQ-INPUT-006]]
-- テスト仕様: [[TESTSPEC:TEST-UNIT-067]]
+- 製品コード: 実装API未記載
+- テスト仕様: [[TESTSPEC:TEST-UNIT-067]]、[[TESTSPEC:TEST-UNIT-080]]、[[TESTSPEC:TEST-UNIT-081]]、[[TESTSPEC:TEST-UNIT-106]]
+
 #### REQ-INPUT-007（オプション）
 
 ソフトウェアは、以下のオプションを指定できなければならない。
@@ -99,10 +111,12 @@ Feed rateは **1 unit/min以上** でなければならない。
 
 ### 3.2 入力値検証
 
-
 **関連成果物**
+
 - アーキテクチャ設計: [[ARCHREQ:REQ-INPUT-007]]
-- テスト仕様: [[TESTSPEC:TEST-UNIT-072]]
+- 製品コード: 実装API未記載
+- テスト仕様: [[TESTSPEC:TEST-UNIT-072]]、[[TESTSPEC:TEST-UNIT-073]]
+
 #### REQ-VALID-001（入力値のリアルタイム検証）
 
 ソフトウェアは、入力値が変更されるたびに入力値を検証しなければならない。
@@ -111,20 +125,24 @@ Feed rateは **1 unit/min以上** でなければならない。
 
 不正値が解消された場合、ソフトウェアは該当する入力フィールドの背景色を通常状態へ戻し、固定メッセージ領域の入力エラー理由表示を自動的に解除しなければならない。
 
-
 **関連成果物**
+
 - アーキテクチャ設計: [[ARCHREQ:REQ-VALID-001]]
-- テスト仕様: [[TESTSPEC:TEST-UNIT-001]]
+- 製品コード: 実装API未記載
+- テスト仕様: [[TESTSPEC:TEST-UNIT-001]]、[[TESTSPEC:TEST-UNIT-016]]、[[TESTSPEC:TEST-UNIT-084]]、[[TESTSPEC:TEST-UNIT-085]]、[[TESTSPEC:TEST-UNIT-086]]、[[TESTSPEC:TEST-UNIT-101]]、[[TESTSPEC:TEST-UNIT-102]]
+
 #### REQ-VALID-002（入力値整合性）
 
 最小値が最大値以上、点数が2未満、Feed rateが1 unit/min未満、保持時間が0.1 s未満、Lx/Lyが0以下または非有限値である場合、ソフトウェアは該当入力をエラー状態とし、較正点列の更新、シミュレーションおよびGコード生成を実行してはならない。
 
 入力途中の一時的な不正状態は許容し、ユーザー操作を妨げるモーダルダイアログは表示しない。
 
-
 **関連成果物**
+
 - アーキテクチャ設計: [[ARCHREQ:REQ-VALID-002]]
-- テスト仕様: [[TESTSPEC:TEST-UNIT-001]]
+- 製品コード: 実装API未記載
+- テスト仕様: [[TESTSPEC:TEST-UNIT-001]]、[[TESTSPEC:TEST-UNIT-002]]、[[TESTSPEC:TEST-UNIT-003]]、[[TESTSPEC:TEST-UNIT-004]]、[[TESTSPEC:TEST-UNIT-005]]、[[TESTSPEC:TEST-UNIT-006]]、[[TESTSPEC:TEST-UNIT-007]]、[[TESTSPEC:TEST-UNIT-008]]、[[TESTSPEC:TEST-UNIT-009]]、[[TESTSPEC:TEST-UNIT-010]]、[[TESTSPEC:TEST-UNIT-011]]、[[TESTSPEC:TEST-UNIT-012]]、[[TESTSPEC:TEST-UNIT-013]]、[[TESTSPEC:TEST-UNIT-014]]、[[TESTSPEC:TEST-UNIT-015]]、[[TESTSPEC:TEST-UNIT-016]]、[[TESTSPEC:TEST-UNIT-111]]、[[TESTSPEC:TEST-UNIT-112]]、[[TESTSPEC:TEST-UNIT-113]]、[[TESTSPEC:TEST-UNIT-114]]、[[TESTSPEC:TEST-UNIT-115]]、[[TESTSPEC:TEST-UNIT-116]]
+
 #### REQ-VALID-003（軸可動範囲による生成可否）
 
 計算された軸指令値がREQ-INPUT-005で入力された可動範囲を超える場合、ソフトウェアは軸種別に応じて以下のように処理しなければならない。
@@ -134,18 +152,22 @@ Feed rateは **1 unit/min以上** でなければならない。
 
 ### 3.3 座標変換
 
-
 **関連成果物**
+
 - アーキテクチャ設計: [[ARCHREQ:REQ-VALID-003]]
-- テスト仕様: [[TESTSPEC:TEST-UNIT-047]]
+- 製品コード: 実装API未記載
+- テスト仕様: [[TESTSPEC:TEST-UNIT-047]]、[[TESTSPEC:TEST-UNIT-054]]、[[TESTSPEC:TEST-UNIT-055]]、[[TESTSPEC:TEST-UNIT-056]]、[[TESTSPEC:TEST-UNIT-057]]、[[TESTSPEC:TEST-UNIT-087]]、[[TESTSPEC:TEST-UNIT-088]]
+
 #### REQ-TRANS-001（回転モデル）
 
 実機構は、ピッチ回転後にピトー管軸周りのロール回転を行うものとして計算しなければならない。
 
-
 **関連成果物**
+
 - アーキテクチャ設計: [[ARCHREQ:REQ-TRANS-001]]
-- テスト仕様: [[TESTSPEC:TEST-UNIT-025]]
+- 製品コード: 実装API未記載
+- テスト仕様: [[TESTSPEC:TEST-UNIT-025]]、[[TESTSPEC:TEST-UNIT-026]]、[[TESTSPEC:TEST-UNIT-027]]、[[TESTSPEC:TEST-UNIT-028]]、[[TESTSPEC:TEST-UNIT-029]]、[[TESTSPEC:TEST-UNIT-030]]、[[TESTSPEC:TEST-UNIT-031]]、[[TESTSPEC:TEST-UNIT-032]]
+
 #### REQ-TRANS-002（AoA/AoSから実軸角への変換）
 
 ソフトウェアは、入力されたAoA=α、AoS=βを再現するよう、実ピッチ角θおよび実ロール角φを次式で求めなければならない。
@@ -174,10 +196,12 @@ $$
 
 同一のAoA/AoSを表す別解が存在する場合は候補解を生成し、可動範囲および前較正点からの連続性を考慮して解を選択しなければならない。
 
-
 **関連成果物**
+
 - アーキテクチャ設計: [[ARCHREQ:REQ-TRANS-002]]
-- テスト仕様: [[TESTSPEC:TEST-UNIT-025]]
+- 製品コード: 実装API未記載
+- テスト仕様: [[TESTSPEC:TEST-UNIT-025]]、[[TESTSPEC:TEST-UNIT-026]]、[[TESTSPEC:TEST-UNIT-027]]、[[TESTSPEC:TEST-UNIT-028]]、[[TESTSPEC:TEST-UNIT-029]]、[[TESTSPEC:TEST-UNIT-030]]、[[TESTSPEC:TEST-UNIT-031]]、[[TESTSPEC:TEST-UNIT-032]]、[[TESTSPEC:TEST-UNIT-040]]、[[TESTSPEC:TEST-UNIT-060]]
+
 #### REQ-TRANS-003（解の選択）
 
 複数の等価な変換解が存在する場合、ソフトウェアは以下の優先順位で解を選択しなければならない。
@@ -187,20 +211,24 @@ $$
 3. 前の較正点からのZ/A総移動量が小さい
 4. ロール角の絶対値が小さい
 
-
 **関連成果物**
+
 - アーキテクチャ設計: [[ARCHREQ:REQ-TRANS-003]]
-- テスト仕様: [[TESTSPEC:TEST-UNIT-036]]
+- 製品コード: 実装API未記載
+- テスト仕様: [[TESTSPEC:TEST-UNIT-036]]、[[TESTSPEC:TEST-UNIT-037]]、[[TESTSPEC:TEST-UNIT-038]]、[[TESTSPEC:TEST-UNIT-039]]、[[TESTSPEC:TEST-UNIT-040]]
+
 #### REQ-TRANS-004（角度の連続性）
 
 ロール角は、不要な±360 deg相当のジャンプが発生しないよう、前の較正点に近い等価角へunwrapしなければならない。
 
 ### 3.4 XY補正
 
-
 **関連成果物**
+
 - アーキテクチャ設計: [[ARCHREQ:REQ-TRANS-004]]
-- テスト仕様: [[TESTSPEC:TEST-UNIT-033]]
+- 製品コード: 実装API未記載
+- テスト仕様: [[TESTSPEC:TEST-UNIT-033]]、[[TESTSPEC:TEST-UNIT-034]]、[[TESTSPEC:TEST-UNIT-035]]、[[TESTSPEC:TEST-UNIT-064]]
+
 #### REQ-POS-001（先端位置補正）
 
 ピッチ回転中心からピトー管先端までの基準姿勢の距離をLx、Lyとし、実ピッチ角をθとする。
@@ -229,38 +257,46 @@ $$
 
 算出したXおよびY指令値は、上記式から得られる理論値に対して **絶対誤差0.001 mm以内** でなければならない。
 
-
 **関連成果物**
+
 - アーキテクチャ設計: [[ARCHREQ:REQ-POS-001]]
-- テスト仕様: [[TESTSPEC:TEST-UNIT-041]]
+- 製品コード: 実装API未記載
+- テスト仕様: [[TESTSPEC:TEST-UNIT-041]]、[[TESTSPEC:TEST-UNIT-042]]、[[TESTSPEC:TEST-UNIT-043]]、[[TESTSPEC:TEST-UNIT-044]]、[[TESTSPEC:TEST-UNIT-045]]、[[TESTSPEC:TEST-UNIT-060]]、[[TESTSPEC:TEST-UNIT-065]]
+
 #### REQ-POS-002（ロールによる位置変化）
 
 実ロール軸はピトー管軸上にあるため、ロール回転はピトー管先端位置に影響しないものとして扱う。
 
 ### 3.5 可動範囲と飽和
 
-
 **関連成果物**
+
 - アーキテクチャ設計: [[ARCHREQ:REQ-POS-002]]
-- テスト仕様: [[TESTSPEC:TEST-UNIT-046]]
+- 製品コード: 実装API未記載
+- テスト仕様: 
+
 #### REQ-LIMIT-001（並進軸の飽和）
 
 計算されたXまたはY指令値が入力された可動範囲を超えた場合、ソフトウェアは該当するX/Y指令値を最小値または最大値に飽和させなければならない。
 
 X/Yの飽和が発生しても、Z/Aが可動範囲内であればシミュレーションおよびGコード生成を継続できなければならない。
 
-
 **関連成果物**
+
 - アーキテクチャ設計: [[ARCHREQ:REQ-LIMIT-001]]
-- テスト仕様: [[TESTSPEC:TEST-UNIT-047]]
+- 製品コード: 実装API未記載
+- テスト仕様: [[TESTSPEC:TEST-UNIT-047]]、[[TESTSPEC:TEST-UNIT-048]]、[[TESTSPEC:TEST-UNIT-049]]、[[TESTSPEC:TEST-UNIT-050]]、[[TESTSPEC:TEST-UNIT-051]]、[[TESTSPEC:TEST-UNIT-058]]、[[TESTSPEC:TEST-UNIT-059]]、[[TESTSPEC:TEST-UNIT-063]]、[[TESTSPEC:TEST-UNIT-065]]、[[TESTSPEC:TEST-UNIT-075]]、[[TESTSPEC:TEST-UNIT-087]]、[[TESTSPEC:TEST-UNIT-125]]
+
 #### REQ-LIMIT-002（並進軸の飽和警告）
 
 X/Yの飽和が発生した場合、ソフトウェアは非モーダルな警告を表示しなければならない。警告には、理想的なピトー管先端位置からのX方向およびY方向の最大逸脱量をmm単位で表示し、合成距離は表示しない。
 
-
 **関連成果物**
+
 - アーキテクチャ設計: [[ARCHREQ:REQ-LIMIT-002]]
-- テスト仕様: [[TESTSPEC:TEST-UNIT-052]]
+- 製品コード: 実装API未記載
+- テスト仕様: [[TESTSPEC:TEST-UNIT-052]]、[[TESTSPEC:TEST-UNIT-053]]、[[TESTSPEC:TEST-UNIT-061]]、[[TESTSPEC:TEST-UNIT-063]]、[[TESTSPEC:TEST-UNIT-103]]
+
 #### REQ-LIMIT-003（回転軸の範囲超過）
 
 計算されたZまたはA指令値が入力された可動範囲を超えた場合、ソフトウェアは該当指令値を飽和させてはならない。
@@ -269,46 +305,56 @@ Z/Aのいずれかが可動範囲を超える較正点が1点でも存在する�
 
 ### 3.6 較正点と走査順序
 
-
 **関連成果物**
+
 - アーキテクチャ設計: [[ARCHREQ:REQ-LIMIT-003]]
-- テスト仕様: [[TESTSPEC:TEST-UNIT-054]]
+- 製品コード: 実装API未記載
+- テスト仕様: [[TESTSPEC:TEST-UNIT-054]]、[[TESTSPEC:TEST-UNIT-055]]、[[TESTSPEC:TEST-UNIT-056]]、[[TESTSPEC:TEST-UNIT-057]]、[[TESTSPEC:TEST-UNIT-059]]、[[TESTSPEC:TEST-UNIT-062]]、[[TESTSPEC:TEST-UNIT-088]]、[[TESTSPEC:TEST-UNIT-092]]、[[TESTSPEC:TEST-UNIT-104]]、[[TESTSPEC:TEST-UNIT-125]]
+
 #### REQ-SCAN-001（較正点生成）
 
 ソフトウェアは、AoAおよびAoSの範囲と点数から、両端を含む等間隔の較正点列を生成しなければならない。
 
 入力値が有効な場合、AoA/AoSの範囲または点数が変更されるたびに、較正点列および変換後の実軸指令値をリアルタイムで自動再生成しなければならない。
 
-
 **関連成果物**
+
 - アーキテクチャ設計: [[ARCHREQ:REQ-SCAN-001]]
-- テスト仕様: [[TESTSPEC:TEST-UNIT-017]]
+- 製品コード: 実装API未記載
+- テスト仕様: [[TESTSPEC:TEST-UNIT-017]]、[[TESTSPEC:TEST-UNIT-018]]、[[TESTSPEC:TEST-UNIT-019]]、[[TESTSPEC:TEST-UNIT-023]]、[[TESTSPEC:TEST-UNIT-024]]、[[TESTSPEC:TEST-UNIT-060]]、[[TESTSPEC:TEST-UNIT-084]]
+
 #### REQ-SCAN-002（基本走査）
 
 較正点は、ピッチ方向の移動回数を少なくするため、AoAを外側ループ、AoSを内側ループとして生成しなければならない。
 
-
 **関連成果物**
+
 - アーキテクチャ設計: [[ARCHREQ:REQ-SCAN-002]]
-- テスト仕様: [[TESTSPEC:TEST-UNIT-020]]
+- 製品コード: 実装API未記載
+- テスト仕様: [[TESTSPEC:TEST-UNIT-020]]、[[TESTSPEC:TEST-UNIT-024]]、[[TESTSPEC:TEST-UNIT-064]]
+
 #### REQ-SCAN-003（蛇行走査）
 
 「蛇行走査を使用」が有効な場合、AoSの走査方向をAoA行ごとに反転しなければならない。
 
 ### 3.7 Gコード生成
 
-
 **関連成果物**
+
 - アーキテクチャ設計: [[ARCHREQ:REQ-SCAN-003]]
-- テスト仕様: [[TESTSPEC:TEST-UNIT-021]]
+- 製品コード: 実装API未記載
+- テスト仕様: [[TESTSPEC:TEST-UNIT-021]]、[[TESTSPEC:TEST-UNIT-022]]、[[TESTSPEC:TEST-UNIT-064]]
+
 #### REQ-GCODE-001（ファイル形式）
 
 Gコードは`.nc`形式で保存できなければならない。保存先とファイル名はWindowsのファイル保存ダイアログで指定する。
 
-
 **関連成果物**
+
 - アーキテクチャ設計: [[ARCHREQ:REQ-GCODE-001]]
-- テスト仕様: [[TESTSPEC:TEST-UNIT-082]]
+- 製品コード: 実装API未記載
+- テスト仕様: [[TESTSPEC:TEST-UNIT-082]]、[[TESTSPEC:TEST-UNIT-083]]、[[TESTSPEC:TEST-UNIT-110]]
+
 #### REQ-GCODE-002（ヘッダ）
 
 生成Gコードには、少なくとも以下を含めなければならない。
@@ -327,10 +373,12 @@ G94
 
 原点復帰Gコード用の個別入力欄は設けない。
 
-
 **関連成果物**
+
 - アーキテクチャ設計: [[ARCHREQ:REQ-GCODE-002]]
-- テスト仕様: [[TESTSPEC:TEST-UNIT-066]]
+- 製品コード: 実装API未記載
+- テスト仕様: [[TESTSPEC:TEST-UNIT-066]]、[[TESTSPEC:TEST-UNIT-067]]
+
 #### REQ-GCODE-003（較正点指令）
 
 各較正点では、X、Y、Z、Aを1行の同時指令として出力し、REQ-INPUT-004で入力された合成送り速度を`F`ワードとして指定しなければならない。GコードのG番号は2桁ゼロ埋め表記とし、少なくとも移動指令は`G01`、保持指令は`G04`として出力しなければならない。
@@ -344,44 +392,54 @@ G04 P3.000000
 
 保持時間の単位は秒とする。
 
-
 **関連成果物**
+
 - アーキテクチャ設計: [[ARCHREQ:REQ-GCODE-003]]
-- テスト仕様: [[TESTSPEC:TEST-UNIT-068]]
+- 製品コード: 実装API未記載
+- テスト仕様: [[TESTSPEC:TEST-UNIT-068]]、[[TESTSPEC:TEST-UNIT-069]]、[[TESTSPEC:TEST-UNIT-070]]、[[TESTSPEC:TEST-UNIT-071]]、[[TESTSPEC:TEST-UNIT-075]]
+
 #### REQ-GCODE-004（コメント）
 
 コメント出力が有効な場合、各較正点にAoA、AoS、実軸指令値、およびX/Y飽和状態をコメントとして出力する。
 
-
 **関連成果物**
+
 - アーキテクチャ設計: [[ARCHREQ:REQ-GCODE-004]]
-- テスト仕様: [[TESTSPEC:TEST-UNIT-072]]
+- 製品コード: 実装API未記載
+- テスト仕様: [[TESTSPEC:TEST-UNIT-072]]、[[TESTSPEC:TEST-UNIT-073]]
+
 #### REQ-GCODE-005（終了位置）
 
 Gコードの終了時は、最終較正点に留まるものとし、原点復帰や初期位置への復帰は行わない。
 
 ### 3.8 シミュレーション
 
-
 **関連成果物**
+
 - アーキテクチャ設計: [[ARCHREQ:REQ-GCODE-005]]
-- テスト仕様: [[TESTSPEC:TEST-UNIT-074]]
+- 製品コード: 実装API未記載
+- テスト仕様: 
+
 #### REQ-SIM-001（任意実行）
 
 シミュレーションは任意実行とし、シミュレーションを実行していなくても、入力値およびZ/A可動範囲の検証に合格していればGコードを生成できなければならない。
 
-
 **関連成果物**
+
 - アーキテクチャ設計: [[ARCHREQ:REQ-SIM-001]]
-- テスト仕様: [[TESTSPEC:TEST-UNIT-109]]
+- 製品コード: 実装API未記載
+- テスト仕様: 
+
 #### REQ-SIM-002（再生時間）
 
 シミュレーションは、較正点保持時間を再現せず、全体を約10秒で再生する。実際のGコードの保持時間はシミュレーション時間に反映しない。
 
-
 **関連成果物**
+
 - アーキテクチャ設計: [[ARCHREQ:REQ-SIM-002]]
-- テスト仕様: [[TESTSPEC:TEST-UNIT-093]]
+- 製品コード: 実装API未記載
+- テスト仕様: [[TESTSPEC:TEST-UNIT-093]]、[[TESTSPEC:TEST-UNIT-094]]、[[TESTSPEC:TEST-UNIT-095]]、[[TESTSPEC:TEST-UNIT-096]]
+
 #### REQ-SIM-003（表示）
 
 シミュレーション画面は、以下の2画面を同時に表示する。
@@ -391,26 +449,32 @@ Gコードの終了時は、最終較正点に留まるものとし、原点復�
 
 過度に詳細な3Dモデルは使用せず、抽象化した装置表示とする。
 
-
 **関連成果物**
+
 - アーキテクチャ設計: [[ARCHREQ:REQ-SIM-003]]
-- テスト仕様: [[TESTSPEC:TEST-UNIT-097]]
+- 製品コード: 実装API未記載
+- テスト仕様: [[TESTSPEC:TEST-UNIT-097]]、[[TESTSPEC:TEST-UNIT-098]]
+
 #### REQ-SIM-004（状態表示）
 
 シミュレーション画面には、現在の較正点番号、AoA、AoS、X、Y、Z、A、可動範囲状態、再生進捗を表示する。
 
-
 **関連成果物**
+
 - アーキテクチャ設計: [[ARCHREQ:REQ-SIM-004]]
-- テスト仕様: [[TESTSPEC:TEST-UNIT-099]]
+- 製品コード: 実装API未記載
+- テスト仕様: 
+
 #### REQ-SIM-005（較正点マップ表示）
 
 シミュレーション画面は、シミュレーション対象となる全較正点を、AoAを縦軸、AoSを横軸とした2次元較正点マップとして表示しなければならない。
 
-
 **関連成果物**
+
 - アーキテクチャ設計: [[ARCHREQ:REQ-SIM-005]]
-- テスト仕様: [[TESTSPEC:TEST-UNIT-122]]
+- 製品コード: 実装API未記載
+- テスト仕様: 
+
 #### REQ-SIM-006（現在較正点の強調表示）
 
 シミュレーション実行中、ソフトウェアは現在の横面図および正面図が示す較正点と同じ較正点を、較正点マップ上でその他の較正点と異なる色により強調表示しなければならない。
@@ -419,11 +483,12 @@ Gコードの終了時は、最終較正点に留まるものとし、原点復�
 
 現在較正点を示すための凡例および「現在較正中」等の文字注記は表示しない。
 
-
-
 **関連成果物**
+
 - アーキテクチャ設計: [[ARCHREQ:REQ-SIM-006]]
-- テスト仕様: [[TESTSPEC:TEST-UNIT-123]]
+- 製品コード: 実装API未記載
+- テスト仕様: 
+
 #### REQ-SIM-007（再生開始）
 
 シミュレーション開始時、シミュレーションは先頭の較正点から再生を開始しなければならない。
@@ -433,8 +498,8 @@ Gコードの終了時は、最終較正点に留まるものとし、原点復�
 **関連成果物**
 
 - アーキテクチャ設計: [[ARCH:UC-05]]
-- 製品コード: [[CODE:simulation.SimulationController.start]]、[[CODE:simulation.SimulationView.start_animation]]、[[CODE:simulation.SimulationView.set_playback_state]]
-- テスト仕様: [[TEST:TEST-UNIT-126]]
+- 製品コード: [[API:simulation.SimulationController.start]]、[[API:simulation.SimulationView.start_animation]]、[[API:simulation.SimulationView.set_playback_state]]
+- テスト仕様: [[TESTSPEC:TEST-UNIT-126]]
 
 #### REQ-SIM-008（一時停止）
 
@@ -442,40 +507,48 @@ Gコードの終了時は、最終較正点に留まるものとし、原点復�
 
 一時停止中は、操作ボタンに再生ボタンを表示しなければならない。
 
-
 **関連成果物**
+
 - アーキテクチャ設計: [[ARCHREQ:REQ-SIM-008]]
-- テスト仕様: [[TESTSPEC:TEST-UNIT-127]]
+- 製品コード: 実装API未記載
+- テスト仕様: 
+
 #### REQ-SIM-009（再生再開）
 
 一時停止中に再生ボタンを押した場合、現在位置から再生を再開しなければならない。
 
 ただし、最終較正点で停止している場合は、先頭の較正点へ移動して再生を開始しなければならない。
 
-
 **関連成果物**
+
 - アーキテクチャ設計: [[ARCHREQ:REQ-SIM-009]]
-- テスト仕様: [[TESTSPEC:TEST-UNIT-128]]
+- 製品コード: 実装API未記載
+- テスト仕様: [[TESTSPEC:TEST-UNIT-128]]、[[TESTSPEC:TEST-UNIT-133]]
+
 #### REQ-SIM-010（シーク）
 
 シークバーをドラッグすることにより、任意の較正点へ移動できなければならない。
 
 シーク位置は連続した時間位置ではなく、較正点単位で決定しなければならない。
 
-
 **関連成果物**
+
 - アーキテクチャ設計: [[ARCHREQ:REQ-SIM-010]]
-- テスト仕様: [[TESTSPEC:TEST-UNIT-129]]
+- 製品コード: 実装API未記載
+- テスト仕様: 
+
 #### REQ-SIM-011（シーク時の自動一時停止）
 
 再生中にシークバーの操作を開始した場合、シミュレーションは自動的に一時停止しなければならない。
 
 シーク操作中および操作終了後は、選択された較正点を表示し、再生ボタンを表示しなければならない。
 
-
 **関連成果物**
+
 - アーキテクチャ設計: [[ARCHREQ:REQ-SIM-011]]
-- テスト仕様: [[TESTSPEC:TEST-UNIT-130]]
+- 製品コード: 実装API未記載
+- テスト仕様: 
+
 #### REQ-SIM-012（シーク位置の即時反映）
 
 一時停止中またはシーク操作中にシーク位置が変更された場合、以下の表示を選択された較正点へ即座に更新しなければならない。
@@ -488,10 +561,12 @@ Gコードの終了時は、最終較正点に留まるものとし、原点復�
 - 可動範囲状態
 - 「現在の較正点 / 全較正点」の進捗表示
 
-
 **関連成果物**
+
 - アーキテクチャ設計: [[ARCHREQ:REQ-SIM-012]]
-- テスト仕様: [[TESTSPEC:TEST-UNIT-131]]
+- 製品コード: 実装API未記載
+- テスト仕様: 
+
 #### REQ-SIM-013（再生完了）
 
 最終較正点の表示が完了した場合、シミュレーションは自動的に停止し、最終較正点を表示した状態で待機しなければならない。
@@ -500,10 +575,12 @@ Gコードの終了時は、最終較正点に留まるものとし、原点復�
 
 再生完了後は再生ボタンを表示しなければならない。
 
-
 **関連成果物**
+
 - アーキテクチャ設計: [[ARCHREQ:REQ-SIM-013]]
-- テスト仕様: [[TESTSPEC:TEST-UNIT-132]]
+- 製品コード: 実装API未記載
+- テスト仕様: 
+
 #### REQ-SIM-014（既存プログレスバーの置換）
 
 既存のプログレスバーはシークバーへ置き換えなければならない。
@@ -512,10 +589,12 @@ Gコードの終了時は、最終較正点に留まるものとし、原点復�
 
 シークバーは、現在の較正点および全較正点に対する進捗を表すものとする。
 
-
 **関連成果物**
+
 - アーキテクチャ設計: [[ARCHREQ:REQ-SIM-014]]
-- テスト仕様: [[TESTSPEC:TEST-UNIT-134]]
+- 製品コード: 実装API未記載
+- テスト仕様: [[TESTSPEC:TEST-UNIT-134]]、[[TESTSPEC:TEST-UNIT-136]]
+
 #### REQ-SIM-015（シークバー操作性）
 
 シークバーは、ドラッグ操作しやすい十分な大きさのつまみを持たなければならない。
@@ -524,10 +603,12 @@ Gコードの終了時は、最終較正点に留まるものとし、原点復�
 
 シークバーは、較正点単位で操作できなければならない。
 
-
 **関連成果物**
+
 - アーキテクチャ設計: [[ARCHREQ:REQ-SIM-015]]
-- テスト仕様: [[TESTSPEC:TEST-UNIT-134]]
+- 製品コード: 実装API未記載
+- テスト仕様: 
+
 #### REQ-SIM-016（操作ボタン表示）
 
 シミュレーション画面には、シークバーの横に再生状態操作ボタンを1個配置しなければならない。
@@ -544,28 +625,34 @@ Gコードの終了時は、最終較正点に留まるものとし、原点復�
 
 ### 3.9 GUI
 
-
 **関連成果物**
+
 - アーキテクチャ設計: [[ARCHREQ:REQ-SIM-016]]
-- テスト仕様: [[TESTSPEC:TEST-UNIT-135]]
+- 製品コード: 実装API未記載
+- テスト仕様: 
+
 #### REQ-GUI-001（言語）
 
 GUIの表示言語は日本語とする。ただし、軸名、単位、AoA、AoS、Gコードなどの技術用語は英字表記を併記してよい。
 
-
 **関連成果物**
+
 - アーキテクチャ設計: [[ARCHREQ:REQ-GUI-001]]
-- テスト仕様: [[TESTSPEC:TEST-UNIT-100]]
+- 製品コード: 実装API未記載
+- テスト仕様: [[TESTSPEC:TEST-UNIT-100]]、[[TESTSPEC:TEST-UNIT-124]]
+
 #### REQ-GUI-002（較正点マップ）
 
 GUIは、AoAを縦軸、AoSを横軸とした2次元較正点マップを表示しなければならない。
 
 X/Y飽和点は通常点と異なる表示とし、Z/A可動範囲超過点は生成禁止エラーであることが識別できる表示としなければならない。
 
-
 **関連成果物**
+
 - アーキテクチャ設計: [[ARCHREQ:REQ-GUI-002]]
-- テスト仕様: [[TESTSPEC:TEST-UNIT-090]]
+- 製品コード: 実装API未記載
+- テスト仕様: [[TESTSPEC:TEST-UNIT-090]]、[[TESTSPEC:TEST-UNIT-091]]、[[TESTSPEC:TEST-UNIT-092]]、[[TESTSPEC:TEST-UNIT-125]]
+
 #### REQ-GUI-003（設定ファイル）
 
 ユーザーは、入力条件およびオプションをCSV形式の設定ファイルへ保存し、後から読み込めなければならない。
@@ -576,10 +663,12 @@ X/Y飽和点は通常点と異なる表示とし、Z/A可動範囲超過点は�
 
 設定CSVの読み込みに失敗した場合、読み込み途中の値を部分的に適用してはならず、読み込み前の設定および較正計画を維持しなければならない。
 
-
 **関連成果物**
+
 - アーキテクチャ設計: [[ARCHREQ:REQ-GUI-003]]
-- テスト仕様: [[TESTSPEC:TEST-UNIT-076]]
+- 製品コード: 実装API未記載
+- テスト仕様: [[TESTSPEC:TEST-UNIT-076]]、[[TESTSPEC:TEST-UNIT-077]]、[[TESTSPEC:TEST-UNIT-078]]、[[TESTSPEC:TEST-UNIT-079]]、[[TESTSPEC:TEST-UNIT-089]]、[[TESTSPEC:TEST-UNIT-107]]、[[TESTSPEC:TEST-UNIT-108]]、[[TESTSPEC:TEST-UNIT-117]]、[[TESTSPEC:TEST-UNIT-118]]、[[TESTSPEC:TEST-UNIT-119]]、[[TESTSPEC:TEST-UNIT-120]]、[[TESTSPEC:TEST-UNIT-121]]
+
 #### REQ-GUI-004（操作ボタン）
 
 GUIには少なくとも以下の操作ボタンを設ける。
@@ -589,10 +678,12 @@ GUIには少なくとも以下の操作ボタンを設ける。
 - 設定保存
 - 設定読込
 
-
 **関連成果物**
+
 - アーキテクチャ設計: [[ARCHREQ:REQ-GUI-004]]
-- テスト仕様: [[TESTSPEC:TEST-UNIT-100]]
+- 製品コード: 実装API未記載
+- テスト仕様: [[TESTSPEC:TEST-UNIT-100]]、[[TESTSPEC:TEST-UNIT-107]]、[[TESTSPEC:TEST-UNIT-108]]、[[TESTSPEC:TEST-UNIT-109]]、[[TESTSPEC:TEST-UNIT-110]]
+
 #### REQ-GUI-005（エラー・警告表示）
 
 入力値エラーおよび軸可動範囲エラー・警告は、通常操作中にモーダルダイアログとして表示してはならない。
@@ -634,5 +725,7 @@ GUIには少なくとも以下の操作ボタンを設ける。
 - CSV設定保存/読込と、読込失敗時の防御処理・部分適用禁止・ユーザー通知
 
 **関連成果物**
+
 - アーキテクチャ設計: [[ARCHREQ:REQ-GUI-005]]
-- テスト仕様: [[TESTSPEC:TEST-UNIT-101]]
+- 製品コード: 実装API未記載
+- テスト仕様: [[TESTSPEC:TEST-UNIT-101]]、[[TESTSPEC:TEST-UNIT-102]]、[[TESTSPEC:TEST-UNIT-103]]、[[TESTSPEC:TEST-UNIT-104]]、[[TESTSPEC:TEST-UNIT-105]]、[[TESTSPEC:TEST-UNIT-121]]
