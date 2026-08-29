@@ -59,16 +59,17 @@ class SimulationController:
 
     # 対応要求: REQ-SIM-008
     def pause(self) -> None:
-        """現在位置を保持したままアニメーションを一時停止する。
+        """@brief 現在位置を保持したままアニメーションを一時停止する。
 
-アニメーションタイマーだけを停止し、現在較正点、3画面の描画状態、およびシークバーの位置は変更しない。再生状態を ``paused`` へ遷移させ、Viewの操作ボタン表示を更新する。
+アニメーションタイマーだけを停止し、現在較正点、3画面の描画状態、およびシークバーの位置を保持する。
 
-        戻り値:
-            None
+戻り値:
+    None
 
-        対応要求:
-            REQ-SIM-008
+対応要求:
+    REQ-SIM-008
         """
+
         if self.playback_state != "playing":
             return
         self.view.pause_animation()
@@ -77,16 +78,17 @@ class SimulationController:
 
     # 対応要求: REQ-SIM-009
     def resume(self) -> None:
-        """一時停止中は現在位置から、完了後は先頭から再生する。
+        """@brief 一時停止中は現在位置から、完了後は先頭から再生する。
 
-``paused`` 状態では既存のアニメーションタイマーを再開する。``completed`` 状態では現在点を先頭へ戻し、新しいアニメーションを生成する。
+paused状態では現在位置から再開し、completed状態では先頭較正点へ戻って再生を開始する。
 
-        戻り値:
-            None
+戻り値:
+    None
 
-        対応要求:
-            REQ-SIM-009
+対応要求:
+    REQ-SIM-009
         """
+
         if self.plan is None or not self.plan.points:
             return
         if self.playback_state == "completed":
@@ -107,20 +109,21 @@ class SimulationController:
 
     # 対応要求: REQ-SIM-010, REQ-SIM-011, REQ-SIM-012
     def seek_to_point(self, point_index: int) -> None:
-        """指定された較正点へ移動し、移動後は一時停止状態にする。
+        """@brief 指定された較正点へ移動し、移動後は一時停止状態にする。
 
 引数:
-            point_index: 走査順における較正点インデックス。範囲外は端点へ補正する。
+    point_index: 走査順における較正点インデックス。範囲外は端点へ補正する。
 
-        動作:
-            再生中の場合はタイマーを停止し、指定点を3画面と状態表示へ即時反映する。シーク後の再生状態は常に ``paused`` とする。
+動作:
+    再生中の場合はタイマーを停止し、指定点を3画面と状態表示へ即時反映する。
 
-        戻り値:
-            None
+戻り値:
+    None
 
-        対応要求:
-            REQ-SIM-010, REQ-SIM-011, REQ-SIM-012
+対応要求:
+    REQ-SIM-010, REQ-SIM-011, REQ-SIM-012
         """
+
         if self.plan is None or not self.plan.points:
             return
         if self.playback_state == "playing":
@@ -134,31 +137,33 @@ class SimulationController:
 
     # 対応要求: REQ-SIM-009
     def restart_from_beginning(self) -> None:
-        """完了後のシミュレーションを先頭から再生する。
+        """@brief 完了後のシミュレーションを先頭から再生する。
 
-再生完了状態でのみ再生再開処理を行う。先頭較正点を表示した後、約10秒のアニメーションを新たに開始する。
+再生完了状態でのみ再生再開処理を行い、先頭較正点を表示してアニメーションを開始する。
 
-        戻り値:
-            None
+戻り値:
+    None
 
-        対応要求:
-            REQ-SIM-009
+対応要求:
+    REQ-SIM-009
         """
+
         if self.playback_state == "completed":
             self.resume()
 
     # 対応要求: REQ-SIM-013
     def on_animation_complete(self) -> None:
-        """最終較正点を保持し、自動ループせず完了状態へ遷移する。
+        """@brief 最終較正点を保持し、自動ループせず完了状態へ遷移する。
 
-最終フレーム到達時に呼び出され、最終較正点のインデックスを保持する。Viewへ完了状態を通知し、再生ボタン表示へ切り替える。
+最終フレーム到達時に呼び出され、最終較正点のインデックスを保持する。Viewへ完了状態を通知する。
 
-        戻り値:
-            None
+戻り値:
+    None
 
-        対応要求:
-            REQ-SIM-013
+対応要求:
+    REQ-SIM-013
         """
+
         if self.plan is not None and self.plan.points:
             self.current_point_index = len(self.plan.points) - 1
         self.playback_state = "completed"
@@ -684,78 +689,97 @@ class SimulationView:
 
     # 対応要求: REQ-SIM-008, REQ-SIM-009, REQ-SIM-010, REQ-SIM-011, REQ-SIM-014, REQ-SIM-015, REQ-SIM-016
     def bind_playback_controls(self, pause_callback, resume_callback, seek_callback) -> None:
-        """再生操作の通知先をControllerへ設定する。
+        """@brief Viewへ再生操作コールバックを登録する。
 
 引数:
-            pause_callback: 一時停止操作を処理するControllerの呼出し可能オブジェクト。
-            resume_callback: 再生操作を処理するControllerの呼出し可能オブジェクト。
-            seek_callback: 較正点シークを処理するControllerの呼出し可能オブジェクト。
+    pause_callback: 一時停止処理。
+    resume_callback: 再生再開処理。
+    seek_callback: 較正点移動処理。
 
-        対応要求:
-            REQ-SIM-008, REQ-SIM-009, REQ-SIM-010
-        """ self._playback_callbacks = (pause_callback, resume_callback, seek_callback)
+戻り値:
+    None
+
+対応要求:
+    REQ-SIM-007, REQ-SIM-008, REQ-SIM-009, REQ-SIM-010
+        """
+
+        self._playback_callbacks = (pause_callback, resume_callback, seek_callback)
 
     def set_playback_callbacks(self, pause_callback, resume_callback, seek_callback) -> None:
-        """再生操作の通知先をControllerへ設定する。
+        """@brief 再生操作コールバックを設定する公開エイリアスを提供する。
 
-SimulationControllerが利用する公開APIであり、内部のコールバック登録処理へ委譲する。
+引数:
+    pause_callback: 一時停止処理。
+    resume_callback: 再生再開処理。
+    seek_callback: 較正点移動処理。
 
-        引数:
-            pause_callback: 一時停止処理。
-            resume_callback: 再生処理。
-            seek_callback: 較正点シーク処理。
+戻り値:
+    None
 
-        対応要求:
-            REQ-SIM-008, REQ-SIM-009, REQ-SIM-010
-        """ self.bind_playback_controls(pause_callback, resume_callback, seek_callback)
+対応要求:
+    REQ-SIM-007, REQ-SIM-008, REQ-SIM-009, REQ-SIM-010
+        """
+
+        self.bind_playback_controls(pause_callback, resume_callback, seek_callback)
 
     def pause_animation(self) -> None:
-        """Matplotlibアニメーションのタイマーを停止する。
+        """@brief SimulationViewのアニメーションタイマーを一時停止する。
 
-描画済みの現在較正点を変更せず、FuncAnimationのイベントソースだけを停止する。
+戻り値:
+    None
 
-        対応要求:
-            REQ-SIM-008, REQ-SIM-011
+対応要求:
+    REQ-SIM-008
         """
+
         if self.animation is not None and self.animation.event_source is not None:
             self.animation.event_source.stop()
 
     def resume_animation(self) -> None:
-        """一時停止中のMatplotlibアニメーションを再開する。
+        """@brief SimulationViewのアニメーションタイマーを再開する。
 
-一時停止で停止したFuncAnimationのイベントソースを再開する。再生完了後の先頭からの再生は ``restart_animation`` が担当する。
+戻り値:
+    None
 
-        対応要求:
-            REQ-SIM-009
+対応要求:
+    REQ-SIM-009
         """
+
         if self.animation is not None and self.animation.event_source is not None:
             self.animation.event_source.start()
 
     def restart_animation(self, plan, duration_s, frame_provider, on_complete=None) -> None:
-        """完了済みアニメーションを新しいフレーム列で先頭から再生する。
+        """@brief SimulationViewのアニメーションを先頭から再生成する。
 
 引数:
-            plan: 再生対象の較正計画。
-            duration_s: 全体の再生時間[s]。
-            frame_provider: 正規化進捗から現在点を返す関数。
-            on_complete: 最終フレーム到達時のコールバック。
+    plan: 再生対象の較正計画。
+    duration_s: シミュレーション全体の再生時間[s]。
+    frame_provider: 正規化進捗から現在点を返す関数。
+    on_complete: 最終フレーム到達時のコールバック。
 
-        対応要求:
-            REQ-SIM-009
-        """ self.start_animation(plan, duration_s, frame_provider, on_complete)
+戻り値:
+    None
+
+対応要求:
+    REQ-SIM-009, REQ-SIM-013
+        """
+
+        self.start_animation(plan, duration_s, frame_provider, on_complete)
 
     def set_playback_state(self, state: str) -> None:
-        """再生状態を保持し、状態に応じてボタン表示を切り替える。
+        """@brief 再生状態に応じて操作ボタンの表示を更新する。
 
 引数:
-            state: ``playing``, ``paused`` または ``completed`` の再生状態。
+    state: playing、paused、またはcompleted。
 
-        ボタン表示:
-            ``playing`` では「Ⅱ」、それ以外では「▶」を表示する。
+戻り値:
+    None
 
-        対応要求:
-            REQ-SIM-016
-        """ self._playback_state = state
+対応要求:
+    REQ-SIM-007, REQ-SIM-008, REQ-SIM-009
+        """
+
+        self._playback_state = state
         if self.playback_button is None:
             return
         self.playback_button.label.set_text("Ⅱ" if state == "playing" else "▶")
@@ -763,16 +787,18 @@ SimulationControllerが利用する公開APIであり、内部のコールバッ
             self.figure.canvas.draw_idle()
 
     def _on_play_pause(self, _event) -> None:
-        """再生/一時停止ボタンの押下をControllerへ通知する。
+        """@brief 再生・一時停止ボタンのクリックをコールバックへ中継する。
 
-再生中はpause callback、それ以外はresume callbackを呼び出す。完了状態の再生処理はController側で先頭再生として扱う。
+引数:
+    _event: Matplotlib Buttonが渡すクリックイベント。
 
-        引数:
-            _event: Matplotlib Buttonが渡すクリックイベント。
+戻り値:
+    None
 
-        対応要求:
-            REQ-SIM-008, REQ-SIM-009, REQ-SIM-016
+対応要求:
+    REQ-SIM-007, REQ-SIM-008, REQ-SIM-009
         """
+
         if self._playback_callbacks is None:
             return
         pause_callback, resume_callback, _seek_callback = self._playback_callbacks
@@ -782,32 +808,36 @@ SimulationControllerが利用する公開APIであり、内部のコールバッ
             resume_callback()
 
     def _on_seek(self, value) -> None:
-        """シーク操作をControllerへ通知する。
+        """@brief シークバーの値を較正点インデックスとしてコールバックへ中継する。
 
 引数:
-            value: シークバーが示す較正点インデックス。小数は最も近い整数へ丸める。
+    value: シークバーが示す較正点インデックス。
 
-        再生中の一時停止と、指定点への即時描画はControllerへ委譲する。内部同期によるシークバー更新時は再入を抑止する。
+戻り値:
+    None
 
-        対応要求:
-            REQ-SIM-010, REQ-SIM-011, REQ-SIM-012
+対応要求:
+    REQ-SIM-010, REQ-SIM-011
         """
+
         if self._updating_seek_slider or self._playback_callbacks is None:
             return
         _pause_callback, _resume_callback, seek_callback = self._playback_callbacks
         seek_callback(int(round(value)))
 
     def _update_seek_slider(self, point_index: int) -> None:
-        """現在較正点へシークバーを同期する。
+        """@brief 現在較正点に合わせてシークバーのつまみを更新する。
 
 引数:
-            point_index: 走査順における現在較正点インデックス。
+    point_index: 現在表示している較正点インデックス。
 
-        Controllerからの描画更新でSlider callbackが再帰的に発火しないよう、同期中フラグを使用する。
+戻り値:
+    None
 
-        対応要求:
-            REQ-SIM-012, REQ-SIM-014
+対応要求:
+    REQ-SIM-014
         """
+
         if self.seek_slider is None:
             return
         self._updating_seek_slider = True
