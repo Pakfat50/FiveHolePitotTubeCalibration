@@ -191,8 +191,9 @@ class TestRepositories(unittest.TestCase):
     def _assert_bad_csv(self, changes, omit_none=True):
         """基準CSVの一部を意図的に壊しSettingsLoadErrorを確認する補助メソッド。
 
-        @param changes 変更するkey/value辞書。
-        @param omit_none None指定キーをCSVから欠損させるかどうか。
+        Args:
+            changes: 変更するkey/value辞書
+            omit_none: None指定キーをCSVから欠損させるかどうか
         Verification rationale:
         それ以外の全必須項目を正常値に固定することで、各異常テストが対象フィールドの不正だけを原因として失敗する状態を作れる。
         """
