@@ -193,6 +193,9 @@ _TRACE_TARGETS = {
 }
 
 _SHORT_MARKER = re.compile(r"\[\[TESTCODE_SHORT:([A-Za-z0-9_.]+)\]\]")
+_ARCHREQ_MARKER = re.compile(r"\[\[ARCHREQ:(REQ-[A-Z]+-\d+)\]\]")
+_TESTSPEC_MARKER = re.compile(r"\[\[TESTSPEC:(TEST-(?:UNIT|UC)-[A-Z0-9-]+)\]\]")
+_UCTEST_MARKER = re.compile(r"\[\[UCTEST:(UC-\d+)\]\]")
 
 _MARKER = re.compile(r"\[\[(" + "|".join(map(re.escape, _TRACE_TARGETS)) + r")\]\]")
 
@@ -210,5 +213,20 @@ def on_page_markdown(markdown, page, config, files):
         label, target = _TRACE_TARGETS[match.group(1)]
         return f"[{label}]({target})"
 
+    def replace_archreq(match):
+        target = match.group(1).lower()
+        return f"[アーキテクチャ設計](../architecture_design/#architecture-{target})"
+
+    def replace_testspec(match):
+        test_id = match.group(1)
+        return f"[テスト仕様](../test_specification/#{test_id.lower()})"
+
+    def replace_uctest(match):
+        target = match.group(1).lower()
+        return f"[テスト仕様](../test_specification/#test-uc-{target[3:]}-01)"
+
     markdown = _SHORT_MARKER.sub(replace_short, markdown)
+    markdown = _ARCHREQ_MARKER.sub(replace_archreq, markdown)
+    markdown = _TESTSPEC_MARKER.sub(replace_testspec, markdown)
+    markdown = _UCTEST_MARKER.sub(replace_uctest, markdown)
     return _MARKER.sub(replace, markdown)
