@@ -211,31 +211,30 @@
 
 ## 4.11 `simulation.py` — `SimulationController`, `SimulationView`
 
-| テストID | 要求ID | テスト内容 | 入力/条件 | 期待結果 |
-|---|---|---|---|---|
-| <a id="test-unit-093"></a>TEST-UNIT-093 | REQ-SIM-002 | 開始フレーム | progress=0 | 最初の較正点を返す |
-| <a id="test-unit-094"></a>TEST-UNIT-094 | REQ-SIM-002 | 終了フレーム | progress=1 | 最終較正点を返す |
-| <a id="test-unit-095"></a>TEST-UNIT-095 | REQ-SIM-002 | 中間フレーム | 0<progress<1 | 走査順に対応した点を返す |
-| <a id="test-unit-096"></a>TEST-UNIT-096 | REQ-SIM-002 | 保持時間非反映 | 異なるhold_timeで同plan点数 | 約10秒再生構成が保持時間に依存しない |
-| <a id="test-unit-097"></a>TEST-UNIT-097 | REQ-SIM-003 | 横面図初期化 | valid plan | pitch/X/Yを表現する描画要素生成 |
-| <a id="test-unit-098"></a>TEST-UNIT-098 | REQ-SIM-003 | 正面図初期化 | valid plan | rollを表現する描画要素生成 |
-| <a id="test-unit-099"></a>TEST-UNIT-099 | REQ-SIM-004 | 情報表示 | 任意点 | point番号、AoA/AoS、X/Y/Z/A、状態、進捗を更新 |
-| <a id="test-unit-122"></a>TEST-UNIT-122 | REQ-SIM-005 | 較正点マップ初期化 | 複数較正点を持つvalid plan | AoS横軸、AoA縦軸で全較正点を表示し、凡例を表示しない |
-| <a id="test-unit-123"></a>TEST-UNIT-123 | REQ-SIM-006 | 現在較正点の強調・同期 | 異なる2点を連続描画 | 現在点だけが通常点と異なる色で表示され、横面図・正面図と同じ点へ同期更新され、文字注記を追加しない |
-| <a id="test-unit-126"></a>TEST-UNIT-126 | REQ-SIM-007 | シミュレーション開始状態 | 有効なplanで開始 | 先頭較正点から再生を開始し、再生中状態と一時停止ボタン「Ⅱ」を表示する |
+| テストID | 要求ID | テスト内容 | 入力/条件 | 期待結果 | 対象テスト |
+|---|---|---|---|---|---|
+| <a id="test-unit-093"></a>TEST-UNIT-093 | REQ-SIM-002 | 開始フレーム | progress=0 | 最初の較正点を返す  | [[TESTCODE:tests.test_simulation.TestSimulation.test_start_frame_is_first_point]] |
+| <a id="test-unit-094"></a>TEST-UNIT-094 | REQ-SIM-002 | 終了フレーム | progress=1 | 最終較正点を返す  | [[TESTCODE:tests.test_simulation.TestSimulation.test_end_frame_is_last_point]] |
+| <a id="test-unit-095"></a>TEST-UNIT-095 | REQ-SIM-002 | 中間フレーム | 0<progress<1 | 走査順に対応した点を返す  | [[TESTCODE:tests.test_simulation.TestSimulation.test_middle_progress_maps_to_scan_order]] |
+| <a id="test-unit-096"></a>TEST-UNIT-096 | REQ-SIM-002 | 保持時間非反映 | 異なるhold_timeで同plan点数 | 約10秒再生構成が保持時間に依存しない  | [[TESTCODE:tests.test_simulation.TestSimulation.test_playback_duration_is_independent_of_hold_time]] |
+| <a id="test-unit-097"></a>TEST-UNIT-097 | REQ-SIM-003 | 横面図初期化 | valid plan | pitch/X/Yを表現する描画要素生成  | [[TESTCODE:tests.test_simulation.TestSimulation.test_side_view_is_initialized]] |
+| <a id="test-unit-098"></a>TEST-UNIT-098 | REQ-SIM-003 | 正面図初期化 | valid plan | rollを表現する描画要素生成  | [[TESTCODE:tests.test_simulation.TestSimulation.test_front_view_is_initialized]] |
+| <a id="test-unit-099"></a>TEST-UNIT-099 | REQ-SIM-004 | 情報表示 | 任意点 | point番号、AoA/AoS、X/Y/Z/A、状態、進捗を更新  | [[TESTCODE:tests.test_simulation.TestSimulation.test_render_frame_updates_required_information]] |
+| <a id="test-unit-122"></a>TEST-UNIT-122 | REQ-SIM-005 | 較正点マップ初期化 | 複数較正点を持つvalid plan | AoS横軸、AoA縦軸で全較正点を表示し、凡例を表示しない  | [[TESTCODE:tests.test_simulation.TestSimulation.test_calibration_map_displays_all_points_without_legend]] |
+| <a id="test-unit-123"></a>TEST-UNIT-123 | REQ-SIM-006 | 現在較正点の強調・同期 | 異なる2点を連続描画 | 現在点だけが通常点と異なる色で表示され、横面図・正面図と同じ点へ同期更新され、文字注記を追加しない  | [[TESTCODE:tests.test_simulation.TestSimulation.test_current_calibration_point_color_tracks_rendered_point]] |
+| <a id="test-unit-126"></a>TEST-UNIT-126 | REQ-SIM-007 | シミュレーション開始状態 | 有効なplanで開始 | 先頭較正点から再生を開始し、再生中状態と一時停止ボタン「Ⅱ」を表示する  | [[TESTCODE:tests.test_simulation.TestSimulation.test_start_sets_playing_state_at_first_point]] |
 
-| <a id="test-unit-127"></a>TEST-UNIT-127 | REQ-SIM-008 | 一時停止 | 再生中に一時停止操作 | タイマーが停止し、現在較正点を保持し、再生ボタン「▶」を表示する |
-| <a id="test-unit-128"></a>TEST-UNIT-128 | REQ-SIM-009 | 一時停止からの再生再開 | 中間点で一時停止後に再生 | 現在位置から再生を再開する |
-| <a id="test-unit-129"></a>TEST-UNIT-129 | REQ-SIM-010 | 一時停止中の較正点シーク | 一時停止中に指定点へ移動 | 指定した較正点を現在点として保持する |
-| <a id="test-unit-130"></a>TEST-UNIT-130 | REQ-SIM-011 | 再生中シーク時の自動一時停止 | 再生中にシーク操作開始 | 自動一時停止し、操作終了後も再生ボタン「▶」を表示する |
-| <a id="test-unit-131"></a>TEST-UNIT-131 | REQ-SIM-012 | シーク表示即時反映 | 指定点へシーク | 横面図・正面図・マップ・数値・進捗表示が同一の指定点へ更新される |
-| <a id="test-unit-132"></a>TEST-UNIT-132 | REQ-SIM-013 | 再生完了 | 最終フレーム到達 | 最終較正点で停止し、自動ループせず、再生ボタン「▶」を表示する |
-| <a id="test-unit-133"></a>TEST-UNIT-133 | REQ-SIM-009 | 完了後の再生 | 完了後に再生操作 | 先頭較正点へ戻って再生を開始する |
-| <a id="test-unit-134"></a>TEST-UNIT-134 | REQ-SIM-014, REQ-SIM-015 | シークバー設定 | 複数較正点のplanを初期化 | 既存プログレスバーを表示せず、較正点インデックス単位で操作でき、大きなつまみを持つ |
-| <a id="test-unit-135"></a>TEST-UNIT-135 | REQ-SIM-016 | 再生状態とボタン表示 | 再生中/停止中/完了後 | 再生中は「Ⅱ」、停止中および完了後は「▶」を表示する |
-| <a id="test-unit-136"></a>TEST-UNIT-136 | REQ-SIM-014 | 進捗表示 | 任意の現在点 | 表示が「現在の較正点 / 全較正点」となり、時間表示を使用しない |
+| <a id="test-unit-127"></a>TEST-UNIT-127 | REQ-SIM-008 | 一時停止 | 再生中に一時停止操作 | タイマーが停止し、現在較正点を保持し、再生ボタン「▶」を表示する  | [[TESTCODE:tests.test_simulation.TestSimulation.test_pause_stops_animation_and_keeps_current_point]] |
+| <a id="test-unit-128"></a>TEST-UNIT-128 | REQ-SIM-009 | 一時停止からの再生再開 | 中間点で一時停止後に再生 | 現在位置から再生を再開する  | [[TESTCODE:tests.test_simulation.TestSimulation.test_resume_restarts_from_current_point]] |
+| <a id="test-unit-129"></a>TEST-UNIT-129 | REQ-SIM-010 | 一時停止中の較正点シーク | 一時停止中に指定点へ移動 | 指定した較正点を現在点として保持する  | [[TESTCODE:tests.test_simulation.TestSimulation.test_seek_while_paused_selects_point]] |
+| <a id="test-unit-130"></a>TEST-UNIT-130 | REQ-SIM-011 | 再生中シーク時の自動一時停止 | 再生中にシーク操作開始 | 自動一時停止し、操作終了後も再生ボタン「▶」を表示する  | [[TESTCODE:tests.test_simulation.TestSimulation.test_seek_while_playing_pauses_automatically]] |
+| <a id="test-unit-131"></a>TEST-UNIT-131 | REQ-SIM-012 | シーク表示即時反映 | 指定点へシーク | 横面図・正面図・マップ・数値・進捗表示が同一の指定点へ更新される  | [[TESTCODE:tests.test_simulation.TestSimulation.test_seek_renders_selected_point_immediately]] |
+| <a id="test-unit-132"></a>TEST-UNIT-132 | REQ-SIM-013 | 再生完了 | 最終フレーム到達 | 最終較正点で停止し、自動ループせず、再生ボタン「▶」を表示する  | [[TESTCODE:tests.test_simulation.TestSimulation.test_animation_completion_stays_at_last_point]] |
+| <a id="test-unit-133"></a>TEST-UNIT-133 | REQ-SIM-009 | 完了後の再生 | 完了後に再生操作 | 先頭較正点へ戻って再生を開始する  | [[TESTCODE:tests.test_simulation.TestSimulation.test_resume_after_completion_restarts_at_first_point]] |
+| <a id="test-unit-134"></a>TEST-UNIT-134 | REQ-SIM-014, REQ-SIM-015 | シークバー設定 | 複数較正点のplanを初期化 | 既存プログレスバーを表示せず、較正点インデックス単位で操作でき、大きなつまみを持つ  | [[TESTCODE:tests.test_simulation.TestSimulation.test_view_has_point_based_seek_bar_with_large_handle]] |
+| <a id="test-unit-135"></a>TEST-UNIT-135 | REQ-SIM-016 | 再生状態とボタン表示 | 再生中/停止中/完了後 | 再生中は「Ⅱ」、停止中および完了後は「▶」を表示する  | [[TESTCODE:tests.test_simulation.TestSimulation.test_playback_button_label_follows_state]] |
+| <a id="test-unit-136"></a>TEST-UNIT-136 | REQ-SIM-014 | 進捗表示 | 任意の現在点 | 表示が「現在の較正点 / 全較正点」となり、時間表示を使用しない  | [[TESTCODE:tests.test_simulation.TestSimulation.test_progress_text_uses_point_count_not_time]] |
 
-対象テスト: [[TESTCODE:tests.test_simulation.TestSimulation.test_start_sets_playing_state_at_first_point]]
 
 ## 4.12 `gui.py` — `MainWindow`
 
