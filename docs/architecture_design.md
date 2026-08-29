@@ -187,16 +187,18 @@ sequenceDiagram
     Controller-->>MainWindow: CalibrationPlan
     MainWindow->>SimController: start(plan, duration=10s)
     SimController->>SimView: initialize(plan)
-    Note over SimView: 横面図・正面図・全較正点マップを初期化
-    loop フレーム更新
-        SimController->>SimController: 現在点を選択
-        SimController->>SimView: render_frame(point, progress)
-        SimView->>SimView: 横面図を更新
-        SimView->>SimView: 正面図を更新
+    Note over SimView: 横面図・正面図・全較正点マップ・状態領域を初期化
+    SimController->>SimView: start_animation(plan, duration, frame_provider)
+    loop Matplotlibアニメーションの各フレーム
+        SimView->>SimController: frame_provider(progress)
+        SimController->>SimController: _frame_at(plan, progress)
+        SimController-->>SimView: PointEvaluation
+        SimView->>SimView: render_frame(point, progress)
+        SimView->>SimView: 横面図・正面図を更新
         SimView->>SimView: 較正点マップの現在点色を更新
         SimView->>SimView: 状態・進捗を更新
     end
-    SimController->>SimView: show_final_state()
+    SimView->>SimView: show_final_state()
 ```
 
 ## 3.6 UC-06 Gコードを生成する
@@ -340,31 +342,43 @@ classDiagram
     }
     class MainWindow {
         +run()
-        -build_widgets()
-        -collect_raw_input()
-        -on_input_changed()
-        -update_validation_display()
-        -update_action_state()
-        -on_load_initialization()
-        -on_save_settings()
-        -on_load_settings()
-        -on_simulate()
-        -on_generate_gcode()
+        -_build_widgets()
+        -_collect_raw_input()
+        -_find_numeric_parse_errors()
+        -_apply_validation_highlights()
+        -_on_gui_input_changed()
+        -_on_input_changed()
+        -_update_validation_display()
+        -_update_plan_status()
+        -_update_action_state()
+        -_on_load_initialization()
+        -_on_save_settings()
+        -_on_load_settings()
+        -_on_simulate()
+        -_on_generate_gcode()
     }
     class CalibrationMapView {
         +render(plan)
+        -_configure_matplotlib_font()
+        -_text(japanese, english)
     }
     class SimulationController {
         +start(plan, duration_s)
-        -frame_at(progress)
+        -_frame_at(plan, progress)
     }
     class SimulationView {
         +initialize(plan)
+        +start_animation(plan, duration_s, frame_provider)
         +render_frame(point, progress)
         +show_final_state()
-        -configure_calibration_axes()
-        -draw_calibration_map()
-        -update_current_calibration_point()
+        -_configure_matplotlib_font()
+        -_calculate_side_limits(plan)
+        -_calculate_calibration_limits(plan)
+        -_configure_side_axes()
+        -_configure_front_axes()
+        -_configure_calibration_axes()
+        -_draw_calibration_map(plan)
+        -_update_current_calibration_point(point)
     }
 
     AxisLimits *-- AxisRange
@@ -561,9 +575,9 @@ flowchart TB
 | `controller.py` | アプリケーション制御 | `CalibrationController` | GUIイベントを受け、入力検証と較正計画再生成を制御し、現在状態を保持する |
 | `gcode.py` | Gコード生成 | `GCodeGenerator.generate()` | 初期化コード、`$H`, `G21`, `G90`, `G94`, `G01 ... F...`, `G04`、任意コメントを文字列化する |
 | `repositories.py` | ファイル入出力 | `SettingsRepository`, `InitializationGCodeRepository`, `GCodeRepository` | CSV設定、初期化Gコード、`.nc`ファイルの読み書きを担当する。CSV読込時の欠損・空欄・型変換・I/Oエラーを防御的に処理する |
-| `map_view.py` | 較正点マップ表示 | `CalibrationMapView` | メインGUIでAoA/AoS点列と警告・エラー状態を表示する |
-| `simulation.py` | 動作シミュレーション | `SimulationController`, `SimulationView` | 約10秒の再生、横面図・正面図、全較正点マップ、現在点強調、現在点・軸値・進捗を表示する |
-| `gui.py` | GUI | `MainWindow` | Tkinter画面、入力フィールド、ボタン、非モーダルエラー表示、ファイルダイアログを提供する |
+| `map_view.py` | 較正点マップ表示 | `CalibrationMapView` | メインGUIでAoA/AoS点列と警告・エラー状態を表示し、日本語対応フォントがない環境では英語表示へフォールバックする |
+| `simulation.py` | 動作シミュレーション | `SimulationController`, `SimulationView` | 約10秒の再生、横面図・正面図、全較正点マップ、現在点強調、現在点・軸値・進捗を表示し、Matplotlibのアニメーションと日本語フォントフォールバックを管理する |
+| `gui.py` | GUI | `MainWindow` | Tkinter画面、入力フィールド、背景色による入力エラー強調、固定メッセージ領域、ボタン制御、ファイルダイアログを提供する |
 | `main.py` | エントリポイント | `main()` | アプリケーションを初期化してGUIを起動する |
 
 ---
@@ -661,7 +675,7 @@ stateDiagram-v2
 
 | 状態 | 較正点マップ | シミュレーション | Gコード生成 | 表示 |
 |---|---|---|---|---|
-| InputInvalid | 更新停止または直前有効結果を保持 | 無効 | 無効 | 入力フィールドを強調、理由表示 |
+| InputInvalid | 更新停止または直前有効結果を保持 | 無効 | 無効 | 入力フィールドを背景色で強調し、既存固定メッセージ領域へ理由表示 |
 | Recalculating | 更新中 | 無効 | 無効 | 必要に応じ内部状態のみ |
 | GenerationBlocked | 表示可 | 無効 | 無効 | Z/A生成禁止エラー |
 | ReadyWithWarning | 表示可 | 有効 | 有効 | X/Y飽和警告・最大偏差 |
@@ -684,7 +698,7 @@ stateDiagram-v2
 | REQ-INPUT-005 | `MainWindow._build_widgets`, `AxisLimits`, `AxisRange` | X/Y/Z/A可動範囲 |
 | REQ-INPUT-006 | `MainWindow._on_load_initialization`, `InitializationGCodeRepository.load` | 初期化Gコード |
 | REQ-INPUT-007 | `MainWindow._build_widgets`, `CalibrationSettings` | 蛇行走査、コメント |
-| REQ-VALID-001 | `CalibrationController.on_settings_changed`, `InputValidator.validate`, `MainWindow._update_validation_display` | リアルタイム非モーダル検証 |
+| REQ-VALID-001 | `CalibrationController.on_settings_changed`, `InputValidator.validate`, `MainWindow._on_gui_input_changed`, `MainWindow._find_numeric_parse_errors`, `MainWindow._apply_validation_highlights`, `MainWindow._update_validation_display` | リアルタイム非モーダル検証、数値パース失敗、フィールド背景強調 |
 | REQ-VALID-002 | `InputValidator.validate`, `CalibrationController.can_generate` | 入力整合性 |
 | REQ-VALID-003 | `LimitEvaluator.evaluate`, `CalibrationController.can_generate`, `MainWindow._update_action_state` | X/Y警告、Z/A禁止 |
 
@@ -699,8 +713,8 @@ stateDiagram-v2
 | REQ-POS-001 | `PositionCompensator.calculate_xy` | X/Y補正式 |
 | REQ-POS-002 | `PositionCompensator.calculate_xy` | ロール非依存 |
 | REQ-LIMIT-001 | `LimitEvaluator.evaluate`, `LimitEvaluator._saturate_translation` | X/Y飽和 |
-| REQ-LIMIT-002 | `LimitEvaluator.evaluate`, `CalibrationService.build_plan`, `MainWindow._update_validation_display` | 最大X/Y偏差 |
-| REQ-LIMIT-003 | `LimitEvaluator.evaluate`, `LimitEvaluator._rotation_in_range`, `CalibrationController.can_generate` | Z/A生成禁止 |
+| REQ-LIMIT-002 | `LimitEvaluator.evaluate`, `CalibrationService.build_plan`, `MainWindow._update_plan_status` | 最大X/Y偏差の算出・集約・表示 |
+| REQ-LIMIT-003 | `LimitEvaluator.evaluate`, `LimitEvaluator._rotation_in_range`, `CalibrationController.can_generate`, `MainWindow._update_plan_status` | Z/A生成禁止判定・表示 |
 
 ## 10.3 較正点走査
 
@@ -725,27 +739,27 @@ stateDiagram-v2
 | 要求ID | 実装クラス/メソッド | 備考 |
 |---|---|---|
 | REQ-SIM-001 | `MainWindow._on_simulate`, `CalibrationController.can_generate` | 任意実行 |
-| REQ-SIM-002 | `SimulationController.start`, `SimulationController._frame_at` | 約10秒、保持時間非再現 |
-| REQ-SIM-003 | `SimulationView.initialize`, `SimulationView.render_frame` | 横面図・正面図 |
+| REQ-SIM-002 | `SimulationController.start`, `SimulationController._frame_at`, `SimulationView.start_animation` | 約10秒、保持時間非再現、進捗から現在点を選択 |
+| REQ-SIM-003 | `SimulationView.initialize`, `SimulationView._calculate_side_limits`, `SimulationView._configure_side_axes`, `SimulationView._configure_front_axes`, `SimulationView.render_frame` | 横面図・正面図と固定表示範囲 |
 | REQ-SIM-004 | `SimulationView.render_frame` | 点番号、AoA/AoS、X/Y/Z/A、状態、進捗 |
-| REQ-SIM-005 | `SimulationView.initialize`, `SimulationView._draw_calibration_map` | シミュレーション用AoA/AoS全点マップ |
+| REQ-SIM-005 | `SimulationView.initialize`, `SimulationView._calculate_calibration_limits`, `SimulationView._configure_calibration_axes`, `SimulationView._draw_calibration_map` | シミュレーション用AoA/AoS全点マップ |
 | REQ-SIM-006 | `SimulationView.render_frame`, `SimulationView._update_current_calibration_point` | 現在点を別色で同期更新、凡例・文字注記なし |
 
 ## 10.6 GUI
 
 | 要求ID | 実装クラス/メソッド | 備考 |
 |---|---|---|
-| REQ-GUI-001 | `MainWindow._build_widgets` | 日本語GUI |
+| REQ-GUI-001 | `MainWindow._build_widgets`, `CalibrationMapView._configure_matplotlib_font`, `SimulationView._configure_matplotlib_font` | Tkinter日本語GUIとMatplotlib日本語フォント選択。日本語フォント非搭載環境ではグラフ文字列を英語へフォールバック |
 | REQ-GUI-002 | `CalibrationMapView.render` | AoA/AoSマップ、警告/エラー識別 |
 | REQ-GUI-003 | `MainWindow._on_save_settings`, `MainWindow._on_load_settings`, `SettingsRepository.save/load` | CSV設定保存読込、読込失敗時は部分適用せず通知 |
 | REQ-GUI-004 | `MainWindow._build_widgets` | 4操作ボタン |
-| REQ-GUI-005 | `MainWindow._update_validation_display`, `MainWindow._update_action_state`, `CalibrationController.can_generate` | 非モーダル表示、ボタン制御 |
+| REQ-GUI-005 | `MainWindow._on_gui_input_changed`, `MainWindow._apply_validation_highlights`, `MainWindow._update_validation_display`, `MainWindow._update_plan_status`, `MainWindow._update_action_state`, `CalibrationController.can_generate` | 入力背景強調、既存固定メッセージ領域、軸警告/エラー、ボタン制御 |
 
 ---
 
 # 11. メソッド単位の責務定義
 
-後続のテスト設計で試験対象を明確にするため、主要メソッドの責務境界を以下に固定する。
+主要メソッドの責務境界を以下に固定し、`docs/test_specification.md` の試験単位と対応させる。
 
 | モジュール | メソッド | 入力 | 出力 | 副作用 |
 |---|---|---|---|---|
@@ -763,12 +777,21 @@ stateDiagram-v2
 | repositories | `InitializationGCodeRepository.load` | path | text | ファイルI/O |
 | repositories | `GCodeRepository.save` | path/text | None | ファイルI/O |
 | controller | `CalibrationController.on_settings_changed` | GUI入力 | 状態更新 | 内部状態更新 |
-| simulation | `SimulationController.start` | plan | None | UI更新/タイマー |
+| simulation | `SimulationController.start` | plan, duration | None | View初期化・アニメーション開始 |
+| simulation | `SimulationController._frame_at` | plan, progress | `PointEvaluation` | なし |
+| simulation | `SimulationView._configure_matplotlib_font` | 利用可能フォント | None | Matplotlib font設定 |
 | simulation | `SimulationView.initialize` | plan | None | 横面図・正面図・全較正点マップ・状態領域を初期化 |
+| simulation | `SimulationView.start_animation` | plan, duration, frame_provider | None | `FuncAnimation`生成・タイマー駆動 |
+| simulation | `SimulationView._calculate_side_limits` | plan | None | 横面図固定表示範囲を保持 |
+| simulation | `SimulationView._calculate_calibration_limits` | plan | None | 較正点マップ固定表示範囲を保持 |
 | simulation | `SimulationView.render_frame` | current point, progress | None | 3表示と状態を同一現在点で更新 |
 | simulation | `SimulationView._draw_calibration_map` | plan | None | 全較正点をAoS横軸・AoA縦軸で描画 |
 | simulation | `SimulationView._update_current_calibration_point` | current point | None | マップ上の現在点だけを別色へ更新 |
+| map_view | `CalibrationMapView._configure_matplotlib_font` | 利用可能フォント | None | Matplotlib font設定 |
 | map_view | `CalibrationMapView.render` | plan | None | メインGUIの較正点マップ描画 |
+| gui | `MainWindow._on_gui_input_changed` | Entry入力 | None | パース検証・背景強調・状態更新 |
+| gui | `MainWindow._update_validation_display` | `ValidationResult` | None | 背景強調・固定メッセージ更新 |
+| gui | `MainWindow._update_plan_status` | `CalibrationPlan` | None | X/Y偏差・Z/A生成禁止状態表示 |
 | gui | `MainWindow`各イベント | ユーザー操作 | None | GUI/ダイアログ |
 
 ---
@@ -789,20 +812,16 @@ stateDiagram-v2
 12. GUI入力値のパース失敗と、パース成功後の意味的検証エラーを区別する。
 13. 入力変更イベントはモーダルダイアログを発生させない。
 14. ファイル選択・保存・CSV読込失敗などユーザー起点I/Oの失敗は、アプリケーションを終了させずGUI上で非モーダルに通知する。
-15. コード内の各関数・メソッドには `Requirements: REQ-...` を記載する。
-16. テストコードには後続で定義する `TEST-...` IDをコメントで記載する。
+15. コード内の各関数・メソッドには `対応要求: REQ-...` をコメントまたはdocstringで記載する。
+16. テストコードには `docs/test_specification.md` で定義した `TEST-...` IDをコメントまたはdocstringで記載する。
 
 ---
 
-# 13. Phase 2への入力
+# 13. アーキテクチャ設計書の運用
 
-次段階の単体テスト設計では、本書の「メソッド単位の責務定義」を試験単位とし、以下を作成する。
+本書は実装済みコードと要求仕様の対応を示す現行設計書として管理する。
 
-- 各メソッドの正常系、境界値、異常系、数値精度、状態遷移のテスト観点
-- 個別テストID
-- 要求ID → テストID トレーサビリティマトリックス
-- モジュール/メソッド → テストID 対応表
-- 各ユースケースに対応する組み合わせテスト仕様
-- ユースケースID → ユースケーステストID トレーサビリティマトリックス
-
-Phase 2開始前に、本アーキテクチャ設計についてユーザーレビューを受ける。
+- 構造や責務を変更する実装では、製品コードと同じ変更単位で本書のクラス図、シーケンス図、責務表を更新する。
+- 要求IDに対応する実装メソッドが変わった場合は、第10章のトレーサビリティマトリックスを更新する。
+- テスト観点の変更は `docs/test_specification.md` に反映し、要求 → アーキテクチャ → テスト仕様 → テストコードの対応を維持する。
+- 実装詳細を文書化する際は、要求仕様へ不要なクラス名・内部実装名を持ち込まず、要求と設計の責務境界を維持する。
