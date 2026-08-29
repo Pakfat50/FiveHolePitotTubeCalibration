@@ -14,7 +14,11 @@ _TRACE_TARGETS = {
         "UC-05（シミュレーションする）",
         "../architecture_design/#uc-05",
     ),
-    "ARCH:UC-06": (\n        "UC-06（Gコードを生成する）",\n        "../architecture_design/#uc-06",\n    ),\n    "CODE:simulation.SimulationController.start": (
+    "ARCH:UC-06": (
+        "UC-06（Gコードを生成する）",
+        "../architecture_design/#uc-06",
+    ),
+    "CODE:simulation.SimulationController.start": (
         "SimulationController.start",
         "../api/#simulation.SimulationController.start",
     ),
