@@ -58,7 +58,7 @@
 ## 4.1 `validation.py` — `InputValidator.validate`
 
 | テストID | 要求ID | テスト内容 | 入力/条件 | 期待結果 | 対象テスト |
-|---|---|---|---|
+|---|---|---|---|---|---|
 | <a id="test-unit-001"></a>TEST-UNIT-001 | REQ-VALID-001, REQ-VALID-002 | 正常な設定値の検証 | 全項目が有効 | `is_valid=True`、ERRORなし | [[TESTCODE_SHORT:tests.test_validation.TestInputValidator.test_valid_settings]] |
 | <a id="test-unit-002"></a>TEST-UNIT-002 | REQ-INPUT-001, REQ-VALID-002 | AoA最小値=最大値 | `aoa_min == aoa_max` | AoA範囲エラー | [[TESTCODE_SHORT:tests.test_validation.TestInputValidator.test_aoa_min_equal_max]] |
 | <a id="test-unit-003"></a>TEST-UNIT-003 | REQ-INPUT-001, REQ-VALID-002 | AoA最小値>最大値 | `aoa_min > aoa_max` | AoA範囲エラー | [[TESTCODE_SHORT:tests.test_validation.TestInputValidator.test_aoa_min_greater_than_max]] |
@@ -85,7 +85,7 @@
 ## 4.2 `scan.py` — `ScanPlanner.generate_points`
 
 | テストID | 要求ID | テスト内容 | 入力/条件 | 期待結果 | 対象テスト |
-|---|---|---|---|
+|---|---|---|---|---|---|
 | <a id="test-unit-017"></a>TEST-UNIT-017 | REQ-SCAN-001 | 2×2最小グリッド | AoA/AoS各2点 | 4点、全端点を含む | [[TESTCODE_SHORT:tests.test_scan.TestScanPlanner.test_minimum_grid_has_four_endpoints]] |
 | <a id="test-unit-018"></a>TEST-UNIT-018 | REQ-SCAN-001 | 等間隔生成 | AoA=-10..10, 5点 | -10,-5,0,5,10 | [[TESTCODE_SHORT:tests.test_scan.TestScanPlanner.test_aoa_equal_spacing]] |
 | <a id="test-unit-019"></a>TEST-UNIT-019 | REQ-SCAN-001 | AoS等間隔生成 | AoS=-20..20, 5点 | -20,-10,0,10,20 | [[TESTCODE_SHORT:tests.test_scan.TestScanPlanner.test_aos_equal_spacing]] |
@@ -98,7 +98,7 @@
 ## 4.3 `transform.py` — `AngleTransformer`
 
 | テストID | 要求ID | テスト内容 | 入力/条件 | 期待結果 | 対象テスト |
-|---|---|---|---|
+|---|---|---|---|---|---|
 | <a id="test-unit-025"></a>TEST-UNIT-025 | REQ-TRANS-001, REQ-TRANS-002 | 原点変換 | AoA=0, AoS=0 | Z=0, A=0を決定論的に返す | [[TESTCODE_SHORT:tests.test_transform.TestAngleTransformer.test_origin_transform]] |
 | <a id="test-unit-026"></a>TEST-UNIT-026 | REQ-TRANS-002 | AoA正、AoS=0 | AoA=10°, AoS=0 | Z=10°, A=0°に絶対誤差0.001 deg以内で一致 | [[TESTCODE_SHORT:tests.test_transform.TestAngleTransformer.test_positive_aoa_zero_aos]] |
 | <a id="test-unit-027"></a>TEST-UNIT-027 | REQ-TRANS-002 | AoA負、AoS=0 | AoA=-10°, AoS=0 | 指定変換式に対応する等価Z/Aを絶対誤差0.001 deg以内で返す | [[TESTCODE_SHORT:tests.test_transform.TestAngleTransformer.test_negative_aoa_zero_aos_reproduces_input]] |
@@ -119,7 +119,7 @@
 ## 4.4 `positioning.py` — `PositionCompensator.calculate_xy`
 
 | テストID | 要求ID | テスト内容 | 入力/条件 | 期待結果 | 対象テスト |
-|---|---|---|---|
+|---|---|---|---|---|---|
 | <a id="test-unit-041"></a>TEST-UNIT-041 | REQ-POS-001 | θ=0 | 任意の有効Lx/Ly | X=0, Y=0 | [[TESTCODE_SHORT:tests.test_positioning.TestPositionCompensator.test_zero_pitch_requires_no_translation]] |
 | <a id="test-unit-042"></a>TEST-UNIT-042 | REQ-POS-001 | θ正の代表値 | 既知Lx/Ly/θ | 仕様式に絶対誤差0.001 mm以内で一致 | [[TESTCODE_SHORT:tests.test_positioning.TestPositionCompensator.test_positive_pitch_matches_formula]] |
 | <a id="test-unit-043"></a>TEST-UNIT-043 | REQ-POS-001 | θ負の代表値 | 既知Lx/Ly/θ | 仕様式に絶対誤差0.001 mm以内で一致 | [[TESTCODE_SHORT:tests.test_positioning.TestPositionCompensator.test_negative_pitch_matches_formula]] |
@@ -130,7 +130,7 @@
 ## 4.5 `limits.py` — `LimitEvaluator`
 
 | テストID | 要求ID | テスト内容 | 入力/条件 | 期待結果 | 対象テスト |
-|---|---|---|---|
+|---|---|---|---|---|---|
 | <a id="test-unit-047"></a>TEST-UNIT-047 | REQ-LIMIT-001, REQ-VALID-003 | 全軸範囲内 | commandすべて範囲内 | 飽和なし、rotation errorなし | [[TESTCODE_SHORT:tests.test_limits.TestLimitEvaluator.test_all_axes_in_range]] |
 | <a id="test-unit-048"></a>TEST-UNIT-048 | REQ-LIMIT-001 | X最大超過 | X>max | X=maxに飽和、x_saturated=True | [[TESTCODE_SHORT:tests.test_limits.TestLimitEvaluator.test_x_above_max_saturates]] |
 | <a id="test-unit-049"></a>TEST-UNIT-049 | REQ-LIMIT-001 | X最小超過 | X<min | X=minに飽和 | [[TESTCODE_SHORT:tests.test_limits.TestLimitEvaluator.test_x_below_min_saturates]] |
@@ -148,7 +148,7 @@
 ## 4.6 `calibration_service.py` — `CalibrationService.build_plan`
 
 | テストID | 要求ID | テスト内容 | 入力/条件 | 期待結果 | 対象テスト |
-|---|---|---|---|
+|---|---|---|---|---|---|
 | <a id="test-unit-060"></a>TEST-UNIT-060 | REQ-SCAN-001, REQ-TRANS-002, REQ-POS-001 | 正常計画生成 | 小規模有効グリッド | 全点の`PointEvaluation`生成 | [[TESTCODE_SHORT:tests.test_calibration_service.TestCalibrationService.test_build_plan_creates_evaluation_for_every_point]] |
 | <a id="test-unit-061"></a>TEST-UNIT-061 | REQ-LIMIT-002 | 最大X/Y偏差集約 | 複数点で異なる偏差 | max_x_deviation/max_y_deviationが各最大値 | [[TESTCODE_SHORT:tests.test_calibration_service.TestCalibrationService.test_plan_aggregates_max_xy_deviation]] |
 | <a id="test-unit-062"></a>TEST-UNIT-062 | REQ-LIMIT-003 | Z/Aエラー集約 | 1点のみZA範囲外 | `has_generation_error=True` | [[TESTCODE_SHORT:tests.test_calibration_service.TestCalibrationService.test_any_rotational_error_blocks_generation]] |
@@ -159,7 +159,7 @@
 ## 4.7 `gcode.py` — `GCodeGenerator`
 
 | テストID | 要求ID | テスト内容 | 入力/条件 | 期待結果 | 対象テスト |
-|---|---|---|---|
+|---|---|---|---|---|---|
 | <a id="test-unit-066"></a>TEST-UNIT-066 | REQ-GCODE-002 | ヘッダ基本構成 | init textあり | init text、`$H`,`G21`,`G90`,`G94`を含む | [[TESTCODE_SHORT:tests.test_gcode.TestGCodeGenerator.test_header_contains_required_commands]] |
 | <a id="test-unit-067"></a>TEST-UNIT-067 | REQ-INPUT-006, REQ-GCODE-002 | 初期化Gコード保持 | 複数行init text | 行順と内容を保持して挿入 | [[TESTCODE_SHORT:tests.test_gcode.TestGCodeGenerator.test_initialization_text_preserved_in_order]] |
 | <a id="test-unit-068"></a>TEST-UNIT-068 | REQ-GCODE-003 | 同時4軸指令 | 1点 | 1行にX,Y,Z,A,Fを出力 | [[TESTCODE_SHORT:tests.test_gcode.TestGCodeGenerator.test_each_move_has_four_axes_and_feed]] |
@@ -174,7 +174,7 @@
 ## 4.8 `repositories.py`
 
 | テストID | 要求ID | テスト内容 | 入力/条件 | 期待結果 | 対象テスト |
-|---|---|---|---|
+|---|---|---|---|---|---|
 | <a id="test-unit-076"></a>TEST-UNIT-076 | REQ-GUI-003 | CSV設定保存→読込往復 | 正常settings | CSV保存前後で同等の設定 | [[TESTCODE_SHORT:tests.test_repositories.TestRepositories.test_settings_csv_round_trip]] |
 | <a id="test-unit-077"></a>TEST-UNIT-077 | REQ-GUI-003 | CSVで全オプション保持 | serpentine/comments各組合せ | 読込後も値保持 | [[TESTCODE_SHORT:tests.test_repositories.TestRepositories.test_options_round_trip]] |
 | <a id="test-unit-078"></a>TEST-UNIT-078 | REQ-GUI-003 | CSVで軸範囲保持 | X/Y/Z/A各range | 読込後に一致 | [[TESTCODE_SHORT:tests.test_repositories.TestRepositories.test_axis_ranges_round_trip]] |
@@ -191,7 +191,7 @@
 ## 4.9 `controller.py` — `CalibrationController`
 
 | テストID | 要求ID | テスト内容 | 入力/条件 | 期待結果 | 対象テスト |
-|---|---|---|---|
+|---|---|---|---|---|---|
 | <a id="test-unit-084"></a>TEST-UNIT-084 | REQ-VALID-001, REQ-SCAN-001 | 有効入力変更 | valid settings | validate後にplan再生成 | [[TESTCODE_SHORT:tests.test_controller.TestCalibrationController.test_valid_input_rebuilds_plan]] |
 | <a id="test-unit-085"></a>TEST-UNIT-085 | REQ-VALID-001, REQ-VALID-002 | 無効入力変更 | invalid settings | planを再生成しない、生成不可 | [[TESTCODE_SHORT:tests.test_controller.TestCalibrationController.test_invalid_input_does_not_rebuild_plan]] |
 | <a id="test-unit-086"></a>TEST-UNIT-086 | REQ-VALID-001 | 無効→有効復帰 | 連続2イベント | エラー解除、plan再生成、生成可能化 | [[TESTCODE_SHORT:tests.test_controller.TestCalibrationController.test_invalid_then_valid_recovers]] |
@@ -202,7 +202,7 @@
 ## 4.10 `map_view.py` — `CalibrationMapView`
 
 | テストID | 要求ID | テスト内容 | 入力/条件 | 期待結果 | 対象テスト |
-|---|---|---|---|
+|---|---|---|---|---|---|
 | <a id="test-unit-090"></a>TEST-UNIT-090 | REQ-GUI-002 | 正常点表示 | warning/errorなし | AoS横軸、AoA縦軸で点描画 | [[TESTCODE_SHORT:tests.test_map_view.TestCalibrationMapView.test_axes_are_aos_horizontal_aoa_vertical]] |
 | <a id="test-unit-091"></a>TEST-UNIT-091 | REQ-GUI-002, REQ-LIMIT-001 | XY飽和点識別 | x/y_saturated=True | 正常点と視覚的に異なる表現 | [[TESTCODE_SHORT:tests.test_map_view.TestCalibrationMapView.test_saturated_points_use_distinct_visual_group]] |
 | <a id="test-unit-092"></a>TEST-UNIT-092 | REQ-GUI-002, REQ-LIMIT-003 | ZAエラー点識別 | rotational_error=True | 生成禁止点として識別可能 | [[TESTCODE_SHORT:tests.test_map_view.TestCalibrationMapView.test_rotational_error_points_use_distinct_visual_group_without_third_color]] |
@@ -212,7 +212,7 @@
 ## 4.11 `simulation.py` — `SimulationController`, `SimulationView`
 
 | テストID | 要求ID | テスト内容 | 入力/条件 | 期待結果 | 対象テスト |
-|---|---|---|---|---|
+|---|---|---|---|---|---|
 | <a id="test-unit-093"></a>TEST-UNIT-093 | REQ-SIM-002 | 開始フレーム | progress=0 | 最初の較正点を返す  | [[TESTCODE_SHORT:tests.test_simulation.TestSimulation.test_start_frame_is_first_point]] |
 | <a id="test-unit-094"></a>TEST-UNIT-094 | REQ-SIM-002 | 終了フレーム | progress=1 | 最終較正点を返す  | [[TESTCODE_SHORT:tests.test_simulation.TestSimulation.test_end_frame_is_last_point]] |
 | <a id="test-unit-095"></a>TEST-UNIT-095 | REQ-SIM-002 | 中間フレーム | 0<progress<1 | 走査順に対応した点を返す  | [[TESTCODE_SHORT:tests.test_simulation.TestSimulation.test_middle_progress_maps_to_scan_order]] |
@@ -238,7 +238,7 @@
 ## 4.12 `gui.py` — `MainWindow`
 
 | テストID | 要求ID | テスト内容 | 入力/条件 | 期待結果 | 対象テスト |
-|---|---|---|---|
+|---|---|---|---|---|---|
 | <a id="test-unit-100"></a>TEST-UNIT-100 | REQ-GUI-001, REQ-GUI-004 | 必須GUI要素 | 起動 | 日本語ラベル、4操作ボタンを持つ | [[TESTCODE_SHORT:tests.test_gui.TestMainWindow.test_required_japanese_labels_and_buttons_are_defined]] |
 | <a id="test-unit-101"></a>TEST-UNIT-101 | REQ-VALID-001, REQ-GUI-005 | 入力エラー表示 | フィールドを特定できるValidationIssueまたは数値変換不能入力あり | 該当Entryだけがエラー用背景色となり、枠色は変更せず、既存固定メッセージ領域へ理由を表示し、新規メッセージ領域・アイコン・モーダル表示を追加しない | [[TESTCODE_SHORT:tests.test_gui.TestMainWindow.test_validation_error_changes_target_background_and_shows_existing_message]] |
 | <a id="test-unit-102"></a>TEST-UNIT-102 | REQ-VALID-001, REQ-GUI-005 | エラー解除 | issueまたは数値変換不能状態を解消 | 該当Entryの背景色が通常状態へ自動復帰し、固定メッセージ領域の入力エラー理由表示も解除される | [[TESTCODE_SHORT:tests.test_gui.TestMainWindow.test_validation_error_background_and_message_clear_after_recovery]] |
@@ -350,7 +350,7 @@
 `MainWindow → CalibrationController → InputValidator → CalibrationService → ScanPlanner → AngleTransformer → PositionCompensator → LimitEvaluator → CalibrationMapView`
 
 | テストID | トレースUC | シナリオ | 操作/条件 | 期待結果 | 対象テスト |
-|---|---|---|---|
+|---|---|---|---|---|---|
 | <a id="test-uc-01-01"></a>TEST-UC-01-01 | UC-01 | 正常入力 | 全条件を有効値で入力 | 自動検証→全較正点生成→Map更新、Sim/G-code有効 | [[TESTCODE_SHORT:tests.test_use_cases.TestUseCases.test_uc01_valid_input_recalculates_plan]] |
 | <a id="test-uc-01-02"></a>TEST-UC-01-02 | UC-01 | AoA範囲不正 | min>=maxへ変更 | 該当入力欄を背景色で強調し既存固定メッセージ領域へ理由表示、plan更新停止、Sim/G-code無効、モーダルなし | [[TESTCODE_SHORT:tests.test_use_cases.TestUseCases.test_uc01_invalid_aoa_range_blocks_generation]] |
 | <a id="test-uc-01-03"></a>TEST-UC-01-03 | UC-01 | 一時的文字入力不正から復帰 | 数値欄を一旦空欄→正常値入力 | 不正欄だけ背景色で強調され既存固定メッセージ領域へ理由表示・生成不可、復帰後に背景色と理由表示を自動解除して再計算 | [[TESTCODE_SHORT:tests.test_use_cases.TestUseCases.test_uc01_temporary_invalid_then_valid_recovers]] |
@@ -371,7 +371,7 @@
 `MainWindow → InitializationGCodeRepository`
 
 | テストID | トレースUC | シナリオ | 操作/条件 | 期待結果 | 対象テスト |
-|---|---|---|---|
+|---|---|---|---|---|---|
 | <a id="test-uc-02-01"></a>TEST-UC-02-01 | UC-02 | 正常読込 | UTF-8テキストファイル選択 | 内容を保持し後続Gコード生成に使用可能 | [[TESTCODE_SHORT:tests.test_use_cases.TestUseCases.test_uc02_load_initialization_text]] |
 | <a id="test-uc-02-02"></a>TEST-UC-02-02 | UC-02 | 複数行読込 | コメント/GRBLコマンドを含む | 行順を保持 | [[TESTCODE_SHORT:tests.test_use_cases.TestUseCases.test_uc02_multiline_order_preserved]] |
 | <a id="test-uc-02-03"></a>TEST-UC-02-03 | UC-02 | 読込キャンセル | ファイルダイアログをキャンセル | 現在内容を破壊せず何も実行しない | [[TESTCODE_SHORT:tests.test_use_cases.TestUseCases.test_uc02_cancel_keeps_current_initialization]] |
@@ -384,7 +384,7 @@
 `MainWindow → CalibrationController → SettingsRepository`
 
 | テストID | トレースUC | シナリオ | 操作/条件 | 期待結果 | 対象テスト |
-|---|---|---|---|
+|---|---|---|---|---|---|
 | <a id="test-uc-03-01"></a>TEST-UC-03-01 | UC-03 | 正常保存 | 現在の有効設定を保存 | 全入力条件とオプションをCSVへ保存 | [[TESTCODE_SHORT:tests.test_use_cases.TestUseCases.test_uc03_save_all_settings_to_csv]] |
 | <a id="test-uc-03-02"></a>TEST-UC-03-02 | UC-03 | オプション組合せ保存 | serpentine/comments各状態 | CSV保存内容へ正しく反映 | [[TESTCODE_SHORT:tests.test_use_cases.TestUseCases.test_uc03_save_option_combinations]] |
 | <a id="test-uc-03-03"></a>TEST-UC-03-03 | UC-03 | 保存キャンセル | 保存ダイアログ取消 | ファイルを作成せず状態維持 | [[TESTCODE_SHORT:tests.test_use_cases.TestUseCases.test_uc03_cancel_creates_no_file]] |
@@ -397,7 +397,7 @@
 `MainWindow → SettingsRepository → CalibrationController → InputValidator → CalibrationService`
 
 | テストID | トレースUC | シナリオ | 操作/条件 | 期待結果 | 対象テスト |
-|---|---|---|---|
+|---|---|---|---|---|---|
 | <a id="test-uc-04-01"></a>TEST-UC-04-01 | UC-04 | 正常設定読込 | 保存済み正常CSV | GUIへ全値反映→自動検証→plan再生成 | [[TESTCODE_SHORT:tests.test_use_cases.TestUseCases.test_uc04_load_valid_csv_and_rebuild_plan]] |
 | <a id="test-uc-04-02"></a>TEST-UC-04-02 | UC-04 | 蛇行設定復元 | serpentine=TrueのCSV | 読込後の点列順序が蛇行 | [[TESTCODE_SHORT:tests.test_use_cases.TestUseCases.test_uc04_restore_serpentine]] |
 | <a id="test-uc-04-03"></a>TEST-UC-04-03 | UC-04 | 読込後XY警告 | XY範囲が狭いCSV設定 | 警告表示、Sim/G-code有効 | [[TESTCODE_SHORT:tests.test_use_cases.TestUseCases.test_uc04_loaded_xy_warning_allows_generation]] |
@@ -417,7 +417,7 @@
 `MainWindow → CalibrationController → SimulationController → SimulationView`
 
 | テストID | トレースUC | シナリオ | 操作/条件 | 期待結果 | 対象テスト |
-|---|---|---|---|
+|---|---|---|---|---|---|
 | <a id="test-uc-05-01"></a>TEST-UC-05-01 | UC-05 | 正常シミュレーション | warning/errorなしplan | 約10秒相当で全点を走査し最終点表示 | [[TESTCODE_SHORT:tests.test_use_cases.TestUseCases.test_uc05_normal_simulation_uses_full_plan]] |
 | <a id="test-uc-05-02"></a>TEST-UC-05-02 | UC-05 | XY警告付きplan | XY飽和あり、ZA正常 | 飽和後commandを使いシミュレーション実行可能 | [[TESTCODE_SHORT:tests.test_use_cases.TestUseCases.test_uc05_xy_warning_plan_is_simulatable]] |
 | <a id="test-uc-05-03"></a>TEST-UC-05-03 | UC-05 | ZAエラー時 | generation error=True | GUIから実行できない | [[TESTCODE_SHORT:tests.test_use_cases.TestUseCases.test_uc05_za_error_is_not_simulatable_from_gui_state]] |
@@ -442,7 +442,7 @@
 `MainWindow → CalibrationController → GCodeGenerator → GCodeRepository`
 
 | テストID | トレースUC | シナリオ | 操作/条件 | 期待結果 | 対象テスト |
-|---|---|---|---|
+|---|---|---|---|---|---|
 | <a id="test-uc-06-01"></a>TEST-UC-06-01 | UC-06 | 正常Gコード生成 | valid plan、init textあり | `.nc`へ正しいヘッダと全点を保存 | [[TESTCODE_SHORT:tests.test_use_cases.TestUseCases.test_uc06_generate_valid_nc]] |
 | <a id="test-uc-06-02"></a>TEST-UC-06-02 | UC-06 | コメントON | output_comments=True | 各点コメント付き | [[TESTCODE_SHORT:tests.test_use_cases.TestUseCases.test_uc06_comments_on]] |
 | <a id="test-uc-06-03"></a>TEST-UC-06-03 | UC-06 | コメントOFF | output_comments=False | 点コメントなし | [[TESTCODE_SHORT:tests.test_use_cases.TestUseCases.test_uc06_comments_off]] |
