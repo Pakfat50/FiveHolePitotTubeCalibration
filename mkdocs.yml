@@ -81,5 +81,3 @@ nav:
       - テスト仕様書: test_specification.md
   - コーディングルール:
       - テストコードDoxygenルール: test_doxygen_guideline.md
-  - 参考資料:
-      - 要求整理: requirements_summary.md
