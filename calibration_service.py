@@ -30,10 +30,10 @@ class CalibrationService:
     def build_plan(self, settings: CalibrationSettings) -> CalibrationPlan:
         """検証済み設定から走査順序を保持した較正計画全体を構築する。
 
-        引数:
+        Args:
             settings: 入力検証に合格済みの較正設定。
 
-        戻り値:
+        Returns:
             全PointEvaluation、X/Y最大逸脱量、および生成禁止状態を
             集約したCalibrationPlan。
 
