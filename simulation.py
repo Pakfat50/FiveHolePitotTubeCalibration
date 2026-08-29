@@ -327,6 +327,8 @@ class SimulationView:
             track_color="0.85",
         )
         self.seek_slider.valmax = slider_max
+        # Matplotlibの版によりSliderのつまみ属性名が異なるため公開別名を設定する。
+        self.seek_slider.handle = getattr(self.seek_slider, "handle", self.seek_slider._handle)
         self.seek_slider.handle.set_markersize(16)
         self.seek_slider.on_changed(self._on_seek)
         self.playback_button = Button(
@@ -635,6 +637,10 @@ class SimulationView:
     def bind_playback_controls(self, pause_callback, resume_callback, seek_callback) -> None:
         """再生操作の通知先をControllerへ設定する。"""
         self._playback_callbacks = (pause_callback, resume_callback, seek_callback)
+
+    def set_playback_callbacks(self, pause_callback, resume_callback, seek_callback) -> None:
+        """再生操作の通知先をControllerへ設定する公開別名。"""
+        self.bind_playback_controls(pause_callback, resume_callback, seek_callback)
 
     def pause_animation(self) -> None:
         """Matplotlibアニメーションのタイマーを停止する。"""
