@@ -219,11 +219,11 @@ def on_page_markdown(markdown, page, config, files):
 
     def replace_archreq(match):
         target = match.group(1).lower()
-        return f"[アーキテクチャ設計](../architecture_design/#architecture-{target})"
+        return f"[{match.group(1)}](../architecture_design/#architecture-{target})"
 
     def replace_testspec(match):
         test_id = match.group(1)
-        return f"[テスト仕様](../test_specification/#{test_id.lower()})"
+        return f"[{test_id}](../test_specification/#{test_id.lower()})"
 
     def replace_uctest(match):
         target = match.group(1).lower()
