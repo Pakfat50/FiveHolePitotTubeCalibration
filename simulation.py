@@ -13,7 +13,7 @@ from models import CalibrationPlan, PointEvaluation
 class SimulationController:
     """正規化された再生進捗を較正点へ対応付け、SimulationViewを駆動する。
 
-    引数:
+    Args:
         view: SimulationView互換のPresentation依存オブジェクト。
 
     対応要求:
@@ -31,7 +31,7 @@ class SimulationController:
     def start(self, plan: CalibrationPlan, duration_s: float = 10.0) -> None:
         """先頭の較正点からシミュレーションを再生する。
 
-        引数:
+        Args:
             plan: 再生対象の較正計画。
             duration_s: シミュレーション全体の再生時間[s]。
 
@@ -63,7 +63,7 @@ class SimulationController:
 
 アニメーションタイマーだけを停止し、現在較正点、3画面の描画状態、およびシークバーの位置を保持する。
 
-戻り値:
+Returns:
     None
 
 対応要求:
@@ -82,7 +82,7 @@ class SimulationController:
 
 paused状態では現在位置から再開し、completed状態では先頭較正点へ戻って再生を開始する。
 
-戻り値:
+Returns:
     None
 
 対応要求:
@@ -111,13 +111,13 @@ paused状態では現在位置から再開し、completed状態では先頭較�
     def seek_to_point(self, point_index: int) -> None:
         """@brief 指定された較正点へ移動し、移動後は一時停止状態にする。
 
-引数:
+Args:
     point_index: 走査順における較正点インデックス。範囲外は端点へ補正する。
 
 動作:
     再生中の場合はタイマーを停止し、指定点を3画面と状態表示へ即時反映する。
 
-戻り値:
+Returns:
     None
 
 対応要求:
@@ -141,7 +141,7 @@ paused状態では現在位置から再開し、completed状態では先頭較�
 
 再生完了状態でのみ再生再開処理を行い、先頭較正点を表示してアニメーションを開始する。
 
-戻り値:
+Returns:
     None
 
 対応要求:
@@ -157,7 +157,7 @@ paused状態では現在位置から再開し、completed状態では先頭較�
 
 最終フレーム到達時に呼び出され、最終較正点のインデックスを保持する。Viewへ完了状態を通知する。
 
-戻り値:
+Returns:
     None
 
 対応要求:
@@ -174,14 +174,14 @@ paused状態では現在位置から再開し、completed状態では先頭較�
     def _frame_at(self, plan: CalibrationPlan, progress: float) -> PointEvaluation:
         """正規化進捗に対応する走査点を選択する。
 
-        引数:
+        Args:
             plan: 再生対象の較正計画。
             progress: 0.0から1.0までの正規化再生進捗。
 
-        戻り値:
+        Returns:
             進捗に対応する較正点評価結果。
 
-        例外:
+        Raises:
             ValueError: 較正点が存在しない場合。
 
         対応要求:
@@ -311,7 +311,7 @@ class SimulationView:
     def _calculate_calibration_limits(self, plan: CalibrationPlan) -> None:
         """全較正点が範囲外にならない固定AoA/AoS表示範囲を算出する。
 
-        引数:
+        Args:
             plan: 全較正点を含む較正計画。
 
         対応要求:
@@ -338,7 +338,7 @@ class SimulationView:
     def initialize(self, plan: CalibrationPlan) -> None:
         """機構2面図、較正点マップ、および状態表示領域を初期化する。
 
-        引数:
+        Args:
             plan: シミュレーション対象の較正計画。
 
         対応要求:
@@ -470,7 +470,7 @@ class SimulationView:
         凡例や現在点を説明する文字注記は追加しない。現在点は別のArtistを
         同じ座標へ重ね、その色だけを変えることで表現する。
 
-        引数:
+        Args:
             plan: 全較正点を含む較正計画。
 
         対応要求:
@@ -505,7 +505,7 @@ class SimulationView:
     ) -> None:
         """指定時間で全較正点を走査するMatplotlibアニメーションを開始する。
 
-        引数:
+        Args:
             plan: 再生対象の較正計画。
             duration_s: シミュレーション全体の再生時間[s]。
             frame_provider: 正規化進捗から現在点を返す関数。
@@ -542,7 +542,7 @@ class SimulationView:
     def render_frame(self, point: PointEvaluation, progress: float) -> None:
         """現在点の機構姿勢、較正点強調および状態情報を同期して描画する。
 
-        引数:
+        Args:
             point: 現在表示する較正点評価結果。
             progress: 0.0から1.0までの正規化再生進捗。
 
@@ -596,7 +596,7 @@ class SimulationView:
     def _update_current_calibration_point(self, point: PointEvaluation) -> None:
         """較正点マップの強調点を現在のAoA/AoSへ移動する。
 
-        引数:
+        Args:
             point: 横面図・正面図と同じ現在較正点。
 
         対応要求:
@@ -614,7 +614,7 @@ class SimulationView:
         延びるL字形状を剛体としてZ角で回転させる。Lx側線分の向きが実際の
         ピトー管軸方向を表す。
 
-        引数:
+        Args:
             point: 現在表示する較正点評価結果。
 
         対応要求:
@@ -676,7 +676,7 @@ class SimulationView:
         反転時にも方向を一意に識別できるよう、中心から外周へ向かう矢印のみで
         ロール方向を表し、反対側まで延びる直径線や角度円弧、方向文字は描画しない。
 
-        引数:
+        Args:
             point: 現在表示する較正点評価結果。
 
         対応要求:
@@ -709,12 +709,12 @@ class SimulationView:
     def bind_playback_controls(self, pause_callback, resume_callback, seek_callback) -> None:
         """@brief Viewへ再生操作コールバックを登録する。
 
-引数:
+Args:
     pause_callback: 一時停止処理。
     resume_callback: 再生再開処理。
     seek_callback: 較正点移動処理。
 
-戻り値:
+Returns:
     None
 
 対応要求:
@@ -726,12 +726,12 @@ class SimulationView:
     def set_playback_callbacks(self, pause_callback, resume_callback, seek_callback) -> None:
         """@brief 再生操作コールバックを設定する公開エイリアスを提供する。
 
-引数:
+Args:
     pause_callback: 一時停止処理。
     resume_callback: 再生再開処理。
     seek_callback: 較正点移動処理。
 
-戻り値:
+Returns:
     None
 
 対応要求:
@@ -743,7 +743,7 @@ class SimulationView:
     def pause_animation(self) -> None:
         """@brief SimulationViewのアニメーションタイマーを一時停止する。
 
-戻り値:
+Returns:
     None
 
 対応要求:
@@ -756,7 +756,7 @@ class SimulationView:
     def resume_animation(self) -> None:
         """@brief SimulationViewのアニメーションタイマーを再開する。
 
-戻り値:
+Returns:
     None
 
 対応要求:
@@ -769,13 +769,13 @@ class SimulationView:
     def restart_animation(self, plan, duration_s, frame_provider, on_complete=None) -> None:
         """@brief SimulationViewのアニメーションを先頭から再生成する。
 
-引数:
+Args:
     plan: 再生対象の較正計画。
     duration_s: シミュレーション全体の再生時間[s]。
     frame_provider: 正規化進捗から現在点を返す関数。
     on_complete: 最終フレーム到達時のコールバック。
 
-戻り値:
+Returns:
     None
 
 対応要求:
@@ -787,10 +787,10 @@ class SimulationView:
     def set_playback_state(self, state: str) -> None:
         """@brief 再生状態に応じて操作ボタンの表示を更新する。
 
-引数:
+Args:
     state: playing、paused、またはcompleted。
 
-戻り値:
+Returns:
     None
 
 対応要求:
@@ -807,10 +807,10 @@ class SimulationView:
     def _on_play_pause(self, _event) -> None:
         """@brief 再生・一時停止ボタンのクリックをコールバックへ中継する。
 
-引数:
+Args:
     _event: Matplotlib Buttonが渡すクリックイベント。
 
-戻り値:
+Returns:
     None
 
 対応要求:
@@ -828,10 +828,10 @@ class SimulationView:
     def _on_seek(self, value) -> None:
         """@brief シークバーの値を較正点インデックスとしてコールバックへ中継する。
 
-引数:
+Args:
     value: シークバーが示す較正点インデックス。
 
-戻り値:
+Returns:
     None
 
 対応要求:
@@ -846,10 +846,10 @@ class SimulationView:
     def _update_seek_slider(self, point_index: int) -> None:
         """@brief 現在較正点に合わせてシークバーのつまみを更新する。
 
-引数:
+Args:
     point_index: 現在表示している較正点インデックス。
 
-戻り値:
+Returns:
     None
 
 対応要求:
