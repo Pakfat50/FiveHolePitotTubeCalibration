@@ -57,6 +57,20 @@
 }
 
 
+/* Trial colors for tests.test_calibration_service only.
+ * Geometry, spacing, typography, and disclosure behavior remain unchanged. */
+.md-typeset .doc.doc-object.doc-module:has(> h2[id="tests.test_calibration_service"]) details.テスト目的 > summary,
+.md-typeset .doc.doc-object.doc-module:has(> h2[id="tests.test_calibration_service"]) details.パスクライテリア > summary {
+  background-color: #fff1e6;
+  color: #9a3412;
+}
+
+.md-typeset .doc.doc-object.doc-module:has(> h2[id="tests.test_calibration_service"]) details.検証根拠 > summary {
+  background-color: #e8f5e9;
+  color: #166534;
+}
+
+
 /* Render function and dataclass arguments as a readable two-column table. */
 .md-typeset table.api-parameters {
   display: table;
