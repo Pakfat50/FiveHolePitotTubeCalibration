@@ -222,6 +222,17 @@
 | TEST-UNIT-099 | REQ-SIM-004 | 情報表示 | 任意点 | point番号、AoA/AoS、X/Y/Z/A、状態、進捗を更新 |
 | TEST-UNIT-122 | REQ-SIM-005 | 較正点マップ初期化 | 複数較正点を持つvalid plan | AoS横軸、AoA縦軸で全較正点を表示し、凡例を表示しない |
 | TEST-UNIT-123 | REQ-SIM-006 | 現在較正点の強調・同期 | 異なる2点を連続描画 | 現在点だけが通常点と異なる色で表示され、横面図・正面図と同じ点へ同期更新され、文字注記を追加しない |
+| TEST-UNIT-126 | REQ-SIM-007 | シミュレーション開始状態 | 有効なplanで開始 | 先頭較正点から再生を開始し、再生中状態と一時停止ボタン「Ⅱ」を表示する |
+| TEST-UNIT-127 | REQ-SIM-008 | 一時停止 | 再生中に一時停止操作 | タイマーが停止し、現在較正点を保持し、再生ボタン「▶」を表示する |
+| TEST-UNIT-128 | REQ-SIM-009 | 一時停止からの再生再開 | 中間点で一時停止後に再生 | 現在位置から再生を再開する |
+| TEST-UNIT-129 | REQ-SIM-010 | 一時停止中の較正点シーク | 一時停止中に指定点へ移動 | 指定した較正点を現在点として保持する |
+| TEST-UNIT-130 | REQ-SIM-011 | 再生中シーク時の自動一時停止 | 再生中にシーク操作開始 | 自動一時停止し、操作終了後も再生ボタン「▶」を表示する |
+| TEST-UNIT-131 | REQ-SIM-012 | シーク表示即時反映 | 指定点へシーク | 横面図・正面図・マップ・数値・進捗表示が同一の指定点へ更新される |
+| TEST-UNIT-132 | REQ-SIM-013 | 再生完了 | 最終フレーム到達 | 最終較正点で停止し、自動ループせず、再生ボタン「▶」を表示する |
+| TEST-UNIT-133 | REQ-SIM-009 | 完了後の再生 | 完了後に再生操作 | 先頭較正点へ戻って再生を開始する |
+| TEST-UNIT-134 | REQ-SIM-014, REQ-SIM-015 | シークバー設定 | 複数較正点のplanを初期化 | 既存プログレスバーを表示せず、較正点インデックス単位で操作でき、大きなつまみを持つ |
+| TEST-UNIT-135 | REQ-SIM-016 | 再生状態とボタン表示 | 再生中/停止中/完了後 | 再生中は「Ⅱ」、停止中および完了後は「▶」を表示する |
+| TEST-UNIT-136 | REQ-SIM-014 | 進捗表示 | 任意の現在点 | 表示が「現在の較正点 / 全較正点」となり、時間表示を使用しない |
 
 ## 4.12 `gui.py` — `MainWindow`
 
@@ -279,6 +290,16 @@
 | REQ-SIM-004 | TEST-UNIT-099 |
 | REQ-SIM-005 | TEST-UNIT-122 |
 | REQ-SIM-006 | TEST-UNIT-123 |
+| REQ-SIM-007 | TEST-UNIT-126 |
+| REQ-SIM-008 | TEST-UNIT-127 |
+| REQ-SIM-009 | TEST-UNIT-128,133 |
+| REQ-SIM-010 | TEST-UNIT-129 |
+| REQ-SIM-011 | TEST-UNIT-130 |
+| REQ-SIM-012 | TEST-UNIT-131 |
+| REQ-SIM-013 | TEST-UNIT-132 |
+| REQ-SIM-014 | TEST-UNIT-134,136 |
+| REQ-SIM-015 | TEST-UNIT-134 |
+| REQ-SIM-016 | TEST-UNIT-135 |
 | REQ-GUI-001 | TEST-UNIT-100,124 |
 | REQ-GUI-002 | TEST-UNIT-090,091,092,125 |
 | REQ-GUI-003 | TEST-UNIT-076,077,078,079,089,107,108,117,118,119,120,121 |
@@ -309,8 +330,10 @@
 | `CalibrationController.on_settings_changed/apply_settings/can_generate` | TEST-UNIT-084..089 |
 | `CalibrationMapView.render` | TEST-UNIT-090..092,125 |
 | `CalibrationMapView._configure_matplotlib_font/_text` | TEST-UNIT-124 |
-| `SimulationController.start/_frame_at` | TEST-UNIT-093..096 |
-| `SimulationView.initialize/render_frame` | TEST-UNIT-097..099,122,123 |
+| `SimulationController.start/_frame_at` | TEST-UNIT-093..096,126 |
+| `SimulationController.pause/resume/seek_to_point/restart_from_beginning/on_animation_complete` | TEST-UNIT-127..133 |
+| `SimulationView.initialize/render_frame` | TEST-UNIT-097..099,122,123,131,136 |
+| `SimulationView.start_animation/set_playback_state/_on_seek/_on_play_pause/_update_seek_bar/_update_playback_button` | TEST-UNIT-126..136 |
 | `MainWindow` | TEST-UNIT-100..110,121 |
 
 ---
@@ -402,6 +425,14 @@
 | TEST-UC-05-06 | UC-05 | 2ビュー同期 | 任意点列 | 横面図と正面図が同一CalibrationPlan・同一点を表示 |
 | TEST-UC-05-07 | UC-05 | 較正点マップ表示 | 複数点の正常plan | シミュレーション画面に全較正点がAoA/AoS位置で表示され、凡例がない |
 | TEST-UC-05-08 | UC-05 | 3ビュー現在点同期 | 走査中に複数点を切替 | 横面図・正面図・較正点マップ強調が常に同一較正点を示し、強調点だけ色が異なり文字注記がない |
+| TEST-UC-05-09 | UC-05 | 一時停止と再生再開 | 再生中に一時停止し、再生ボタンを押す | 現在較正点を保持して一時停止し、同じ位置から再生を再開する |
+| TEST-UC-05-10 | UC-05 | 一時停止中のシーク | 一時停止中にシークバーを任意点へドラッグ | 指定点が即時表示され、再生状態は一時停止のまま |
+| TEST-UC-05-11 | UC-05 | 再生中のシーク | 再生中にシークバーをドラッグ開始 | 自動一時停止し、指定点表示後は再生ボタンを表示する |
+| TEST-UC-05-12 | UC-05 | 再生完了と待機 | 最終点まで再生 | 自動ループせず最終点で停止し、再生ボタンを表示する |
+| TEST-UC-05-13 | UC-05 | 完了後の再生 | 最終点で再生ボタンを押す | 先頭点へ戻って再生する |
+| TEST-UC-05-14 | UC-05 | 較正点単位のシーク | シークバーを複数位置へ操作 | 時間位置ではなく、各較正点を選択して表示する |
+| TEST-UC-05-15 | UC-05 | 3表示と進捗の即時同期 | 任意点へシーク | 横面図・正面図・マップ・数値表示・「現在点/全点」が同一点を示す |
+| TEST-UC-05-16 | UC-05 | シークバー操作性 | 実GUIでつまみをドラッグ | つまみを容易に操作でき、既存プログレスバーは表示されない |
 
 ## 7.6 UC-06 Gコードを生成する
 
@@ -434,7 +465,7 @@
 | UC-02 | 初期化Gコードを読み込む | TEST-UC-02-01 ～ TEST-UC-02-04 |
 | UC-03 | 設定を保存する | TEST-UC-03-01 ～ TEST-UC-03-04 |
 | UC-04 | 設定を読み込む | TEST-UC-04-01 ～ TEST-UC-04-11 |
-| UC-05 | シミュレーションする | TEST-UC-05-01 ～ TEST-UC-05-08 |
+| UC-05 | シミュレーションする | TEST-UC-05-01 ～ TEST-UC-05-16 |
 | UC-06 | Gコードを生成する | TEST-UC-06-01 ～ TEST-UC-06-12 |
 
 ---
