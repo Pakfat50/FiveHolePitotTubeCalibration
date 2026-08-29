@@ -199,7 +199,7 @@ _TRACE_TARGETS = {
 _SHORT_MARKER = re.compile(r"\[\[TESTCODE_SHORT:([A-Za-z0-9_.]+)\]\]")
 _ARCHREQ_MARKER = re.compile(r"\[\[ARCHREQ:(REQ-[A-Z]+-\d+)\]\]")
 _TESTSPEC_MARKER = re.compile(r"\[\[TESTSPEC:(TEST-(?:UNIT|UC)-[A-Z0-9-]+)\]\]")
-_UCTEST_MARKER = re.compile(r"\[\[UCTEST:(UC-\d+)\]\]")\n_API_MARKER = re.compile(r"\\[\\[API:([A-Za-z0-9_.]+)\\]\\]")\n
+_UCTEST_MARKER = re.compile(r"\[\[UCTEST:(UC-\d+)\]\]")\n_API_MARKER = re.compile(r"\[\[API:([A-Za-z0-9_.]+)\]\]")\n
 
 _MARKER = re.compile(r"\[\[(" + "|".join(map(re.escape, _TRACE_TARGETS)) + r")\]\]")
 
