@@ -14,10 +14,13 @@ ABS_TOL = 0.001
 def make_limits(**overrides):
     """標準の十分広い軸可動範囲を生成する。
 
-    @param overrides 軸名(x/y/z/a)をキー、AxisRangeを値とする上書き指定。
-    @return 上書き適用後のAxisLimits。
+    Args:
+        overrides: 軸名(x/y/z/a)をキー、AxisRangeを値とする上書き指定
+
+    Returns:
+        上書き適用後のAxisLimits
     Details: 通常は範囲超過が起きない基準値を返し、各テストでは対象軸だけを上書きして異常条件を作る。
-    @par 設計根拠
+    Design rationale:
     非対象軸を常に正常範囲へ固定することで、範囲試験の失敗原因を対象軸へ限定し、テストの独立性と可読性を高める。
     """
     values = {
@@ -33,10 +36,13 @@ def make_limits(**overrides):
 def make_settings(**overrides):
     """全入力が有効な標準CalibrationSettingsを生成する。
 
-    @param overrides CalibrationSettingsのフィールド名をキーとする上書き指定。
-    @return 上書き適用後のCalibrationSettings。
+    Args:
+        overrides: CalibrationSettingsのフィールド名をキーとする上書き指定
+
+    Returns:
+        上書き適用後のCalibrationSettings
     Details: 各テストは確認対象フィールドだけを変更し、それ以外を既知の正常値に保つために利用する。
-    @par 設計根拠
+    Design rationale:
     テストごとに大量の正常値を重複記述せず、変更点だけを明示することで、何を刺激して何を観測するテストなのかを読み取りやすくする。
     """
     values = {
