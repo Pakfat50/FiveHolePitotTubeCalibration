@@ -792,7 +792,7 @@ stateDiagram-v2
 | REQ-SIM-004 | `SimulationView.render_frame` | 点番号、AoA/AoS、X/Y/Z/A、状態、進捗 |
 | REQ-SIM-005 | `SimulationView.initialize`, `SimulationView._calculate_calibration_limits`, `SimulationView._configure_calibration_axes`, `SimulationView._draw_calibration_map` | シミュレーション用AoA/AoS全点マップ |
 | REQ-SIM-006 | `SimulationView.render_frame`, `SimulationView._update_current_calibration_point` | 現在点を別色で同期更新、凡例・文字注記なし |
-| REQ-SIM-007 | `SimulationController.start`, `SimulationView.start_animation`, `SimulationView._update_playback_button` | 先頭から再生を開始し、再生中はⅡボタンを表示 |
+| <a id="architecture-req-sim-007"></a>REQ-SIM-007 | [[CODE:simulation.SimulationController.start]]、[[CODE:simulation.SimulationView.start_animation]]、[[CODE:simulation.SimulationView._update_playback_button]] | 先頭から再生を開始し、再生中はⅡボタンを表示 |
 | REQ-SIM-008 | `SimulationController.pause`, `SimulationView._on_play_pause`, `SimulationView._update_playback_button` | 現在点を保持して一時停止し、▶ボタンを表示 |
 | REQ-SIM-009 | `SimulationController.resume`, `SimulationController.restart_from_beginning` | 一時停止中は現在位置から、最終位置では先頭から再生 |
 | REQ-SIM-010 | `SimulationView._on_seek`, `SimulationController.seek_to_point` | 較正点単位のシーク |
