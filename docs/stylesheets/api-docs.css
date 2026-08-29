@@ -59,21 +59,21 @@
 
 /* Trial colors for tests.test_calibration_service only.
  * Geometry, spacing, typography, and disclosure behavior remain unchanged. */
-.md-typeset .doc.doc-object.doc-module:has(> h2[id="tests.test_calibration_service"]) details.パスクライテリア > summary {
+.md-typeset details.パスクライテリア > summary {
   background-color: #fff1e6;
   color: #9a3412;
 }
 
-.md-typeset .doc.doc-object.doc-module:has(> h2[id="tests.test_calibration_service"]) details.パスクライテリア {
+.md-typeset details.パスクライテリア {
   border-color: #d97706;
 }
 
-.md-typeset .doc.doc-object.doc-module:has(> h2[id="tests.test_calibration_service"]) details.検証根拠 > summary {
+.md-typeset details.検証根拠 > summary {
   background-color: #e8f5e9;
   color: #166534;
 }
 
-.md-typeset .doc.doc-object.doc-module:has(> h2[id="tests.test_calibration_service"]) details.検証根拠 {
+.md-typeset details.検証根拠 {
   border-color: #16a34a;
 }
 
