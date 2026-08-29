@@ -36,7 +36,7 @@
 **関連成果物**
 
 - アーキテクチャ設計: [[ARCHREQ:REQ-INPUT-001]]
-- 製品コード: 実装API未記載
+- 製品コード: [[API:models.CalibrationSettings]]、[[API:gui.MainWindow._build_widgets]]、[[API:gui.MainWindow._collect_raw_input]]
 - テスト仕様: [[TESTSPEC:TEST-UNIT-002]]、[[TESTSPEC:TEST-UNIT-003]]、[[TESTSPEC:TEST-UNIT-004]]、[[TESTSPEC:TEST-UNIT-005]]
 
 #### REQ-INPUT-002（較正点数）
@@ -46,7 +46,7 @@
 **関連成果物**
 
 - アーキテクチャ設計: [[ARCHREQ:REQ-INPUT-002]]
-- 製品コード: 実装API未記載
+- 製品コード: [[API:models.CalibrationSettings]]、[[API:gui.MainWindow._build_widgets]]、[[API:gui.MainWindow._collect_raw_input]]
 - テスト仕様: [[TESTSPEC:TEST-UNIT-006]]、[[TESTSPEC:TEST-UNIT-007]]、[[TESTSPEC:TEST-UNIT-008]]
 
 #### REQ-INPUT-003（距離）
@@ -58,7 +58,7 @@ LxおよびLyは、いずれも0より大きい有限な実数でなければな
 **関連成果物**
 
 - アーキテクチャ設計: [[ARCHREQ:REQ-INPUT-003]]
-- 製品コード: 実装API未記載
+- 製品コード: [[API:models.CalibrationSettings]]、[[API:gui.MainWindow._build_widgets]]、[[API:gui.MainWindow._collect_raw_input]]
 - テスト仕様: [[TESTSPEC:TEST-UNIT-011]]、[[TESTSPEC:TEST-UNIT-111]]、[[TESTSPEC:TEST-UNIT-112]]
 
 #### REQ-INPUT-004（移動条件）
@@ -79,8 +79,8 @@ Feed rateは **1 unit/min以上** でなければならない。
 **関連成果物**
 
 - アーキテクチャ設計: [[ARCHREQ:REQ-INPUT-004]]
-- 製品コード: 実装API未記載
-- テスト仕様: [[TESTSPEC:TEST-UNIT-009]]、[[TESTSPEC:TEST-UNIT-010]]、[[TESTSPEC:TEST-UNIT-070]]、[[TESTSPEC:TEST-UNIT-071]]、[[TESTSPEC:TEST-UNIT-113]]、[[TESTSPEC:TEST-UNIT-114]]、[[TESTSPEC:TEST-UNIT-115]]、[[TESTSPEC:TEST-UNIT-116]]
+- 製品コード: [[API:models.CalibrationSettings]]、[[API:gui.MainWindow._build_widgets]]、[[API:gui.MainWindow._collect_raw_input]]、[[API:gcode.GCodeGenerator._format_point]]
+- テスト仕様: [[TESTSPEC:TEST-UNIT-009]]、[[TESTSPEC:TEST-UNIT-010]]、[[TESTSPEC:TEST-UNIT-113]]、[[TESTSPEC:TEST-UNIT-114]]、[[TESTSPEC:TEST-UNIT-115]]、[[TESTSPEC:TEST-UNIT-116]]、[[TESTSPEC:TEST-UNIT-070]]、[[TESTSPEC:TEST-UNIT-071]]
 
 #### REQ-INPUT-005（実軸可動範囲）
 
@@ -89,7 +89,7 @@ Feed rateは **1 unit/min以上** でなければならない。
 **関連成果物**
 
 - アーキテクチャ設計: [[ARCHREQ:REQ-INPUT-005]]
-- 製品コード: 実装API未記載
+- 製品コード: [[API:models.AxisLimits]]、[[API:models.AxisRange]]、[[API:gui.MainWindow._build_widgets]]
 - テスト仕様: [[TESTSPEC:TEST-UNIT-012]]、[[TESTSPEC:TEST-UNIT-013]]、[[TESTSPEC:TEST-UNIT-014]]、[[TESTSPEC:TEST-UNIT-015]]
 
 #### REQ-INPUT-006（初期化Gコード）
@@ -99,7 +99,7 @@ Feed rateは **1 unit/min以上** でなければならない。
 **関連成果物**
 
 - アーキテクチャ設計: [[ARCHREQ:REQ-INPUT-006]]
-- 製品コード: 実装API未記載
+- 製品コード: [[API:repositories.InitializationGCodeRepository.load]]、[[API:gui.MainWindow._on_load_initialization]]
 - テスト仕様: [[TESTSPEC:TEST-UNIT-067]]、[[TESTSPEC:TEST-UNIT-080]]、[[TESTSPEC:TEST-UNIT-081]]、[[TESTSPEC:TEST-UNIT-106]]
 
 #### REQ-INPUT-007（オプション）
@@ -114,7 +114,7 @@ Feed rateは **1 unit/min以上** でなければならない。
 **関連成果物**
 
 - アーキテクチャ設計: [[ARCHREQ:REQ-INPUT-007]]
-- 製品コード: 実装API未記載
+- 製品コード: [[API:models.CalibrationSettings]]、[[API:gui.MainWindow._build_widgets]]
 - テスト仕様: [[TESTSPEC:TEST-UNIT-072]]、[[TESTSPEC:TEST-UNIT-073]]
 
 #### REQ-VALID-001（入力値のリアルタイム検証）
@@ -128,7 +128,7 @@ Feed rateは **1 unit/min以上** でなければならない。
 **関連成果物**
 
 - アーキテクチャ設計: [[ARCHREQ:REQ-VALID-001]]
-- 製品コード: 実装API未記載
+- 製品コード: [[API:controller.CalibrationController.on_settings_changed]]、[[API:gui.MainWindow._on_gui_input_changed]]、[[API:gui.MainWindow._find_numeric_parse_errors]]、[[API:gui.MainWindow._apply_validation_highlights]]、[[API:gui.MainWindow._update_validation_display]]
 - テスト仕様: [[TESTSPEC:TEST-UNIT-001]]、[[TESTSPEC:TEST-UNIT-016]]、[[TESTSPEC:TEST-UNIT-084]]、[[TESTSPEC:TEST-UNIT-085]]、[[TESTSPEC:TEST-UNIT-086]]、[[TESTSPEC:TEST-UNIT-101]]、[[TESTSPEC:TEST-UNIT-102]]
 
 #### REQ-VALID-002（入力値整合性）
@@ -140,8 +140,8 @@ Feed rateは **1 unit/min以上** でなければならない。
 **関連成果物**
 
 - アーキテクチャ設計: [[ARCHREQ:REQ-VALID-002]]
-- 製品コード: 実装API未記載
-- テスト仕様: [[TESTSPEC:TEST-UNIT-001]]、[[TESTSPEC:TEST-UNIT-002]]、[[TESTSPEC:TEST-UNIT-003]]、[[TESTSPEC:TEST-UNIT-004]]、[[TESTSPEC:TEST-UNIT-005]]、[[TESTSPEC:TEST-UNIT-006]]、[[TESTSPEC:TEST-UNIT-007]]、[[TESTSPEC:TEST-UNIT-008]]、[[TESTSPEC:TEST-UNIT-009]]、[[TESTSPEC:TEST-UNIT-010]]、[[TESTSPEC:TEST-UNIT-011]]、[[TESTSPEC:TEST-UNIT-012]]、[[TESTSPEC:TEST-UNIT-013]]、[[TESTSPEC:TEST-UNIT-014]]、[[TESTSPEC:TEST-UNIT-015]]、[[TESTSPEC:TEST-UNIT-016]]、[[TESTSPEC:TEST-UNIT-111]]、[[TESTSPEC:TEST-UNIT-112]]、[[TESTSPEC:TEST-UNIT-113]]、[[TESTSPEC:TEST-UNIT-114]]、[[TESTSPEC:TEST-UNIT-115]]、[[TESTSPEC:TEST-UNIT-116]]
+- 製品コード: [[API:controller.CalibrationController.can_generate]]
+- テスト仕様: [[TESTSPEC:TEST-UNIT-001]]、[[TESTSPEC:TEST-UNIT-002]]、[[TESTSPEC:TEST-UNIT-003]]、[[TESTSPEC:TEST-UNIT-004]]、[[TESTSPEC:TEST-UNIT-005]]、[[TESTSPEC:TEST-UNIT-006]]、[[TESTSPEC:TEST-UNIT-007]]、[[TESTSPEC:TEST-UNIT-008]]、[[TESTSPEC:TEST-UNIT-009]]、[[TESTSPEC:TEST-UNIT-010]]、[[TESTSPEC:TEST-UNIT-011]]、[[TESTSPEC:TEST-UNIT-012]]、[[TESTSPEC:TEST-UNIT-013]]、[[TESTSPEC:TEST-UNIT-014]]、[[TESTSPEC:TEST-UNIT-015]]、[[TESTSPEC:TEST-UNIT-111]]、[[TESTSPEC:TEST-UNIT-112]]、[[TESTSPEC:TEST-UNIT-113]]、[[TESTSPEC:TEST-UNIT-114]]、[[TESTSPEC:TEST-UNIT-115]]、[[TESTSPEC:TEST-UNIT-116]]、[[TESTSPEC:TEST-UNIT-085]]
 
 #### REQ-VALID-003（軸可動範囲による生成可否）
 
@@ -155,7 +155,7 @@ Feed rateは **1 unit/min以上** でなければならない。
 **関連成果物**
 
 - アーキテクチャ設計: [[ARCHREQ:REQ-VALID-003]]
-- 製品コード: 実装API未記載
+- 製品コード: [[API:limits.LimitEvaluator.evaluate]]、[[API:controller.CalibrationController.can_generate]]、[[API:gui.MainWindow._update_action_state]]
 - テスト仕様: [[TESTSPEC:TEST-UNIT-047]]、[[TESTSPEC:TEST-UNIT-054]]、[[TESTSPEC:TEST-UNIT-055]]、[[TESTSPEC:TEST-UNIT-056]]、[[TESTSPEC:TEST-UNIT-057]]、[[TESTSPEC:TEST-UNIT-087]]、[[TESTSPEC:TEST-UNIT-088]]
 
 #### REQ-TRANS-001（回転モデル）
@@ -165,8 +165,8 @@ Feed rateは **1 unit/min以上** でなければならない。
 **関連成果物**
 
 - アーキテクチャ設計: [[ARCHREQ:REQ-TRANS-001]]
-- 製品コード: 実装API未記載
-- テスト仕様: [[TESTSPEC:TEST-UNIT-025]]、[[TESTSPEC:TEST-UNIT-026]]、[[TESTSPEC:TEST-UNIT-027]]、[[TESTSPEC:TEST-UNIT-028]]、[[TESTSPEC:TEST-UNIT-029]]、[[TESTSPEC:TEST-UNIT-030]]、[[TESTSPEC:TEST-UNIT-031]]、[[TESTSPEC:TEST-UNIT-032]]
+- 製品コード: [[API:transform.AngleTransformer.transform]]
+- テスト仕様: [[TESTSPEC:TEST-UNIT-025]]
 
 #### REQ-TRANS-002（AoA/AoSから実軸角への変換）
 
@@ -199,7 +199,7 @@ $$
 **関連成果物**
 
 - アーキテクチャ設計: [[ARCHREQ:REQ-TRANS-002]]
-- 製品コード: 実装API未記載
+- 製品コード: [[API:transform.AngleTransformer.transform]]、[[API:transform.AngleTransformer._generate_equivalent_solutions]]
 - テスト仕様: [[TESTSPEC:TEST-UNIT-025]]、[[TESTSPEC:TEST-UNIT-026]]、[[TESTSPEC:TEST-UNIT-027]]、[[TESTSPEC:TEST-UNIT-028]]、[[TESTSPEC:TEST-UNIT-029]]、[[TESTSPEC:TEST-UNIT-030]]、[[TESTSPEC:TEST-UNIT-031]]、[[TESTSPEC:TEST-UNIT-032]]、[[TESTSPEC:TEST-UNIT-040]]、[[TESTSPEC:TEST-UNIT-060]]
 
 #### REQ-TRANS-003（解の選択）
@@ -214,7 +214,7 @@ $$
 **関連成果物**
 
 - アーキテクチャ設計: [[ARCHREQ:REQ-TRANS-003]]
-- 製品コード: 実装API未記載
+- 製品コード: [[API:transform.AngleTransformer._select_solution]]
 - テスト仕様: [[TESTSPEC:TEST-UNIT-036]]、[[TESTSPEC:TEST-UNIT-037]]、[[TESTSPEC:TEST-UNIT-038]]、[[TESTSPEC:TEST-UNIT-039]]、[[TESTSPEC:TEST-UNIT-040]]
 
 #### REQ-TRANS-004（角度の連続性）
@@ -226,7 +226,7 @@ $$
 **関連成果物**
 
 - アーキテクチャ設計: [[ARCHREQ:REQ-TRANS-004]]
-- 製品コード: 実装API未記載
+- 製品コード: [[API:transform.AngleTransformer._unwrap_angle]]
 - テスト仕様: [[TESTSPEC:TEST-UNIT-033]]、[[TESTSPEC:TEST-UNIT-034]]、[[TESTSPEC:TEST-UNIT-035]]、[[TESTSPEC:TEST-UNIT-064]]
 
 #### REQ-POS-001（先端位置補正）
@@ -260,7 +260,7 @@ $$
 **関連成果物**
 
 - アーキテクチャ設計: [[ARCHREQ:REQ-POS-001]]
-- 製品コード: 実装API未記載
+- 製品コード: [[API:positioning.PositionCompensator.calculate_xy]]
 - テスト仕様: [[TESTSPEC:TEST-UNIT-041]]、[[TESTSPEC:TEST-UNIT-042]]、[[TESTSPEC:TEST-UNIT-043]]、[[TESTSPEC:TEST-UNIT-044]]、[[TESTSPEC:TEST-UNIT-045]]、[[TESTSPEC:TEST-UNIT-060]]、[[TESTSPEC:TEST-UNIT-065]]
 
 #### REQ-POS-002（ロールによる位置変化）
@@ -272,8 +272,8 @@ $$
 **関連成果物**
 
 - アーキテクチャ設計: [[ARCHREQ:REQ-POS-002]]
-- 製品コード: 実装API未記載
-- テスト仕様: 
+- 製品コード: [[API:positioning.PositionCompensator.calculate_xy]]
+- テスト仕様: [[TESTSPEC:TEST-UNIT-046]]
 
 #### REQ-LIMIT-001（並進軸の飽和）
 
@@ -284,8 +284,8 @@ X/Yの飽和が発生しても、Z/Aが可動範囲内であればシミュレ�
 **関連成果物**
 
 - アーキテクチャ設計: [[ARCHREQ:REQ-LIMIT-001]]
-- 製品コード: 実装API未記載
-- テスト仕様: [[TESTSPEC:TEST-UNIT-047]]、[[TESTSPEC:TEST-UNIT-048]]、[[TESTSPEC:TEST-UNIT-049]]、[[TESTSPEC:TEST-UNIT-050]]、[[TESTSPEC:TEST-UNIT-051]]、[[TESTSPEC:TEST-UNIT-058]]、[[TESTSPEC:TEST-UNIT-059]]、[[TESTSPEC:TEST-UNIT-063]]、[[TESTSPEC:TEST-UNIT-065]]、[[TESTSPEC:TEST-UNIT-075]]、[[TESTSPEC:TEST-UNIT-087]]、[[TESTSPEC:TEST-UNIT-125]]
+- 製品コード: [[API:limits.LimitEvaluator.evaluate]]、[[API:limits.LimitEvaluator._saturate_translation]]
+- テスト仕様: [[TESTSPEC:TEST-UNIT-047]]、[[TESTSPEC:TEST-UNIT-048]]、[[TESTSPEC:TEST-UNIT-049]]、[[TESTSPEC:TEST-UNIT-050]]、[[TESTSPEC:TEST-UNIT-051]]、[[TESTSPEC:TEST-UNIT-058]]、[[TESTSPEC:TEST-UNIT-063]]、[[TESTSPEC:TEST-UNIT-065]]、[[TESTSPEC:TEST-UNIT-075]]、[[TESTSPEC:TEST-UNIT-087]]、[[TESTSPEC:TEST-UNIT-091]]、[[TESTSPEC:TEST-UNIT-125]]
 
 #### REQ-LIMIT-002（並進軸の飽和警告）
 
@@ -294,7 +294,7 @@ X/Yの飽和が発生した場合、ソフトウェアは非モーダルな警�
 **関連成果物**
 
 - アーキテクチャ設計: [[ARCHREQ:REQ-LIMIT-002]]
-- 製品コード: 実装API未記載
+- 製品コード: [[API:limits.LimitEvaluator.evaluate]]、[[API:calibration_service.CalibrationService.build_plan]]、[[API:gui.MainWindow._update_plan_status]]
 - テスト仕様: [[TESTSPEC:TEST-UNIT-052]]、[[TESTSPEC:TEST-UNIT-053]]、[[TESTSPEC:TEST-UNIT-061]]、[[TESTSPEC:TEST-UNIT-063]]、[[TESTSPEC:TEST-UNIT-103]]
 
 #### REQ-LIMIT-003（回転軸の範囲超過）
@@ -308,8 +308,8 @@ Z/Aのいずれかが可動範囲を超える較正点が1点でも存在する�
 **関連成果物**
 
 - アーキテクチャ設計: [[ARCHREQ:REQ-LIMIT-003]]
-- 製品コード: 実装API未記載
-- テスト仕様: [[TESTSPEC:TEST-UNIT-054]]、[[TESTSPEC:TEST-UNIT-055]]、[[TESTSPEC:TEST-UNIT-056]]、[[TESTSPEC:TEST-UNIT-057]]、[[TESTSPEC:TEST-UNIT-059]]、[[TESTSPEC:TEST-UNIT-062]]、[[TESTSPEC:TEST-UNIT-088]]、[[TESTSPEC:TEST-UNIT-092]]、[[TESTSPEC:TEST-UNIT-104]]、[[TESTSPEC:TEST-UNIT-125]]
+- 製品コード: [[API:limits.LimitEvaluator.evaluate]]、[[API:limits.LimitEvaluator._rotation_in_range]]、[[API:controller.CalibrationController.can_generate]]、[[API:gui.MainWindow._update_plan_status]]
+- テスト仕様: [[TESTSPEC:TEST-UNIT-054]]、[[TESTSPEC:TEST-UNIT-055]]、[[TESTSPEC:TEST-UNIT-056]]、[[TESTSPEC:TEST-UNIT-057]]、[[TESTSPEC:TEST-UNIT-058]]、[[TESTSPEC:TEST-UNIT-059]]、[[TESTSPEC:TEST-UNIT-062]]、[[TESTSPEC:TEST-UNIT-088]]、[[TESTSPEC:TEST-UNIT-092]]、[[TESTSPEC:TEST-UNIT-125]]、[[TESTSPEC:TEST-UNIT-104]]
 
 #### REQ-SCAN-001（較正点生成）
 
@@ -320,7 +320,7 @@ Z/Aのいずれかが可動範囲を超える較正点が1点でも存在する�
 **関連成果物**
 
 - アーキテクチャ設計: [[ARCHREQ:REQ-SCAN-001]]
-- 製品コード: 実装API未記載
+- 製品コード: [[API:scan.ScanPlanner.generate_points]]、[[API:controller.CalibrationController.on_settings_changed]]
 - テスト仕様: [[TESTSPEC:TEST-UNIT-017]]、[[TESTSPEC:TEST-UNIT-018]]、[[TESTSPEC:TEST-UNIT-019]]、[[TESTSPEC:TEST-UNIT-023]]、[[TESTSPEC:TEST-UNIT-024]]、[[TESTSPEC:TEST-UNIT-060]]、[[TESTSPEC:TEST-UNIT-084]]
 
 #### REQ-SCAN-002（基本走査）
@@ -330,7 +330,7 @@ Z/Aのいずれかが可動範囲を超える較正点が1点でも存在する�
 **関連成果物**
 
 - アーキテクチャ設計: [[ARCHREQ:REQ-SCAN-002]]
-- 製品コード: 実装API未記載
+- 製品コード: [[API:scan.ScanPlanner.generate_points]]
 - テスト仕様: [[TESTSPEC:TEST-UNIT-020]]、[[TESTSPEC:TEST-UNIT-024]]、[[TESTSPEC:TEST-UNIT-064]]
 
 #### REQ-SCAN-003（蛇行走査）
@@ -342,7 +342,7 @@ Z/Aのいずれかが可動範囲を超える較正点が1点でも存在する�
 **関連成果物**
 
 - アーキテクチャ設計: [[ARCHREQ:REQ-SCAN-003]]
-- 製品コード: 実装API未記載
+- 製品コード: [[API:scan.ScanPlanner.generate_points]]
 - テスト仕様: [[TESTSPEC:TEST-UNIT-021]]、[[TESTSPEC:TEST-UNIT-022]]、[[TESTSPEC:TEST-UNIT-064]]
 
 #### REQ-GCODE-001（ファイル形式）
@@ -352,7 +352,7 @@ Gコードは`.nc`形式で保存できなければならない。保存先と�
 **関連成果物**
 
 - アーキテクチャ設計: [[ARCHREQ:REQ-GCODE-001]]
-- 製品コード: 実装API未記載
+- 製品コード: [[API:repositories.GCodeRepository.save]]、[[API:gui.MainWindow._on_generate_gcode]]
 - テスト仕様: [[TESTSPEC:TEST-UNIT-082]]、[[TESTSPEC:TEST-UNIT-083]]、[[TESTSPEC:TEST-UNIT-110]]
 
 #### REQ-GCODE-002（ヘッダ）
@@ -376,7 +376,7 @@ G94
 **関連成果物**
 
 - アーキテクチャ設計: [[ARCHREQ:REQ-GCODE-002]]
-- 製品コード: 実装API未記載
+- 製品コード: [[API:gcode.GCodeGenerator._format_header]]
 - テスト仕様: [[TESTSPEC:TEST-UNIT-066]]、[[TESTSPEC:TEST-UNIT-067]]
 
 #### REQ-GCODE-003（較正点指令）
@@ -395,7 +395,7 @@ G04 P3.000000
 **関連成果物**
 
 - アーキテクチャ設計: [[ARCHREQ:REQ-GCODE-003]]
-- 製品コード: 実装API未記載
+- 製品コード: [[API:gcode.GCodeGenerator._format_point]]
 - テスト仕様: [[TESTSPEC:TEST-UNIT-068]]、[[TESTSPEC:TEST-UNIT-069]]、[[TESTSPEC:TEST-UNIT-070]]、[[TESTSPEC:TEST-UNIT-071]]、[[TESTSPEC:TEST-UNIT-075]]
 
 #### REQ-GCODE-004（コメント）
@@ -405,7 +405,7 @@ G04 P3.000000
 **関連成果物**
 
 - アーキテクチャ設計: [[ARCHREQ:REQ-GCODE-004]]
-- 製品コード: 実装API未記載
+- 製品コード: [[API:gcode.GCodeGenerator._format_point]]
 - テスト仕様: [[TESTSPEC:TEST-UNIT-072]]、[[TESTSPEC:TEST-UNIT-073]]
 
 #### REQ-GCODE-005（終了位置）
@@ -417,8 +417,8 @@ Gコードの終了時は、最終較正点に留まるものとし、原点復�
 **関連成果物**
 
 - アーキテクチャ設計: [[ARCHREQ:REQ-GCODE-005]]
-- 製品コード: 実装API未記載
-- テスト仕様: 
+- 製品コード: [[API:gcode.GCodeGenerator.generate]]
+- テスト仕様: [[TESTSPEC:TEST-UNIT-074]]
 
 #### REQ-SIM-001（任意実行）
 
@@ -427,8 +427,8 @@ Gコードの終了時は、最終較正点に留まるものとし、原点復�
 **関連成果物**
 
 - アーキテクチャ設計: [[ARCHREQ:REQ-SIM-001]]
-- 製品コード: 実装API未記載
-- テスト仕様: 
+- 製品コード: [[API:gui.MainWindow._on_simulate]]、[[API:controller.CalibrationController.can_generate]]
+- テスト仕様: [[TESTSPEC:TEST-UNIT-109]]
 
 #### REQ-SIM-002（再生時間）
 
@@ -437,7 +437,7 @@ Gコードの終了時は、最終較正点に留まるものとし、原点復�
 **関連成果物**
 
 - アーキテクチャ設計: [[ARCHREQ:REQ-SIM-002]]
-- 製品コード: 実装API未記載
+- 製品コード: [[API:simulation.SimulationController.start]]、[[API:simulation.SimulationController._frame_at]]、[[API:simulation.SimulationView.start_animation]]
 - テスト仕様: [[TESTSPEC:TEST-UNIT-093]]、[[TESTSPEC:TEST-UNIT-094]]、[[TESTSPEC:TEST-UNIT-095]]、[[TESTSPEC:TEST-UNIT-096]]
 
 #### REQ-SIM-003（表示）
@@ -452,7 +452,7 @@ Gコードの終了時は、最終較正点に留まるものとし、原点復�
 **関連成果物**
 
 - アーキテクチャ設計: [[ARCHREQ:REQ-SIM-003]]
-- 製品コード: 実装API未記載
+- 製品コード: [[API:simulation.SimulationView.initialize]]、[[API:simulation.SimulationView._calculate_side_limits]]、[[API:simulation.SimulationView._configure_side_axes]]、[[API:simulation.SimulationView._configure_front_axes]]、[[API:simulation.SimulationView.render_frame]]
 - テスト仕様: [[TESTSPEC:TEST-UNIT-097]]、[[TESTSPEC:TEST-UNIT-098]]
 
 #### REQ-SIM-004（状態表示）
@@ -462,8 +462,8 @@ Gコードの終了時は、最終較正点に留まるものとし、原点復�
 **関連成果物**
 
 - アーキテクチャ設計: [[ARCHREQ:REQ-SIM-004]]
-- 製品コード: 実装API未記載
-- テスト仕様: 
+- 製品コード: [[API:simulation.SimulationView.render_frame]]
+- テスト仕様: [[TESTSPEC:TEST-UNIT-099]]
 
 #### REQ-SIM-005（較正点マップ表示）
 
@@ -472,8 +472,8 @@ Gコードの終了時は、最終較正点に留まるものとし、原点復�
 **関連成果物**
 
 - アーキテクチャ設計: [[ARCHREQ:REQ-SIM-005]]
-- 製品コード: 実装API未記載
-- テスト仕様: 
+- 製品コード: [[API:simulation.SimulationView.initialize]]、[[API:simulation.SimulationView._calculate_calibration_limits]]、[[API:simulation.SimulationView._configure_calibration_axes]]、[[API:simulation.SimulationView._draw_calibration_map]]
+- テスト仕様: [[TESTSPEC:TEST-UNIT-122]]
 
 #### REQ-SIM-006（現在較正点の強調表示）
 
@@ -486,8 +486,8 @@ Gコードの終了時は、最終較正点に留まるものとし、原点復�
 **関連成果物**
 
 - アーキテクチャ設計: [[ARCHREQ:REQ-SIM-006]]
-- 製品コード: 実装API未記載
-- テスト仕様: 
+- 製品コード: [[API:simulation.SimulationView.render_frame]]、[[API:simulation.SimulationView._update_current_calibration_point]]
+- テスト仕様: [[TESTSPEC:TEST-UNIT-123]]
 
 #### REQ-SIM-007（再生開始）
 
@@ -510,8 +510,8 @@ Gコードの終了時は、最終較正点に留まるものとし、原点復�
 **関連成果物**
 
 - アーキテクチャ設計: [[ARCHREQ:REQ-SIM-008]]
-- 製品コード: 実装API未記載
-- テスト仕様: 
+- 製品コード: [[API:simulation.SimulationController.pause]]、[[API:simulation.SimulationView._on_play_pause]]、[[API:simulation.SimulationView.set_playback_state]]
+- テスト仕様: [[TESTSPEC:TEST-UNIT-127]]
 
 #### REQ-SIM-009（再生再開）
 
@@ -522,7 +522,7 @@ Gコードの終了時は、最終較正点に留まるものとし、原点復�
 **関連成果物**
 
 - アーキテクチャ設計: [[ARCHREQ:REQ-SIM-009]]
-- 製品コード: 実装API未記載
+- 製品コード: [[API:simulation.SimulationController.resume]]、[[API:simulation.SimulationController.restart_from_beginning]]
 - テスト仕様: [[TESTSPEC:TEST-UNIT-128]]、[[TESTSPEC:TEST-UNIT-133]]
 
 #### REQ-SIM-010（シーク）
@@ -534,8 +534,8 @@ Gコードの終了時は、最終較正点に留まるものとし、原点復�
 **関連成果物**
 
 - アーキテクチャ設計: [[ARCHREQ:REQ-SIM-010]]
-- 製品コード: 実装API未記載
-- テスト仕様: 
+- 製品コード: [[API:simulation.SimulationView._on_seek]]、[[API:simulation.SimulationController.seek_to_point]]
+- テスト仕様: [[TESTSPEC:TEST-UNIT-129]]
 
 #### REQ-SIM-011（シーク時の自動一時停止）
 
@@ -546,8 +546,8 @@ Gコードの終了時は、最終較正点に留まるものとし、原点復�
 **関連成果物**
 
 - アーキテクチャ設計: [[ARCHREQ:REQ-SIM-011]]
-- 製品コード: 実装API未記載
-- テスト仕様: 
+- 製品コード: [[API:simulation.SimulationController.pause]]、[[API:simulation.SimulationView._on_seek]]
+- テスト仕様: [[TESTSPEC:TEST-UNIT-130]]
 
 #### REQ-SIM-012（シーク位置の即時反映）
 
@@ -564,8 +564,8 @@ Gコードの終了時は、最終較正点に留まるものとし、原点復�
 **関連成果物**
 
 - アーキテクチャ設計: [[ARCHREQ:REQ-SIM-012]]
-- 製品コード: 実装API未記載
-- テスト仕様: 
+- 製品コード: [[API:simulation.SimulationController.seek_to_point]]、[[API:simulation.SimulationView.render_frame]]、[[API:simulation.SimulationView._update_seek_bar]]
+- テスト仕様: [[TESTSPEC:TEST-UNIT-131]]
 
 #### REQ-SIM-013（再生完了）
 
@@ -578,8 +578,8 @@ Gコードの終了時は、最終較正点に留まるものとし、原点復�
 **関連成果物**
 
 - アーキテクチャ設計: [[ARCHREQ:REQ-SIM-013]]
-- 製品コード: 実装API未記載
-- テスト仕様: 
+- 製品コード: [[API:simulation.SimulationController.on_animation_complete]]、[[API:simulation.SimulationView.show_final_state]]
+- テスト仕様: [[TESTSPEC:TEST-UNIT-132]]
 
 #### REQ-SIM-014（既存プログレスバーの置換）
 
@@ -592,7 +592,7 @@ Gコードの終了時は、最終較正点に留まるものとし、原点復�
 **関連成果物**
 
 - アーキテクチャ設計: [[ARCHREQ:REQ-SIM-014]]
-- 製品コード: 実装API未記載
+- 製品コード: [[API:simulation.SimulationView.initialize]]、[[API:simulation.SimulationView._update_seek_bar]]
 - テスト仕様: [[TESTSPEC:TEST-UNIT-134]]、[[TESTSPEC:TEST-UNIT-136]]
 
 #### REQ-SIM-015（シークバー操作性）
@@ -606,8 +606,8 @@ Gコードの終了時は、最終較正点に留まるものとし、原点復�
 **関連成果物**
 
 - アーキテクチャ設計: [[ARCHREQ:REQ-SIM-015]]
-- 製品コード: 実装API未記載
-- テスト仕様: 
+- 製品コード: [[API:simulation.SimulationView.initialize]]、[[API:simulation.SimulationView._on_seek]]
+- テスト仕様: [[TESTSPEC:TEST-UNIT-134]]
 
 #### REQ-SIM-016（操作ボタン表示）
 
@@ -628,8 +628,8 @@ Gコードの終了時は、最終較正点に留まるものとし、原点復�
 **関連成果物**
 
 - アーキテクチャ設計: [[ARCHREQ:REQ-SIM-016]]
-- 製品コード: 実装API未記載
-- テスト仕様: 
+- 製品コード: [[API:simulation.SimulationView.set_playback_state]]、[[API:simulation.SimulationView._on_play_pause]]
+- テスト仕様: [[TESTSPEC:TEST-UNIT-135]]
 
 #### REQ-GUI-001（言語）
 
@@ -638,8 +638,8 @@ GUIの表示言語は日本語とする。ただし、軸名、単位、AoA、Ao
 **関連成果物**
 
 - アーキテクチャ設計: [[ARCHREQ:REQ-GUI-001]]
-- 製品コード: 実装API未記載
-- テスト仕様: [[TESTSPEC:TEST-UNIT-100]]、[[TESTSPEC:TEST-UNIT-124]]
+- 製品コード: [[API:gui.MainWindow._build_widgets]]、[[API:map_view.CalibrationMapView._configure_matplotlib_font]]、[[API:simulation.SimulationView._configure_matplotlib_font]]
+- テスト仕様: [[TESTSPEC:TEST-UNIT-124]]、[[TESTSPEC:TEST-UNIT-100]]
 
 #### REQ-GUI-002（較正点マップ）
 
@@ -650,7 +650,7 @@ X/Y飽和点は通常点と異なる表示とし、Z/A可動範囲超過点は�
 **関連成果物**
 
 - アーキテクチャ設計: [[ARCHREQ:REQ-GUI-002]]
-- 製品コード: 実装API未記載
+- 製品コード: [[API:map_view.CalibrationMapView.render]]
 - テスト仕様: [[TESTSPEC:TEST-UNIT-090]]、[[TESTSPEC:TEST-UNIT-091]]、[[TESTSPEC:TEST-UNIT-092]]、[[TESTSPEC:TEST-UNIT-125]]
 
 #### REQ-GUI-003（設定ファイル）
@@ -666,8 +666,8 @@ X/Y飽和点は通常点と異なる表示とし、Z/A可動範囲超過点は�
 **関連成果物**
 
 - アーキテクチャ設計: [[ARCHREQ:REQ-GUI-003]]
-- 製品コード: 実装API未記載
-- テスト仕様: [[TESTSPEC:TEST-UNIT-076]]、[[TESTSPEC:TEST-UNIT-077]]、[[TESTSPEC:TEST-UNIT-078]]、[[TESTSPEC:TEST-UNIT-079]]、[[TESTSPEC:TEST-UNIT-089]]、[[TESTSPEC:TEST-UNIT-107]]、[[TESTSPEC:TEST-UNIT-108]]、[[TESTSPEC:TEST-UNIT-117]]、[[TESTSPEC:TEST-UNIT-118]]、[[TESTSPEC:TEST-UNIT-119]]、[[TESTSPEC:TEST-UNIT-120]]、[[TESTSPEC:TEST-UNIT-121]]
+- 製品コード: [[API:gui.MainWindow._on_save_settings]]、[[API:gui.MainWindow._on_load_settings]]、[[API:repositories.SettingsRepository.save/load]]
+- テスト仕様: [[TESTSPEC:TEST-UNIT-076]]、[[TESTSPEC:TEST-UNIT-077]]、[[TESTSPEC:TEST-UNIT-078]]、[[TESTSPEC:TEST-UNIT-079]]、[[TESTSPEC:TEST-UNIT-117]]、[[TESTSPEC:TEST-UNIT-118]]、[[TESTSPEC:TEST-UNIT-119]]、[[TESTSPEC:TEST-UNIT-120]]、[[TESTSPEC:TEST-UNIT-089]]、[[TESTSPEC:TEST-UNIT-107]]、[[TESTSPEC:TEST-UNIT-108]]、[[TESTSPEC:TEST-UNIT-121]]
 
 #### REQ-GUI-004（操作ボタン）
 
@@ -681,7 +681,7 @@ GUIには少なくとも以下の操作ボタンを設ける。
 **関連成果物**
 
 - アーキテクチャ設計: [[ARCHREQ:REQ-GUI-004]]
-- 製品コード: 実装API未記載
+- 製品コード: [[API:gui.MainWindow._build_widgets]]
 - テスト仕様: [[TESTSPEC:TEST-UNIT-100]]、[[TESTSPEC:TEST-UNIT-107]]、[[TESTSPEC:TEST-UNIT-108]]、[[TESTSPEC:TEST-UNIT-109]]、[[TESTSPEC:TEST-UNIT-110]]
 
 #### REQ-GUI-005（エラー・警告表示）
@@ -727,5 +727,5 @@ GUIには少なくとも以下の操作ボタンを設ける。
 **関連成果物**
 
 - アーキテクチャ設計: [[ARCHREQ:REQ-GUI-005]]
-- 製品コード: 実装API未記載
+- 製品コード: [[API:gui.MainWindow._on_gui_input_changed]]、[[API:gui.MainWindow._apply_validation_highlights]]、[[API:gui.MainWindow._update_validation_display]]、[[API:gui.MainWindow._update_plan_status]]、[[API:gui.MainWindow._update_action_state]]、[[API:controller.CalibrationController.can_generate]]
 - テスト仕様: [[TESTSPEC:TEST-UNIT-101]]、[[TESTSPEC:TEST-UNIT-102]]、[[TESTSPEC:TEST-UNIT-103]]、[[TESTSPEC:TEST-UNIT-104]]、[[TESTSPEC:TEST-UNIT-105]]、[[TESTSPEC:TEST-UNIT-121]]
