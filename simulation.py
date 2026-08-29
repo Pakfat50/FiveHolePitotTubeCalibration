@@ -33,7 +33,7 @@ class SimulationController:
 
         Args:
             plan: 再生対象の較正計画。
-            duration_s: シミュレーション全体の再生時間[s]。
+            duration_s: シミュレーション全体の再生時間[s]
 
         対応要求:
             REQ-SIM-001, REQ-SIM-002, REQ-SIM-007
@@ -507,7 +507,7 @@ class SimulationView:
 
         Args:
             plan: 再生対象の較正計画。
-            duration_s: シミュレーション全体の再生時間[s]。
+            duration_s: シミュレーション全体の再生時間[s]
             frame_provider: 正規化進捗から現在点を返す関数。
             on_complete: 最終フレーム到達時に呼び出すコールバック。
 
@@ -771,7 +771,7 @@ Returns:
 
 Args:
     plan: 再生対象の較正計画。
-    duration_s: シミュレーション全体の再生時間[s]。
+    duration_s: シミュレーション全体の再生時間[s]
     frame_provider: 正規化進捗から現在点を返す関数。
     on_complete: 最終フレーム到達時のコールバック。
 
