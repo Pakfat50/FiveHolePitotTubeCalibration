@@ -75,8 +75,6 @@ class MainWindow:
     def _build_widgets(self) -> None:
         """日本語入力欄、較正点マップ、状態表示領域、操作ボタンを構築する。"""
         self.root.title("5孔ピトー管 較正Gコード生成")
-        self.root.geometry("1180x780")
-        self.root.minsize(960, 680)
         self._configure_validation_styles()
         self.main_frame = ttk.Frame(self.root, padding=10)
         self.main_frame.pack(fill="both", expand=True)
