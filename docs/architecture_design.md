@@ -182,23 +182,44 @@ sequenceDiagram
     participant Controller as CalibrationController
     participant SimController as SimulationController
     participant SimView as SimulationView
+
     User->>MainWindow: シミュレーション
     MainWindow->>Controller: get_current_plan()
     Controller-->>MainWindow: CalibrationPlan
     MainWindow->>SimController: start(plan, duration=10s)
     SimController->>SimView: initialize(plan)
-    Note over SimView: 横面図・正面図・全較正点マップ・状態領域を初期化
+    Note over SimView: 横面図・正面図・全較正点マップ・状態領域・操作部品を初期化
     SimController->>SimView: start_animation(plan, duration, frame_provider)
+    SimView->>SimView: 再生状態を再生中へ設定
     loop Matplotlibアニメーションの各フレーム
         SimView->>SimController: frame_provider(progress)
         SimController->>SimController: _frame_at(plan, progress)
         SimController-->>SimView: PointEvaluation
         SimView->>SimView: render_frame(point, progress)
-        SimView->>SimView: 横面図・正面図を更新
-        SimView->>SimView: 較正点マップの現在点色を更新
-        SimView->>SimView: 状態・進捗を更新
+        SimView->>SimView: シークバーと進捗表示を更新
     end
-    SimView->>SimView: show_final_state()
+    SimView->>SimController: on_animation_complete()
+    SimController->>SimView: show_final_state()
+    SimController->>SimView: set_playback_state(completed)
+
+    User->>SimView: 一時停止ボタン
+    SimView->>SimController: pause()
+    SimController->>SimView: set_playback_state(paused)
+
+    User->>SimView: 再生ボタン
+    SimView->>SimController: resume()
+    SimController->>SimView: set_playback_state(playing)
+
+    User->>SimView: シークバーをドラッグ開始
+    SimView->>SimController: pause()
+    SimView->>SimController: seek_to_point(point_index)
+    SimController->>SimView: render_frame(point, progress)
+    SimController->>SimView: set_playback_state(paused)
+
+    User->>SimView: 最終位置で再生ボタン
+    SimView->>SimController: restart_from_beginning()
+    SimController->>SimView: render_frame(first_point, 0.0)
+    SimController->>SimView: set_playback_state(playing)
 ```
 
 ## 3.6 UC-06 Gコードを生成する
@@ -364,13 +385,24 @@ classDiagram
     }
     class SimulationController {
         +start(plan, duration_s)
+        +pause()
+        +resume()
+        +seek_to_point(point_index)
+        +restart_from_beginning()
+        +on_animation_complete()
         -_frame_at(plan, progress)
+        -_set_playback_state(state)
     }
     class SimulationView {
         +initialize(plan)
         +start_animation(plan, duration_s, frame_provider)
         +render_frame(point, progress)
         +show_final_state()
+        +set_playback_state(state)
+        -_on_seek(point_index)
+        -_on_play_pause()
+        -_update_seek_bar(point_index)
+        -_update_playback_button(state)
         -_configure_matplotlib_font()
         -_calculate_side_limits(plan)
         -_calculate_calibration_limits(plan)
@@ -576,7 +608,7 @@ flowchart TB
 | `gcode.py` | Gコード生成 | `GCodeGenerator.generate()` | 初期化コード、`$H`, `G21`, `G90`, `G94`, `G01 ... F...`, `G04`、任意コメントを文字列化する |
 | `repositories.py` | ファイル入出力 | `SettingsRepository`, `InitializationGCodeRepository`, `GCodeRepository` | CSV設定、初期化Gコード、`.nc`ファイルの読み書きを担当する。CSV読込時の欠損・空欄・型変換・I/Oエラーを防御的に処理する |
 | `map_view.py` | 較正点マップ表示 | `CalibrationMapView` | メインGUIでAoA/AoS点列と警告・エラー状態を表示し、日本語対応フォントがない環境では英語表示へフォールバックする |
-| `simulation.py` | 動作シミュレーション | `SimulationController`, `SimulationView` | 約10秒の再生、横面図・正面図、全較正点マップ、現在点強調、現在点・軸値・進捗を表示し、Matplotlibのアニメーションと日本語フォントフォールバックを管理する |
+| `simulation.py` | 動作シミュレーション | `SimulationController`, `SimulationView` | 約10秒の再生、再生/一時停止、較正点単位のシーク、最終点停止、横面図・正面図、全較正点マップ、現在点強調、現在点・軸値・進捗を表示し、Matplotlibのアニメーションと日本語フォントフォールバックを管理する |
 | `gui.py` | GUI | `MainWindow` | Tkinter画面、入力フィールド、背景色による入力エラー強調、固定メッセージ領域、ボタン制御、ファイルダイアログを提供する |
 | `main.py` | エントリポイント | `main()` | アプリケーションを初期化してGUIを起動する |
 
@@ -663,13 +695,23 @@ stateDiagram-v2
     GenerationBlocked --> Recalculating: 入力変更
     Ready --> Simulating: シミュレーション
     ReadyWithWarning --> Simulating: シミュレーション
-    Simulating --> Ready: 再生終了/停止 かつ 警告なし
-    Simulating --> ReadyWithWarning: 再生終了/停止 かつ X/Y警告あり
+    Simulating --> Playing: 初期化完了
+    Playing --> Paused: 一時停止
+    Playing --> Paused: シーク操作開始
+    Paused --> Paused: 較正点シーク
+    Paused --> Playing: 再生
+    Playing --> Completed: 最終点到達
+    Completed --> Playing: 再生（先頭へ戻る）
+    Completed --> Paused: シーク
+    Playing --> Ready: 停止/画面終了
+    Paused --> Ready: 停止/画面終了
+    Completed --> Ready: 画面終了
     Ready --> SavingGCode: Gコード生成
     ReadyWithWarning --> SavingGCode: Gコード生成
     SavingGCode --> Ready: 保存終了 かつ 警告なし
     SavingGCode --> ReadyWithWarning: 保存終了 かつ X/Y警告あり
 ```
+
 
 ## 9.1 状態別GUI動作
 
@@ -681,6 +723,9 @@ stateDiagram-v2
 | ReadyWithWarning | 表示可 | 有効 | 有効 | X/Y飽和警告・最大偏差 |
 | Ready | 表示可 | 有効 | 有効 | 正常 |
 | Simulating | メインGUI表示可、シミュレーション画面では現在点を色で強調 | 実行中 | 原則無効 | 横面図・正面図・較正点マップ・進捗・現在点 |
+| Playing | 現在点を色で強調 | 再生中 | 原則無効 | シークバー、現在点、Ⅱボタン |
+| Paused | 現在点を色で強調 | 一時停止中 | 原則無効 | シークバー、現在点、▶ボタン |
+| Completed | 最終点を色で強調 | 最終位置で停止 | 原則無効 | シークバー最終位置、▶ボタン |
 | SavingGCode | 表示可 | 原則無効 | 実行中 | 保存状態 |
 
 ---
@@ -744,6 +789,16 @@ stateDiagram-v2
 | REQ-SIM-004 | `SimulationView.render_frame` | 点番号、AoA/AoS、X/Y/Z/A、状態、進捗 |
 | REQ-SIM-005 | `SimulationView.initialize`, `SimulationView._calculate_calibration_limits`, `SimulationView._configure_calibration_axes`, `SimulationView._draw_calibration_map` | シミュレーション用AoA/AoS全点マップ |
 | REQ-SIM-006 | `SimulationView.render_frame`, `SimulationView._update_current_calibration_point` | 現在点を別色で同期更新、凡例・文字注記なし |
+| REQ-SIM-007 | `SimulationController.start`, `SimulationView.start_animation`, `SimulationView._update_playback_button` | 先頭から再生を開始し、再生中はⅡボタンを表示 |
+| REQ-SIM-008 | `SimulationController.pause`, `SimulationView._on_play_pause`, `SimulationView._update_playback_button` | 現在点を保持して一時停止し、▶ボタンを表示 |
+| REQ-SIM-009 | `SimulationController.resume`, `SimulationController.restart_from_beginning` | 一時停止中は現在位置から、最終位置では先頭から再生 |
+| REQ-SIM-010 | `SimulationView._on_seek`, `SimulationController.seek_to_point` | 較正点単位のシーク |
+| REQ-SIM-011 | `SimulationView._on_seek`, `SimulationController.pause` | 再生中のシーク開始時に自動一時停止 |
+| REQ-SIM-012 | `SimulationController.seek_to_point`, `SimulationView.render_frame`, `SimulationView._update_seek_bar` | シーク位置を全表示へ即時反映 |
+| REQ-SIM-013 | `SimulationController.on_animation_complete`, `SimulationView.show_final_state` | 最終点で停止し、自動ループしない |
+| REQ-SIM-014 | `SimulationView.initialize`, `SimulationView._update_seek_bar` | 既存プログレスバーをシークバーへ置換 |
+| REQ-SIM-015 | `SimulationView.initialize`, `SimulationView._on_seek` | 大きなつまみ、ドラッグ、較正点単位操作 |
+| REQ-SIM-016 | `SimulationView._update_playback_button`, `SimulationView._on_play_pause` | 状態に応じたⅡ/▶ボタン表示と操作 |
 
 ## 10.6 GUI
 
@@ -777,11 +832,21 @@ stateDiagram-v2
 | repositories | `InitializationGCodeRepository.load` | path | text | ファイルI/O |
 | repositories | `GCodeRepository.save` | path/text | None | ファイルI/O |
 | controller | `CalibrationController.on_settings_changed` | GUI入力 | 状態更新 | 内部状態更新 |
-| simulation | `SimulationController.start` | plan, duration | None | View初期化・アニメーション開始 |
+| simulation | `SimulationController.start` | plan, duration | None | View初期化・アニメーション開始、再生状態初期化 |
+| simulation | `SimulationController.pause` | なし | None | アニメーションタイマー停止、状態をPausedへ更新 |
+| simulation | `SimulationController.resume` | なし | None | 現在位置からアニメーション再開 |
+| simulation | `SimulationController.seek_to_point` | point_index | None | 指定点を範囲内へ補正し、Viewへ即時描画 |
+| simulation | `SimulationController.restart_from_beginning` | なし | None | 先頭点へ移動し再生開始 |
+| simulation | `SimulationController.on_animation_complete` | なし | None | 最終点を保持し、状態をCompletedへ更新 |
 | simulation | `SimulationController._frame_at` | plan, progress | `PointEvaluation` | なし |
 | simulation | `SimulationView._configure_matplotlib_font` | 利用可能フォント | None | Matplotlib font設定 |
 | simulation | `SimulationView.initialize` | plan | None | 横面図・正面図・全較正点マップ・状態領域を初期化 |
 | simulation | `SimulationView.start_animation` | plan, duration, frame_provider | None | `FuncAnimation`生成・タイマー駆動 |
+| simulation | `SimulationView.set_playback_state` | state | None | ボタン表示・シーク操作状態を更新 |
+| simulation | `SimulationView._on_seek` | point_index | None | シーク開始時に一時停止し、Controllerへ点選択を通知 |
+| simulation | `SimulationView._on_play_pause` | なし | None | 再生/一時停止操作をControllerへ通知 |
+| simulation | `SimulationView._update_seek_bar` | point_index | None | シークバーを現在較正点へ同期 |
+| simulation | `SimulationView._update_playback_button` | state | None | 状態に応じⅡ/▶を表示 |
 | simulation | `SimulationView._calculate_side_limits` | plan | None | 横面図固定表示範囲を保持 |
 | simulation | `SimulationView._calculate_calibration_limits` | plan | None | 較正点マップ固定表示範囲を保持 |
 | simulation | `SimulationView.render_frame` | current point, progress | None | 3表示と状態を同一現在点で更新 |
