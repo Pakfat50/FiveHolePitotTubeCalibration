@@ -297,8 +297,13 @@ class TestSimulation(unittest.TestCase):
     # TEST-UNIT-126
     # Requirements: REQ-SIM-007
     def test_start_sets_playing_state_at_first_point(self):
-        """開始時に先頭点・再生中状態・一時停止ボタンが設定される。"""
-        self.controller.start(self.plan, duration_s=10.0)
+        """開始時に先頭点・再生中状態・一時停止ボタンが設定される。
+
+@test TEST-UNIT-126: 有効planの開始後に先頭インデックス、``playing`` 状態、状態通知を確認する。
+        @par 検証根拠
+        開始処理が再生位置と再生状態を初期化し、Viewのボタン表示制御へ伝達する経路を直接検証する。
+        @see REQ-SIM-007
+        """ self.controller.start(self.plan, duration_s=10.0)
         self.assertEqual("playing", self.controller.playback_state)
         self.assertEqual(0, self.controller.current_point_index)
         self.view.set_playback_state.assert_called_with("playing")
@@ -306,8 +311,11 @@ class TestSimulation(unittest.TestCase):
     # TEST-UNIT-127
     # Requirements: REQ-SIM-008
     def test_pause_stops_animation_and_keeps_current_point(self):
-        """一時停止で現在点を保持し、タイマーを停止する。"""
-        self.controller.start(self.plan, duration_s=10.0)
+        """一時停止で現在点を保持し、タイマーを停止する。
+
+@test TEST-UNIT-127: 現在点インデックスを保持して``pause()``が呼び出されることを確認する。
+        @see REQ-SIM-008
+        """ self.controller.start(self.plan, duration_s=10.0)
         self.controller.current_point_index = 2
         self.controller.pause()
         self.assertEqual("paused", self.controller.playback_state)
@@ -318,8 +326,11 @@ class TestSimulation(unittest.TestCase):
     # TEST-UNIT-128
     # Requirements: REQ-SIM-009
     def test_resume_restarts_from_current_point(self):
-        """一時停止から現在位置で再生を再開する。"""
-        self.controller.start(self.plan, duration_s=10.0)
+        """一時停止から現在位置で再生を再開する。
+
+@test TEST-UNIT-128: ``resume()``が現在位置でViewの再開処理を呼び出すことを確認する。
+        @see REQ-SIM-009
+        """ self.controller.start(self.plan, duration_s=10.0)
         self.controller.current_point_index = 2
         self.controller.pause()
         self.controller.resume()
@@ -330,8 +341,11 @@ class TestSimulation(unittest.TestCase):
     # TEST-UNIT-129
     # Requirements: REQ-SIM-010
     def test_seek_while_paused_selects_point(self):
-        """一時停止中のシークが指定点を保持する。"""
-        self.controller.start(self.plan, duration_s=10.0)
+        """一時停止中のシークが指定点を保持する。
+
+@test TEST-UNIT-129: 指定インデックス3が進捗0.75として描画されることを確認する。
+        @see REQ-SIM-010
+        """ self.controller.start(self.plan, duration_s=10.0)
         self.controller.pause()
         self.controller.seek_to_point(3)
         self.assertEqual("paused", self.controller.playback_state)
@@ -344,8 +358,11 @@ class TestSimulation(unittest.TestCase):
     # TEST-UNIT-130
     # Requirements: REQ-SIM-011
     def test_seek_while_playing_pauses_automatically(self):
-        """再生中のシーク開始で自動一時停止する。"""
-        self.controller.start(self.plan, duration_s=10.0)
+        """再生中のシーク開始で自動一時停止する。
+
+@test TEST-UNIT-130: シーク前にViewの停止処理が1回呼び出されることを確認する。
+        @see REQ-SIM-011
+        """ self.controller.start(self.plan, duration_s=10.0)
         self.controller.seek_to_point(3)
         self.assertEqual("paused", self.controller.playback_state)
         self.view.pause_animation.assert_called_once()
@@ -354,8 +371,11 @@ class TestSimulation(unittest.TestCase):
     # TEST-UNIT-131
     # Requirements: REQ-SIM-012
     def test_seek_renders_selected_point_immediately(self):
-        """シーク時に指定点の描画と進捗が即時更新される。"""
-        self.controller.start(self.plan, duration_s=10.0)
+        """シーク時に指定点の描画と進捗が即時更新される。
+
+@test TEST-UNIT-131: 最終点の描画と進捗1.0を確認する。
+        @see REQ-SIM-012
+        """ self.controller.start(self.plan, duration_s=10.0)
         self.view.reset_mock()
         self.controller.seek_to_point(4)
         self.view.render_frame.assert_called_once_with(self.points[4], 1.0)
@@ -363,8 +383,11 @@ class TestSimulation(unittest.TestCase):
     # TEST-UNIT-132
     # Requirements: REQ-SIM-013
     def test_animation_completion_stays_at_last_point(self):
-        """再生完了で最終点に留まり、自動ループしない。"""
-        self.controller.start(self.plan, duration_s=10.0)
+        """再生完了で最終点に留まり、自動ループしない。
+
+@test TEST-UNIT-132: ``completed`` 状態と最終インデックスを確認する。
+        @see REQ-SIM-013
+        """ self.controller.start(self.plan, duration_s=10.0)
         self.controller.on_animation_complete()
         self.assertEqual("completed", self.controller.playback_state)
         self.assertEqual(4, self.controller.current_point_index)
@@ -373,8 +396,11 @@ class TestSimulation(unittest.TestCase):
     # TEST-UNIT-133
     # Requirements: REQ-SIM-009
     def test_resume_after_completion_restarts_at_first_point(self):
-        """完了後の再生で先頭へ戻る。"""
-        self.controller.start(self.plan, duration_s=10.0)
+        """完了後の再生で先頭へ戻る。
+
+@test TEST-UNIT-133: 先頭点と進捗0.0の描画を確認する。
+        @see REQ-SIM-009
+        """ self.controller.start(self.plan, duration_s=10.0)
         self.controller.on_animation_complete()
         self.controller.resume()
         self.assertEqual("playing", self.controller.playback_state)
@@ -387,8 +413,11 @@ class TestSimulation(unittest.TestCase):
     # TEST-UNIT-134
     # Requirements: REQ-SIM-014, REQ-SIM-015
     def test_view_has_point_based_seek_bar_with_large_handle(self):
-        """シークバーが既存進捗表示を置換し、点単位・大きなつまみを持つ。"""
-        view = SimulationView()
+        """シークバーが既存進捗表示を置換し、点単位・大きなつまみを持つ。
+
+@test TEST-UNIT-134: 最小/最大値、整数分解能相当の構成、大きなつまみを確認する。
+        @see REQ-SIM-014, REQ-SIM-015
+        """ view = SimulationView()
         view.initialize(self.plan)
         self.assertIsNotNone(view.seek_slider)
         self.assertEqual(0, view.seek_slider.valmin)
@@ -399,8 +428,11 @@ class TestSimulation(unittest.TestCase):
     # TEST-UNIT-135
     # Requirements: REQ-SIM-016
     def test_playback_button_label_follows_state(self):
-        """再生状態に応じてⅡ/▶を表示する。"""
-        view = SimulationView()
+        """再生状態に応じてⅡ/▶を表示する。
+
+@test TEST-UNIT-135: playingでは「Ⅱ」、paused/completedでは「▶」を確認する。
+        @see REQ-SIM-016
+        """ view = SimulationView()
         view.initialize(self.plan)
         view.set_playback_state("playing")
         self.assertIn("Ⅱ", view.playback_button.label.get_text())
@@ -412,8 +444,11 @@ class TestSimulation(unittest.TestCase):
     # TEST-UNIT-136
     # Requirements: REQ-SIM-014
     def test_progress_text_uses_point_count_not_time(self):
-        """進捗表示が現在点/全点であり、時間表示を使用しない。"""
-        view = SimulationView()
+        """進捗表示が現在点/全点であり、時間表示を使用しない。
+
+@test TEST-UNIT-136: 5点中3点の表示と時間表記の不在を確認する。
+        @see REQ-SIM-014
+        """ view = SimulationView()
         view.initialize(self.plan)
         view.render_frame(self.points[2], 0.5)
         self.assertIn("3 / 5", view.status_text)
