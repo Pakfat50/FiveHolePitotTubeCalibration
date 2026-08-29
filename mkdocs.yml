@@ -108,7 +108,7 @@ nav:
   - 開発ルール:
       - トレーサビリティ運用ルール: traceability_rules.md
       - 製品コード開発ルール: product_code_guideline.md
-      - テストコードドキュメンテーション規約: test_doxygen_guideline.md
+      - テストコード開発ルール: test_doxygen_guideline.md
   - コードドキュメント:
       - 製品コードAPI: api.md
       - テストコードAPI: test-api.md
