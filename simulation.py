@@ -68,7 +68,8 @@ class SimulationController:
 
         対応要求:
             REQ-SIM-008
-        """ if self.playback_state != "playing":
+        """
+        if self.playback_state != "playing":
             return
         self.view.pause_animation()
         self.playback_state = "paused"
@@ -85,7 +86,8 @@ class SimulationController:
 
         対応要求:
             REQ-SIM-009
-        """ if self.plan is None or not self.plan.points:
+        """
+        if self.plan is None or not self.plan.points:
             return
         if self.playback_state == "completed":
             self.current_point_index = 0
@@ -118,7 +120,8 @@ class SimulationController:
 
         対応要求:
             REQ-SIM-010, REQ-SIM-011, REQ-SIM-012
-        """ if self.plan is None or not self.plan.points:
+        """
+        if self.plan is None or not self.plan.points:
             return
         if self.playback_state == "playing":
             self.view.pause_animation()
@@ -140,7 +143,8 @@ class SimulationController:
 
         対応要求:
             REQ-SIM-009
-        """ if self.playback_state == "completed":
+        """
+        if self.playback_state == "completed":
             self.resume()
 
     # 対応要求: REQ-SIM-013
@@ -154,7 +158,8 @@ class SimulationController:
 
         対応要求:
             REQ-SIM-013
-        """ if self.plan is not None and self.plan.points:
+        """
+        if self.plan is not None and self.plan.points:
             self.current_point_index = len(self.plan.points) - 1
         self.playback_state = "completed"
         self.view.show_final_state()
@@ -711,7 +716,8 @@ SimulationControllerが利用する公開APIであり、内部のコールバッ
 
         対応要求:
             REQ-SIM-008, REQ-SIM-011
-        """ if self.animation is not None and self.animation.event_source is not None:
+        """
+        if self.animation is not None and self.animation.event_source is not None:
             self.animation.event_source.stop()
 
     def resume_animation(self) -> None:
@@ -721,7 +727,8 @@ SimulationControllerが利用する公開APIであり、内部のコールバッ
 
         対応要求:
             REQ-SIM-009
-        """ if self.animation is not None and self.animation.event_source is not None:
+        """
+        if self.animation is not None and self.animation.event_source is not None:
             self.animation.event_source.start()
 
     def restart_animation(self, plan, duration_s, frame_provider, on_complete=None) -> None:
@@ -765,7 +772,8 @@ SimulationControllerが利用する公開APIであり、内部のコールバッ
 
         対応要求:
             REQ-SIM-008, REQ-SIM-009, REQ-SIM-016
-        """ if self._playback_callbacks is None:
+        """
+        if self._playback_callbacks is None:
             return
         pause_callback, resume_callback, _seek_callback = self._playback_callbacks
         if self._playback_state == "playing":
@@ -783,7 +791,8 @@ SimulationControllerが利用する公開APIであり、内部のコールバッ
 
         対応要求:
             REQ-SIM-010, REQ-SIM-011, REQ-SIM-012
-        """ if self._updating_seek_slider or self._playback_callbacks is None:
+        """
+        if self._updating_seek_slider or self._playback_callbacks is None:
             return
         _pause_callback, _resume_callback, seek_callback = self._playback_callbacks
         seek_callback(int(round(value)))
@@ -798,7 +807,8 @@ SimulationControllerが利用する公開APIであり、内部のコールバッ
 
         対応要求:
             REQ-SIM-012, REQ-SIM-014
-        """ if self.seek_slider is None:
+        """
+        if self.seek_slider is None:
             return
         self._updating_seek_slider = True
         try:
