@@ -173,6 +173,7 @@ sequenceDiagram
     end
 ```
 
+<a id="uc-05"></a>
 ## 3.5 UC-05 シミュレーションする
 
 ```mermaid
@@ -221,6 +222,8 @@ sequenceDiagram
     SimController->>SimView: render_frame(first_point, 0.0)
     SimController->>SimView: set_playback_state(playing)
 ```
+
+ユースケーステスト: [[UCTEST:UC-05]]
 
 ## 3.6 UC-06 Gコードを生成する
 
