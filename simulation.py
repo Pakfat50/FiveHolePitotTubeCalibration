@@ -59,7 +59,7 @@ class SimulationController:
 
     # 対応要求: REQ-SIM-008
     def pause(self) -> None:
-        """@brief 現在位置を保持したままアニメーションを一時停止する。
+        """現在位置を保持したままアニメーションを一時停止する。
 
 アニメーションタイマーだけを停止し、現在較正点、3画面の描画状態、およびシークバーの位置を保持する。
 
@@ -78,7 +78,7 @@ Returns:
 
     # 対応要求: REQ-SIM-009
     def resume(self) -> None:
-        """@brief 一時停止中は現在位置から、完了後は先頭から再生する。
+        """一時停止中は現在位置から、完了後は先頭から再生する。
 
 paused状態では現在位置から再開し、completed状態では先頭較正点へ戻って再生を開始する。
 
@@ -109,7 +109,7 @@ Returns:
 
     # 対応要求: REQ-SIM-010, REQ-SIM-011, REQ-SIM-012
     def seek_to_point(self, point_index: int) -> None:
-        """@brief 指定された較正点へ移動し、移動後は一時停止状態にする。
+        """指定された較正点へ移動し、移動後は一時停止状態にする。
 
 Args:
     point_index: 走査順における較正点インデックス。範囲外は端点へ補正する。
@@ -137,7 +137,7 @@ Returns:
 
     # 対応要求: REQ-SIM-009
     def restart_from_beginning(self) -> None:
-        """@brief 完了後のシミュレーションを先頭から再生する。
+        """完了後のシミュレーションを先頭から再生する。
 
 再生完了状態でのみ再生再開処理を行い、先頭較正点を表示してアニメーションを開始する。
 
@@ -153,7 +153,7 @@ Returns:
 
     # 対応要求: REQ-SIM-013
     def on_animation_complete(self) -> None:
-        """@brief 最終較正点を保持し、自動ループせず完了状態へ遷移する。
+        """最終較正点を保持し、自動ループせず完了状態へ遷移する。
 
 最終フレーム到達時に呼び出され、最終較正点のインデックスを保持する。Viewへ完了状態を通知する。
 
@@ -707,7 +707,7 @@ class SimulationView:
 
     # 対応要求: REQ-SIM-008, REQ-SIM-009, REQ-SIM-010, REQ-SIM-011, REQ-SIM-014, REQ-SIM-015, REQ-SIM-016
     def bind_playback_controls(self, pause_callback, resume_callback, seek_callback) -> None:
-        """@brief Viewへ再生操作コールバックを登録する。
+        """Viewへ再生操作コールバックを登録する。
 
 Args:
     pause_callback: 一時停止処理。
@@ -724,7 +724,7 @@ Returns:
         self._playback_callbacks = (pause_callback, resume_callback, seek_callback)
 
     def set_playback_callbacks(self, pause_callback, resume_callback, seek_callback) -> None:
-        """@brief 再生操作コールバックを設定する公開エイリアスを提供する。
+        """再生操作コールバックを設定する公開エイリアスを提供する。
 
 Args:
     pause_callback: 一時停止処理。
@@ -741,7 +741,7 @@ Returns:
         self.bind_playback_controls(pause_callback, resume_callback, seek_callback)
 
     def pause_animation(self) -> None:
-        """@brief SimulationViewのアニメーションタイマーを一時停止する。
+        """SimulationViewのアニメーションタイマーを一時停止する。
 
 Returns:
     None
@@ -754,7 +754,7 @@ Returns:
             self.animation.event_source.stop()
 
     def resume_animation(self) -> None:
-        """@brief SimulationViewのアニメーションタイマーを再開する。
+        """SimulationViewのアニメーションタイマーを再開する。
 
 Returns:
     None
@@ -767,7 +767,7 @@ Returns:
             self.animation.event_source.start()
 
     def restart_animation(self, plan, duration_s, frame_provider, on_complete=None) -> None:
-        """@brief SimulationViewのアニメーションを先頭から再生成する。
+        """SimulationViewのアニメーションを先頭から再生成する。
 
 Args:
     plan: 再生対象の較正計画。
@@ -785,7 +785,7 @@ Returns:
         self.start_animation(plan, duration_s, frame_provider, on_complete)
 
     def set_playback_state(self, state: str) -> None:
-        """@brief 再生状態に応じて操作ボタンの表示を更新する。
+        """再生状態に応じて操作ボタンの表示を更新する。
 
 Args:
     state: playing、paused、またはcompleted。
@@ -805,7 +805,7 @@ Returns:
             self.figure.canvas.draw_idle()
 
     def _on_play_pause(self, _event) -> None:
-        """@brief 再生・一時停止ボタンのクリックをコールバックへ中継する。
+        """再生・一時停止ボタンのクリックをコールバックへ中継する。
 
 Args:
     _event: Matplotlib Buttonが渡すクリックイベント。
@@ -826,7 +826,7 @@ Returns:
             resume_callback()
 
     def _on_seek(self, value) -> None:
-        """@brief シークバーの値を較正点インデックスとしてコールバックへ中継する。
+        """シークバーの値を較正点インデックスとしてコールバックへ中継する。
 
 Args:
     value: シークバーが示す較正点インデックス。
@@ -844,7 +844,7 @@ Returns:
         seek_callback(int(round(value)))
 
     def _update_seek_slider(self, point_index: int) -> None:
-        """@brief 現在較正点に合わせてシークバーのつまみを更新する。
+        """現在較正点に合わせてシークバーのつまみを更新する。
 
 Args:
     point_index: 現在表示している較正点インデックス。
@@ -871,4 +871,3 @@ Returns:
             REQ-SIM-002, REQ-SIM-004, REQ-SIM-006, REQ-SIM-013
         """
         self.final_state_visible = True
-

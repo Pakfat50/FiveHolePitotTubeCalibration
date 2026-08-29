@@ -3,10 +3,6 @@
     ["対応要求:", "requirements"],
     ["設計根拠:", "rationale"],
     ["検証根拠:", "rationale"],
-    ["Test:", "test"],
-    ["Details:", "details"],
-    ["Verification rationale:", "rationale"],
-    ["See Also:", "see-also"],
     ["概要:", "overview"],
     ["値:", "overview"]
   ]);
@@ -22,7 +18,7 @@
 
       nodes.forEach((node) => {
         const text = node.nodeValue;
-        const pattern = /(対応要求:|設計根拠:|検証根拠:|Test:|Details:|Verification rationale:|See Also:|概要:|値:)/g;
+        const pattern = /(対応要求:|設計根拠:|検証根拠:|概要:|値:)/g;
         if (!pattern.test(text)) return;
         pattern.lastIndex = 0;
 

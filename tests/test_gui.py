@@ -2,7 +2,7 @@
 
 File: test_gui.py
 日本語表示要素、非モーダル検証表示、警告/エラー状態、各操作イベントの依存呼出しを検証する。
-Details: docs/test_specification.md の TEST-UNIT-100..110,121 に対応する。
+docs/test_specification.md の TEST-UNIT-100..110,121 に対応する。
 """
 
 import unittest
@@ -42,10 +42,10 @@ class TestMainWindow(unittest.TestCase):
     def test_required_japanese_labels_and_buttons_are_defined(self):
         """必須操作ボタンの日本語ラベル定義を確認する。
 
-        Test: TEST-UNIT-100: シミュレーション、Gコード生成、設定保存、設定読込の4ラベルを持つこと。
-        Verification rationale:
+        TEST ID: TEST-UNIT-100: シミュレーション、Gコード生成、設定保存、設定読込の4ラベルを持つこと。
+        検証根拠:
         MainWindowが公開するrequired_labels()を直接照合するため、UI構築前でも必須日本語操作名称の欠落を検出できる。
-        See Also: REQ-GUI-001, REQ-GUI-004
+        対応要求: REQ-GUI-001, REQ-GUI-004
         """
         labels = self.window.required_labels()
         for text in ("シミュレーション", "Gコード生成", "設定保存", "設定読込"):
@@ -56,11 +56,11 @@ class TestMainWindow(unittest.TestCase):
     def test_validation_error_changes_target_background_and_shows_existing_message(self):
         """入力エラー時に該当Entryの背景だけを変え、既存メッセージ領域へ理由を表示することを確認する。
 
-        Test: TEST-UNIT-101: feed_rateエラー時、feed_rateだけをエラーstyleとし、status_messageへ理由を表示し、モーダル表示しないこと。
-        Details: エラー用背景色はレビュー承認済みの薄い赤 #FFECEC とする。エラーstyleはfieldbackgroundだけを設定し、枠設定や新規GUI要素を追加しない。
-        Verification rationale:
+        TEST ID: TEST-UNIT-101: feed_rateエラー時、feed_rateだけをエラーstyleとし、status_messageへ理由を表示し、モーダル表示しないこと。
+        エラー用背景色はレビュー承認済みの薄い赤 #FFECEC とする。エラーstyleはfieldbackgroundだけを設定し、枠設定や新規GUI要素を追加しない。
+        検証根拠:
         実Entry相当Mockへのstyle適用とstatus_messageを同時観測するため、対象欄の視覚強調と既存メッセージ領域への理由表示を確認できる。さらにStyle.configureの引数を確認することで、枠色等を上書きせず背景色だけを変更することを確認できる。
-        See Also: REQ-VALID-001, REQ-GUI-005
+        対応要求: REQ-VALID-001, REQ-GUI-005
         """
         feed_entry = Mock()
         hold_entry = Mock()
@@ -102,10 +102,10 @@ class TestMainWindow(unittest.TestCase):
     def test_validation_error_background_and_message_clear_after_recovery(self):
         """入力不正解消後にEntry背景と既存メッセージ領域のエラー理由が自動解除されることを確認する。
 
-        Test: TEST-UNIT-102: issue有り→issue無しの連続更新後、feed_rateへ通常styleが再適用され、入力エラー理由が消えること。
-        Verification rationale:
+        TEST ID: TEST-UNIT-102: issue有り→issue無しの連続更新後、feed_rateへ通常styleが再適用され、入力エラー理由が消えること。
+        検証根拠:
         同一Entryへのstyle呼出し順とstatus_messageの遷移を観測するため、内部field_errorsだけ消えて背景色またはエラーメッセージが残留する不具合を検出できる。
-        See Also: REQ-VALID-001, REQ-GUI-005
+        対応要求: REQ-VALID-001, REQ-GUI-005
         """
         feed_entry = Mock()
         self.window._entry_widgets = {"feed_rate": feed_entry}
@@ -130,10 +130,10 @@ class TestMainWindow(unittest.TestCase):
     def test_xy_warning_shows_separate_deviations_without_resultant(self):
         """X/Y飽和警告が各軸偏差を別々に表示し合成距離を表示しないことを確認する。
 
-        Test: TEST-UNIT-103: status_messageにX=1.25,Y=2.5を含み「合成」を含まないこと。
-        Verification rationale:
+        TEST ID: TEST-UNIT-103: status_messageにX=1.25,Y=2.5を含み「合成」を含まないこと。
+        検証根拠:
         異なるX/Y偏差値を与えて双方の数値と禁止語を同時確認するため、軸別表示と合成距離非表示を直接検証できる。
-        See Also: REQ-LIMIT-002, REQ-GUI-005
+        対応要求: REQ-LIMIT-002, REQ-GUI-005
         """
         plan = Mock(max_x_deviation=1.25, max_y_deviation=2.5, has_generation_error=False)
         self.window._update_plan_status(plan)
@@ -146,10 +146,10 @@ class TestMainWindow(unittest.TestCase):
     def test_rotational_error_disables_actions(self):
         """Controllerが生成不可を返す場合にSim/G-code操作が両方無効になることを確認する。
 
-        Test: TEST-UNIT-104: can_generate=Falseでsimulation_enabled=Falseかつgcode_enabled=Falseとなること。
-        Verification rationale:
+        TEST ID: TEST-UNIT-104: can_generate=Falseでsimulation_enabled=Falseかつgcode_enabled=Falseとなること。
+        検証根拠:
         UI状態更新の唯一の入力条件をMockで固定し2操作の状態を直接観測するため、生成禁止エラー時の操作抑止を確認できる。
-        See Also: REQ-LIMIT-003, REQ-GUI-005
+        対応要求: REQ-LIMIT-003, REQ-GUI-005
         """
         self.controller.can_generate.return_value = False
         self.window._update_action_state()
@@ -161,10 +161,10 @@ class TestMainWindow(unittest.TestCase):
     def test_valid_plan_enables_actions(self):
         """生成可能状態ではSim/G-code操作が両方有効になることを確認する。
 
-        Test: TEST-UNIT-105: can_generate=Trueでsimulation_enabled/gcode_enabled=Trueとなること。
-        Verification rationale:
+        TEST ID: TEST-UNIT-105: can_generate=Trueでsimulation_enabled/gcode_enabled=Trueとなること。
+        検証根拠:
         TEST-UNIT-104の反対条件を同じ公開状態で観測するため、有効化・無効化双方の状態更新を境界なく確認できる。
-        See Also: REQ-GUI-005
+        対応要求: REQ-GUI-005
         """
         self.controller.can_generate.return_value = True
         self.window._update_action_state()
@@ -176,10 +176,10 @@ class TestMainWindow(unittest.TestCase):
     def test_initialization_gcode_load_success(self):
         """初期化Gコード読込成功時に内容をMainWindowが保持することを確認する。
 
-        Test: TEST-UNIT-106: Repository戻り値"G92 X0\n"がinitialization_textへ保存されること。
-        Verification rationale:
+        TEST ID: TEST-UNIT-106: Repository戻り値"G92 X0\n"がinitialization_textへ保存されること。
+        検証根拠:
         I/OをMock化して成功内容だけを固定し、Window内部保持値を比較するため、イベント処理による受渡しを直接検証できる。
-        See Also: REQ-INPUT-006
+        対応要求: REQ-INPUT-006
         """
         self.init_repo.load.return_value = "G92 X0\n"
         self.window._on_load_initialization("init.txt")
@@ -190,10 +190,10 @@ class TestMainWindow(unittest.TestCase):
     def test_save_settings_passes_current_settings_to_repository(self):
         """設定保存イベントがControllerの現在設定をRepositoryへ渡すことを確認する。
 
-        Test: TEST-UNIT-107: _on_save_settings("settings.csv")でsave(path,current_settings)を1回呼ぶこと。
-        Verification rationale:
+        TEST ID: TEST-UNIT-107: _on_save_settings("settings.csv")でsave(path,current_settings)を1回呼ぶこと。
+        検証根拠:
         Controller戻り値とRepository呼出し引数を同一オブジェクトで照合するため、保存対象設定の取り違えを検出できる。
-        See Also: REQ-GUI-003, REQ-GUI-004
+        対応要求: REQ-GUI-003, REQ-GUI-004
         """
         settings = make_settings(); self.controller.get_current_settings.return_value = settings
         self.window._on_save_settings("settings.csv")
@@ -204,10 +204,10 @@ class TestMainWindow(unittest.TestCase):
     def test_load_settings_applies_and_revalidates(self):
         """設定読込成功時に読み込んだ設定をControllerへ適用することを確認する。
 
-        Test: TEST-UNIT-108: Repositoryのloaded settingsをapply_settingsへ1回渡すこと。
-        Verification rationale:
+        TEST ID: TEST-UNIT-108: Repositoryのloaded settingsをapply_settingsへ1回渡すこと。
+        検証根拠:
         読込値とController呼出し引数を同一オブジェクトで確認するため、GUI側での部分変換や誤適用を検出できる。
-        See Also: REQ-GUI-003, REQ-GUI-004
+        対応要求: REQ-GUI-003, REQ-GUI-004
         """
         settings = make_settings(); self.settings_repo.load.return_value = settings
         self.window._on_load_settings("settings.csv")
@@ -218,10 +218,10 @@ class TestMainWindow(unittest.TestCase):
     def test_simulation_uses_current_plan(self):
         """シミュレーションイベントがControllerのcurrent planを10秒指定で使用することを確認する。
 
-        Test: TEST-UNIT-109: SimulationController.start(plan,duration_s=10.0)を1回呼ぶこと。
-        Verification rationale:
+        TEST ID: TEST-UNIT-109: SimulationController.start(plan,duration_s=10.0)を1回呼ぶこと。
+        検証根拠:
         Controllerから得たplanとSimControllerへの引数同一性を確認するため、別計算結果を使用せず同一planを渡す設計を確認できる。
-        See Also: REQ-SIM-001, REQ-GUI-004
+        対応要求: REQ-SIM-001, REQ-GUI-004
         """
         plan = Mock(); self.controller.get_current_plan.return_value = plan
         self._prepare_generation_state(True)
@@ -233,10 +233,10 @@ class TestMainWindow(unittest.TestCase):
     def test_generate_gcode_sequence(self):
         """Gコード生成イベントがcurrent plan/settingsから生成しRepositoryへ保存することを確認する。
 
-        Test: TEST-UNIT-110: Generatorへplan/settings/initを渡し、生成文字列を指定pathへsaveすること。
-        Verification rationale:
+        TEST ID: TEST-UNIT-110: Generatorへplan/settings/initを渡し、生成文字列を指定pathへsaveすること。
+        検証根拠:
         GeneratorとRepositoryの両Mock呼出しを確認するため、GUIイベントのデータフローと保存先受渡しを直接検証できる。
-        See Also: REQ-GCODE-001, REQ-GUI-004
+        対応要求: REQ-GCODE-001, REQ-GUI-004
         """
         plan = Mock(); settings = make_settings()
         self.controller.get_current_plan.return_value = plan
@@ -253,11 +253,11 @@ class TestMainWindow(unittest.TestCase):
     def test_failed_csv_load_keeps_existing_state_and_notifies_user(self):
         """設定CSV読込失敗時に既存状態を変更せず非モーダル通知することを確認する。
 
-        Test: TEST-UNIT-121: SettingsLoadError時にapply_settingsを呼ばず、理由をstatus_messageへ表示し、モーダル要求しないこと。
-        Details: 既存settings/planを保持した状態でRepositoryだけを失敗させる。
-        Verification rationale:
+        TEST ID: TEST-UNIT-121: SettingsLoadError時にapply_settingsを呼ばず、理由をstatus_messageへ表示し、モーダル要求しないこと。
+        既存settings/planを保持した状態でRepositoryだけを失敗させる。
+        検証根拠:
         適用API未呼出し、エラー理由表示、非モーダル状態を同時確認するため、部分適用禁止とユーザー通知を一連の失敗経路として検証できる。
-        See Also: REQ-GUI-003, REQ-GUI-005
+        対応要求: REQ-GUI-003, REQ-GUI-005
         """
         old_settings = make_settings(feed_rate=55.0); old_plan = Mock()
         self.controller.get_current_settings.return_value = old_settings

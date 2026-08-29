@@ -94,11 +94,3 @@
     width: 35%;
   }
 }
-
-
-.md-typeset .doc-section-label[data-section="test"],
-.md-typeset .doc-section-label[data-section="details"],
-.md-typeset .doc-section-label[data-section="see-also"] {
-  background: #64748b;
-  color: #ffffff;
-}

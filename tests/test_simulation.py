@@ -2,7 +2,7 @@
 
 File: test_simulation.py
 SimulationController のフレーム選択と SimulationView の横面図・正面図・状態表示・較正点マップ同期を検証する。
-Details: docs/test_specification.md の TEST-UNIT-093..099,122,123 に対応する。
+docs/test_specification.md の TEST-UNIT-093..099,122,123 に対応する。
 """
 
 import math
@@ -39,10 +39,10 @@ class TestSimulation(unittest.TestCase):
     def test_start_frame_is_first_point(self):
         """再生進捗0.0が最初の較正点へ対応することを確認する。
 
-        Test: TEST-UNIT-093: _frame_at(plan,0.0)がpoints[0]を返すこと。
-        Verification rationale:
+        TEST ID: TEST-UNIT-093: _frame_at(plan,0.0)がpoints[0]を返すこと。
+        検証根拠:
         正規化進捗の始端を直接入力して同一オブジェクト参照を確認するため、開始フレームのマッピングを一意に検証できる。
-        See Also: REQ-SIM-002
+        対応要求: REQ-SIM-002
         """
         self.assertIs(self.points[0], self.controller._frame_at(self.plan, 0.0))
 
@@ -51,10 +51,10 @@ class TestSimulation(unittest.TestCase):
     def test_end_frame_is_last_point(self):
         """再生進捗1.0が最後の較正点へ対応することを確認する。
 
-        Test: TEST-UNIT-094: _frame_at(plan,1.0)がpoints[-1]を返すこと。
-        Verification rationale:
+        TEST ID: TEST-UNIT-094: _frame_at(plan,1.0)がpoints[-1]を返すこと。
+        検証根拠:
         正規化進捗の終端と走査列終端を直接対応付けるため、最終点が再生から欠落しないことを確認できる。
-        See Also: REQ-SIM-002
+        対応要求: REQ-SIM-002
         """
         self.assertIs(self.points[-1], self.controller._frame_at(self.plan, 1.0))
 
@@ -63,10 +63,10 @@ class TestSimulation(unittest.TestCase):
     def test_middle_progress_maps_to_scan_order(self):
         """中間進捗が走査順の中央点へ対応することを確認する。
 
-        Test: TEST-UNIT-095: 5点planのprogress=0.5でpoints[2]を返すこと。
-        Verification rationale:
+        TEST ID: TEST-UNIT-095: 5点planのprogress=0.5でpoints[2]を返すこと。
+        検証根拠:
         始端・終端以外の代表点を確認することで、単純な端点特例ではなく走査順全体の進捗マッピング式を検証できる。
-        See Also: REQ-SIM-002
+        対応要求: REQ-SIM-002
         """
         self.assertIs(self.points[2], self.controller._frame_at(self.plan, 0.5))
 
@@ -75,10 +75,10 @@ class TestSimulation(unittest.TestCase):
     def test_playback_duration_is_independent_of_hold_time(self):
         """シミュレーション再生時間がplanの保持時間ではなく指定duration_sで決まることを確認する。
 
-        Test: TEST-UNIT-096: start(plan,10.0)がViewへduration_s=10.0と同一planを渡し、frame_providerが始端・終端を正しく返すこと。
-        Verification rationale:
+        TEST ID: TEST-UNIT-096: start(plan,10.0)がViewへduration_s=10.0と同一planを渡し、frame_providerが始端・終端を正しく返すこと。
+        検証根拠:
         ControllerがViewへ渡す再生設定と生成したframe_providerを直接観測するため、Gコード保持時間に依存しない約10秒再生構成を確認できる。
-        See Also: REQ-SIM-002
+        対応要求: REQ-SIM-002
         """
         self.controller.start(self.plan, duration_s=10.0)
         self.assertEqual(10.0, self.controller.duration_s)
@@ -94,11 +94,11 @@ class TestSimulation(unittest.TestCase):
     def test_side_view_is_initialized(self):
         """横面図がLx/LyのL字形状を実ピッチ角で剛体回転して表示することを確認する。
 
-        Test: TEST-UNIT-097: Z=0でpivot→Ly→Lxの基準L字となり、Z=30度では両線分が理論回転座標へ移ること。表示範囲は固定され、不要なLx/Ly/先端/中心文字や寸法矢印を持たず、先端方向矢印は1本だけであること。
-        Details: Lx=100,Ly=20について基準姿勢と30度姿勢の線分端点をMatplotlib Line2Dから取得し、回転式で独立計算した座標と比較する。
-        Verification rationale:
+        TEST ID: TEST-UNIT-097: Z=0でpivot→Ly→Lxの基準L字となり、Z=30度では両線分が理論回転座標へ移ること。表示範囲は固定され、不要なLx/Ly/先端/中心文字や寸法矢印を持たず、先端方向矢印は1本だけであること。
+        Lx=100,Ly=20について基準姿勢と30度姿勢の線分端点をMatplotlib Line2Dから取得し、回転式で独立計算した座標と比較する。
+        検証根拠:
         見た目の画像比較ではなく、描画に使用された2線分の数値座標を仕様幾何と直接比較するため、L字の構造・回転方向・寸法反映を精密に検証できる。さらにAxes範囲、文字Artist、矢印Artistを直接観測することで、表示上の禁止要素と固定スケールも確認できる。
-        See Also: REQ-SIM-003
+        対応要求: REQ-SIM-003
         """
         view = SimulationView()
         view.initialize(self.plan)
@@ -174,11 +174,11 @@ class TestSimulation(unittest.TestCase):
     def test_front_view_is_initialized(self):
         """正面図がロール方向を中心から外周への半径矢印だけで表示することを確認する。
 
-        Test: TEST-UNIT-098: 軸ラベル・数値目盛を持たず固定範囲を維持し、矢印始点が中心、終点半径が1.0で、方向説明文字を表示しないこと。
-        Details: 複数フレーム描画後にAxes範囲、ticks、Annotation座標、Text内容を取得して比較する。
-        Verification rationale:
+        TEST ID: TEST-UNIT-098: 軸ラベル・数値目盛を持たず固定範囲を維持し、矢印始点が中心、終点半径が1.0で、方向説明文字を表示しないこと。
+        複数フレーム描画後にAxes範囲、ticks、Annotation座標、Text内容を取得して比較する。
+        検証根拠:
         ロール方向を表すAnnotationの幾何を直接測定するため、直径線への退行や逆方向表示を検出できる。不要情報もAxesの公開Artistから確認することで表示仕様を自動検証できる。
-        See Also: REQ-SIM-003
+        対応要求: REQ-SIM-003
         """
         view = SimulationView()
         view.initialize(self.plan)
@@ -217,10 +217,10 @@ class TestSimulation(unittest.TestCase):
     def test_render_frame_updates_required_information(self):
         """現在点情報と進捗表示がrender_frameで更新されることを確認する。
 
-        Test: TEST-UNIT-099: point番号、AoA/AoS、X/Y/Z/A、50%進捗がstatus_textに反映され、progress bar終点が0.50になること。
-        Verification rationale:
+        TEST ID: TEST-UNIT-099: point番号、AoA/AoS、X/Y/Z/A、50%進捗がstatus_textに反映され、progress bar終点が0.50になること。
+        検証根拠:
         各値を互いに異なる数値に設定して文字列中の存在と進捗Artist座標を確認するため、フィールド取り違えや更新漏れを検出できる。
-        See Also: REQ-SIM-004
+        対応要求: REQ-SIM-004
         """
         view = SimulationView()
         view.initialize(self.plan)
@@ -243,10 +243,10 @@ class TestSimulation(unittest.TestCase):
     def test_calibration_map_displays_all_points_without_legend(self):
         """シミュレーション較正点マップが全点をAoS横軸・AoA縦軸で凡例なし表示することを確認する。
 
-        Test: TEST-UNIT-122: 全plan点の(AoS,AoA)座標集合とscatter offsetsが一致し、軸ラベルが単位付きで凡例を持たないこと。
-        Verification rationale:
+        TEST ID: TEST-UNIT-122: 全plan点の(AoS,AoA)座標集合とscatter offsetsが一致し、軸ラベルが単位付きで凡例を持たないこと。
+        検証根拠:
         描画済みscatterの実座標集合をplanの全点から構成した期待集合と比較するため、点の欠落・軸逆転・余分な点を直接検出できる。
-        See Also: REQ-SIM-005
+        対応要求: REQ-SIM-005
         """
         view = SimulationView()
         view.initialize(self.plan)
@@ -266,11 +266,11 @@ class TestSimulation(unittest.TestCase):
     def test_current_calibration_point_color_tracks_rendered_point(self):
         """現在較正点の強調がrender_frame対象点へ同期し、色だけで識別されることを確認する。
 
-        Test: TEST-UNIT-123: 2つの異なる点を連続描画したときcurrent scatter座標とcurrent_point_indexが各点へ追従し、通常点と色が異なり、文字注記・凡例を追加しないこと。
-        Details: 現在点Artistのoffsetとfacecolorを直接取得し、2回のrender_frame前後で比較する。
-        Verification rationale:
+        TEST ID: TEST-UNIT-123: 2つの異なる点を連続描画したときcurrent scatter座標とcurrent_point_indexが各点へ追従し、通常点と色が異なり、文字注記・凡例を追加しないこと。
+        現在点Artistのoffsetとfacecolorを直接取得し、2回のrender_frame前後で比較する。
+        検証根拠:
         同一Artistが異なる点へ実際に移動することを観測するため、初期表示だけでなくフレーム間同期を検証できる。また通常点ArtistとのRGBA比較とText/Legend不在確認により、色のみ強調という仕様を直接確認できる。
-        See Also: REQ-SIM-006
+        対応要求: REQ-SIM-006
         """
         view = SimulationView()
         view.initialize(self.plan)
@@ -299,13 +299,13 @@ class TestSimulation(unittest.TestCase):
     def test_start_sets_playing_state_at_first_point(self):
         """開始時に先頭点・再生中状態・一時停止ボタンが設定される。
 
-Test: TEST-UNIT-126: 有効planの開始後に先頭インデックス、playing状態、状態通知を確認する。
-Details: start()を実行し、Controllerの状態とViewへの再生状態通知を検証する。
-Verification rationale:
+TEST ID: TEST-UNIT-126: 有効planの開始後に先頭インデックス、playing状態、状態通知を確認する。
+start()を実行し、Controllerの状態とViewへの再生状態通知を検証する。
+検証根拠:
 開始処理が再生位置と再生状態を初期化し、Viewの操作ボタン表示制御へ伝達する経路を直接検証する。
 Preconditions: 複数の較正点を含むplanとViewモックが準備されている
 Postconditions: 先頭点が選択され、再生状態がplayingになる
-See Also: REQ-SIM-007
+対応要求: REQ-SIM-007
         """
 
         self.controller.start(self.plan, duration_s=10.0)
@@ -318,11 +318,11 @@ See Also: REQ-SIM-007
     def test_pause_stops_animation_and_keeps_current_point(self):
         """一時停止で現在点を保持し、タイマーを停止する。
 
-Test: TEST-UNIT-127: 現在点インデックスを保持してpause()が呼び出されることを確認する。
-Details: 再生中のControllerを現在点2へ設定して一時停止し、状態・インデックス・View呼び出しを検証する。
-Verification rationale:
+TEST ID: TEST-UNIT-127: 現在点インデックスを保持してpause()が呼び出されることを確認する。
+再生中のControllerを現在点2へ設定して一時停止し、状態・インデックス・View呼び出しを検証する。
+検証根拠:
 一時停止処理が再生位置を変更せず、アニメーションタイマーだけを停止することを直接確認できる。
-See Also: REQ-SIM-008
+対応要求: REQ-SIM-008
         """
 
         self.controller.start(self.plan, duration_s=10.0)
@@ -338,11 +338,11 @@ See Also: REQ-SIM-008
     def test_resume_restarts_from_current_point(self):
         """一時停止から現在位置で再生を再開する。
 
-Test: TEST-UNIT-128: resume()が現在位置でViewの再開処理を呼び出すことを確認する。
-Details: 現在点2で一時停止した後に再開し、再生状態・位置・View呼び出しを検証する。
-Verification rationale:
+TEST ID: TEST-UNIT-128: resume()が現在位置でViewの再開処理を呼び出すことを確認する。
+現在点2で一時停止した後に再開し、再生状態・位置・View呼び出しを検証する。
+検証根拠:
 一時停止からの再開で先頭へ戻らず、保持した位置から再生する仕様を確認できる。
-See Also: REQ-SIM-009
+対応要求: REQ-SIM-009
         """
 
         self.controller.start(self.plan, duration_s=10.0)
@@ -358,11 +358,11 @@ See Also: REQ-SIM-009
     def test_seek_while_paused_selects_point(self):
         """一時停止中のシークが指定点を保持する。
 
-Test: TEST-UNIT-129: 指定インデックス3が進捗0.75として描画されることを確認する。
-Details: 一時停止中に点3へシークし、状態・現在点・描画対象・正規化進捗を検証する。
-Verification rationale:
+TEST ID: TEST-UNIT-129: 指定インデックス3が進捗0.75として描画されることを確認する。
+一時停止中に点3へシークし、状態・現在点・描画対象・正規化進捗を検証する。
+検証根拠:
 較正点単位のシーク結果をController状態とView描画引数の双方で確認できる。
-See Also: REQ-SIM-010
+対応要求: REQ-SIM-010
         """
 
         self.controller.start(self.plan, duration_s=10.0)
@@ -380,11 +380,11 @@ See Also: REQ-SIM-010
     def test_seek_while_playing_pauses_automatically(self):
         """再生中のシーク開始で自動一時停止する。
 
-Test: TEST-UNIT-130: シーク前にViewの停止処理が1回呼び出されることを確認する。
-Details: 再生中に点3へシークし、タイマー停止、状態遷移、指定点選択を検証する。
-Verification rationale:
+TEST ID: TEST-UNIT-130: シーク前にViewの停止処理が1回呼び出されることを確認する。
+再生中に点3へシークし、タイマー停止、状態遷移、指定点選択を検証する。
+検証根拠:
 操作時に自動一時停止する要求を、停止処理の呼び出しと最終状態から直接確認できる。
-See Also: REQ-SIM-011
+対応要求: REQ-SIM-011
         """
 
         self.controller.start(self.plan, duration_s=10.0)
@@ -398,11 +398,11 @@ See Also: REQ-SIM-011
     def test_seek_renders_selected_point_immediately(self):
         """シーク時に指定点の描画と進捗が即時更新される。
 
-Test: TEST-UNIT-131: 最終点の描画と進捗1.0を確認する。
-Details: 点4へのシーク直後にrender_frameの引数を検証する。
-Verification rationale:
+TEST ID: TEST-UNIT-131: 最終点の描画と進捗1.0を確認する。
+点4へのシーク直後にrender_frameの引数を検証する。
+検証根拠:
 操作完了を待たずに指定点と終端進捗が描画へ反映されることを直接確認できる。
-See Also: REQ-SIM-012
+対応要求: REQ-SIM-012
         """
 
         self.controller.start(self.plan, duration_s=10.0)
@@ -415,11 +415,11 @@ See Also: REQ-SIM-012
     def test_animation_completion_stays_at_last_point(self):
         """再生完了で最終点に留まり、自動ループしない。
 
-Test: TEST-UNIT-132: completed状態と最終インデックスを確認する。
-Details: 完了コールバックを実行し、最終点保持、完了状態、View通知を検証する。
-Verification rationale:
+TEST ID: TEST-UNIT-132: completed状態と最終インデックスを確認する。
+完了コールバックを実行し、最終点保持、完了状態、View通知を検証する。
+検証根拠:
 完了後に先頭へ自動復帰せず、最後の位置で一時停止相当の完了状態になることを確認できる。
-See Also: REQ-SIM-013
+対応要求: REQ-SIM-013
         """
 
         self.controller.start(self.plan, duration_s=10.0)
@@ -433,11 +433,11 @@ See Also: REQ-SIM-013
     def test_resume_after_completion_restarts_at_first_point(self):
         """完了後の再生で先頭へ戻る。
 
-Test: TEST-UNIT-133: 先頭点と進捗0.0の描画を確認する。
-Details: 完了状態から再生を実行し、先頭点描画と再生状態を検証する。
-Verification rationale:
+TEST ID: TEST-UNIT-133: 先頭点と進捗0.0の描画を確認する。
+完了状態から再生を実行し、先頭点描画と再生状態を検証する。
+検証根拠:
 完了後の再生操作でのみ先頭へ戻る仕様を、描画対象と進捗から確認できる。
-See Also: REQ-SIM-009
+対応要求: REQ-SIM-009
         """
 
         self.controller.start(self.plan, duration_s=10.0)
@@ -455,11 +455,11 @@ See Also: REQ-SIM-009
     def test_view_has_point_based_seek_bar_with_large_handle(self):
         """シークバーが既存進捗表示を置換し、点単位・大きなつまみを持つ。
 
-Test: TEST-UNIT-134: 最小/最大値、整数分解能相当の構成、大きなつまみを確認する。
-Details: Sliderの範囲、ステップ、つまみサイズ、再生ボタンの生成状態を検証する。
-Verification rationale:
+TEST ID: TEST-UNIT-134: 最小/最大値、整数分解能相当の構成、大きなつまみを確認する。
+Sliderの範囲、ステップ、つまみサイズ、再生ボタンの生成状態を検証する。
+検証根拠:
 較正点単位でドラッグ操作できる範囲と、操作しやすい大きさのつまみをUI部品の設定値から確認できる。
-See Also: REQ-SIM-014, REQ-SIM-015
+対応要求: REQ-SIM-014, REQ-SIM-015
         """
 
         view = SimulationView()
@@ -478,11 +478,11 @@ See Also: REQ-SIM-014, REQ-SIM-015
     def test_playback_button_label_follows_state(self):
         """再生状態に応じて一時停止/再生ボタン表示を切り替える。
 
-Test: TEST-UNIT-135: playingでは「Ⅱ」、paused/completedでは「▶」を確認する。
-Details: 各再生状態を設定し、Buttonラベルを取得して比較する。
-Verification rationale:
+TEST ID: TEST-UNIT-135: playingでは「Ⅱ」、paused/completedでは「▶」を確認する。
+各再生状態を設定し、Buttonラベルを取得して比較する。
+検証根拠:
 状態と表示ラベルの対応を直接確認することで、再生中の一時停止操作と停止中の再生操作を検証できる。
-See Also: REQ-SIM-016
+対応要求: REQ-SIM-016
         """
 
         view = SimulationView()
@@ -499,11 +499,11 @@ See Also: REQ-SIM-016
     def test_progress_text_uses_point_count_not_time(self):
         """進捗表示が現在点/全点であり、時間表示を使用しない。
 
-Test: TEST-UNIT-136: 5点中3点の表示と時間表記の不在を確認する。
-Details: 中間点を描画し、status_textに点数表示が含まれ、時間表記が含まれないことを検証する。
-Verification rationale:
+TEST ID: TEST-UNIT-136: 5点中3点の表示と時間表記の不在を確認する。
+中間点を描画し、status_textに点数表示が含まれ、時間表記が含まれないことを検証する。
+検証根拠:
 シークバーと同じ意味を持つ進捗情報が時間ではなく較正点単位で表示されることを確認できる。
-See Also: REQ-SIM-014
+対応要求: REQ-SIM-014
         """
 
         view = SimulationView()

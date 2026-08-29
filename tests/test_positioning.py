@@ -2,7 +2,7 @@
 
 File: test_positioning.py
 PositionCompensator のXY補正式とロール非依存性を検証する。
-Details: docs/test_specification.md の TEST-UNIT-041..046 に対応する。
+docs/test_specification.md の TEST-UNIT-041..046 に対応する。
 """
 
 import math
@@ -24,11 +24,11 @@ class TestPositionCompensator(unittest.TestCase):
     def test_zero_pitch_requires_no_translation(self):
         """ピッチ角0度ではX/Y補正が不要であることを確認する。
 
-        Test: TEST-UNIT-041: theta=0度ではX=0,Y=0となること。
-        Details: Lx=100,Ly=10の非零寸法を用い、角度だけを0度にして補正量を観測する。
-        Verification rationale:
+        TEST ID: TEST-UNIT-041: theta=0度ではX=0,Y=0となること。
+        Lx=100,Ly=10の非零寸法を用い、角度だけを0度にして補正量を観測する。
+        検証根拠:
         補正式へtheta=0を代入した理論値は厳密に0となるため、出力を0と比較することで基準姿勢の補正計算を直接確認できる。
-        See Also: REQ-POS-001
+        対応要求: REQ-POS-001
         """
         x, y = self.p.calculate_xy(0.0, 100.0, 10.0)
         self.assertAlmostEqual(0.0, x, delta=ABS_TOL)
@@ -39,11 +39,11 @@ class TestPositionCompensator(unittest.TestCase):
     def test_positive_pitch_matches_formula(self):
         """正ピッチ角でXY補正値が理論式と一致することを確認する。
 
-        Test: TEST-UNIT-042: theta=+15度の計算結果がREQ-POS-001の式に一致すること。
-        Details: 独立に計算した理論値と実装出力を許容誤差内で比較する。
-        Verification rationale:
+        TEST ID: TEST-UNIT-042: theta=+15度の計算結果がREQ-POS-001の式に一致すること。
+        独立に計算した理論値と実装出力を許容誤差内で比較する。
+        検証根拠:
         実装とは別にテスト側で同じ数学仕様から期待値を構成するため、符号や回転式の誤りを検出できる。
-        See Also: REQ-POS-001
+        対応要求: REQ-POS-001
         """
         self._assert_formula(15.0, 100.0, 10.0)
 
@@ -52,11 +52,11 @@ class TestPositionCompensator(unittest.TestCase):
     def test_negative_pitch_matches_formula(self):
         """負ピッチ角でXY補正値が理論式と一致することを確認する。
 
-        Test: TEST-UNIT-043: theta=-15度の計算結果が補正式に一致すること。
-        Details: 負角度を使用してsin項の符号反転を含む結果を比較する。
-        Verification rationale:
+        TEST ID: TEST-UNIT-043: theta=-15度の計算結果が補正式に一致すること。
+        負角度を使用してsin項の符号反転を含む結果を比較する。
+        検証根拠:
         正角度だけでは検出しにくい符号処理を負角度で確認するため、双方向回転の式実装を検証できる。
-        See Also: REQ-POS-001
+        対応要求: REQ-POS-001
         """
         self._assert_formula(-15.0, 100.0, 10.0)
 
@@ -65,11 +65,11 @@ class TestPositionCompensator(unittest.TestCase):
     def test_small_positive_ly(self):
         """Lyが非常に小さい正値でも補正式どおり計算できることを確認する。
 
-        Test: TEST-UNIT-044: Ly→0+近傍でも数値計算が理論式に一致すること。
-        Details: Ly=1e-6を使用し、退化形状近傍での出力を比較する。
-        Verification rationale:
+        TEST ID: TEST-UNIT-044: Ly→0+近傍でも数値計算が理論式に一致すること。
+        Ly=1e-6を使用し、退化形状近傍での出力を比較する。
+        検証根拠:
         Ly項の寄与が極小になる境界近傍を試験することで、ゼロ扱いや項落ちなどの実装誤りを検出できる。
-        See Also: REQ-POS-001
+        対応要求: REQ-POS-001
         """
         self._assert_formula(20.0, 100.0, 1e-6)
 
@@ -78,11 +78,11 @@ class TestPositionCompensator(unittest.TestCase):
     def test_small_positive_lx(self):
         """Lxが非常に小さい正値でも補正式どおり計算できることを確認する。
 
-        Test: TEST-UNIT-045: Lx→0+近傍でも数値計算が理論式に一致すること。
-        Details: Lx=1e-6を使用してLy支配の条件を検証する。
-        Verification rationale:
+        TEST ID: TEST-UNIT-045: Lx→0+近傍でも数値計算が理論式に一致すること。
+        Lx=1e-6を使用してLy支配の条件を検証する。
+        検証根拠:
         Lx項がほぼ消える条件で期待値と比較するため、Lx/Lyの取り違えや係数誤りを検出できる。
-        See Also: REQ-POS-001
+        対応要求: REQ-POS-001
         """
         self._assert_formula(20.0, 1e-6, 100.0)
 
@@ -91,11 +91,11 @@ class TestPositionCompensator(unittest.TestCase):
     def test_roll_does_not_affect_xy(self):
         """XY補正がロール角に依存しない設計であることを確認する。
 
-        Test: TEST-UNIT-046: PositionCompensatorの計算入力はtheta/Lx/Lyのみで、同一入力から常に同一XYを得ること。
-        Details: 同一のtheta/Lx/Lyを2回計算し結果が完全一致することを確認する。
-        Verification rationale:
+        TEST ID: TEST-UNIT-046: PositionCompensatorの計算入力はtheta/Lx/Lyのみで、同一入力から常に同一XYを得ること。
+        同一のtheta/Lx/Lyを2回計算し結果が完全一致することを確認する。
+        検証根拠:
         APIにロール角が存在せず、同一ピッチ条件で決定的に同一結果となることを確認することで、ロールが先端位置補正へ混入していないことを検証できる。
-        See Also: REQ-POS-002
+        対応要求: REQ-POS-002
         """
         # API intentionally accepts only theta/Lx/Ly; roll is absent by design.
         first = self.p.calculate_xy(10.0, 100.0, 10.0)
@@ -109,9 +109,9 @@ class TestPositionCompensator(unittest.TestCase):
             theta: 実ピッチ角[deg]
             lx: 基準姿勢のX方向オフセット[mm]
             ly: 基準姿勢のY方向オフセット[mm]
-        Verification rationale:
+        検証根拠:
         テスト側で明示的に回転後先端座標と補正量を算出することで、PositionCompensatorの公開出力を仕様式そのものと比較できる。
-        See Also: REQ-POS-001
+        対応要求: REQ-POS-001
         """
         rad = math.radians(theta)
         xtip = lx * math.cos(rad) - ly * math.sin(rad)
