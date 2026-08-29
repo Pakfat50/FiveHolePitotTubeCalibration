@@ -77,9 +77,11 @@ markdown_extensions:
           format: !!python/name:pymdownx.superfences.fence_code_format
 
 extra_css:
+  - stylesheets/api-docs.css
 
 extra_javascript:
   - https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js
+  - javascripts/api-docs.js
 
 extra:
   social:
