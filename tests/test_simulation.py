@@ -303,8 +303,8 @@ Test: TEST-UNIT-126: 有効planの開始後に先頭インデックス、playing
 Details: start()を実行し、Controllerの状態とViewへの再生状態通知を検証する。
 Verification rationale:
 開始処理が再生位置と再生状態を初期化し、Viewの操作ボタン表示制御へ伝達する経路を直接検証する。
-@pre 複数の較正点を含むplanとViewモックが準備されている。
-@post 先頭点が選択され、再生状態がplayingになる。
+Preconditions: 複数の較正点を含むplanとViewモックが準備されている
+Postconditions: 先頭点が選択され、再生状態がplayingになる
 See Also: REQ-SIM-007
         """
 
