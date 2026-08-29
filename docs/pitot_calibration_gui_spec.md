@@ -300,7 +300,7 @@ Gコードの終了時は、最終較正点に留まるものとし、原点復�
 
 **関連成果物**
 
-- アーキテクチャ設計: [[ARCH:REQ-SIM-007]]
+- アーキテクチャ設計: [[ARCH:UC-05]]
 - 製品コード: [[CODE:simulation.SimulationController.start]]、[[CODE:simulation.SimulationView.start_animation]]、[[CODE:simulation.SimulationView._update_playback_button]]
 - テスト仕様: [[TEST:TEST-UNIT-126]]
 
