@@ -14,10 +14,10 @@ class ScanPlanner:
     def generate_points(self, settings: CalibrationSettings) -> list[CalibrationPoint]:
         """設定された走査順序で較正点列を生成する。
 
-        引数:
+        Args:
             settings: AoA/AoS範囲、点数、蛇行走査設定を含む有効な設定。
 
-        戻り値:
+        Returns:
             両端を含み、AoAを外側ループ、AoSを内側ループとする較正点列。
             蛇行走査時はAoA行ごとにAoS方向を反転する。
 
