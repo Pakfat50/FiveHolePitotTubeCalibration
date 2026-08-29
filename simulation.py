@@ -5,6 +5,7 @@ import math
 import matplotlib.pyplot as plt
 from matplotlib import font_manager, rcParams
 from matplotlib.animation import FuncAnimation
+from matplotlib.widgets import Button, Slider
 
 from models import CalibrationPlan, PointEvaluation
 
@@ -22,27 +23,98 @@ class SimulationController:
     def __init__(self, view) -> None:
         self.view = view
         self.duration_s: float | None = None
+        self.plan: CalibrationPlan | None = None
+        self.current_point_index: int | None = None
+        self.playback_state = "idle"
 
-    # 対応要求: REQ-SIM-001, REQ-SIM-002
+    # 対応要求: REQ-SIM-001, REQ-SIM-002, REQ-SIM-007
     def start(self, plan: CalibrationPlan, duration_s: float = 10.0) -> None:
-        """実際のGコード保持時間とは独立した約10秒の再生を開始する。
+        """先頭の較正点からシミュレーションを再生する。
 
         引数:
             plan: 再生対象の較正計画。
             duration_s: シミュレーション全体の再生時間[s]。
 
         対応要求:
-            REQ-SIM-001, REQ-SIM-002
+            REQ-SIM-001, REQ-SIM-002, REQ-SIM-007
         """
         self.duration_s = duration_s
+        self.plan = plan
+        self.current_point_index = 0 if plan.points else None
+        self.playback_state = "playing"
         self.view.initialize(plan)
+        self.view.set_playback_callbacks(self.pause, self.resume, self.seek_to_point)
         if not plan.points:
+            self.playback_state = "paused"
+            self.view.set_playback_state("paused")
             return
+        self.view.render_frame(plan.points[0], 0.0)
         self.view.start_animation(
             plan=plan,
             duration_s=duration_s,
             frame_provider=lambda progress: self._frame_at(plan, progress),
+            on_complete=self.on_animation_complete,
         )
+        self.view.set_playback_state("playing")
+
+    # 対応要求: REQ-SIM-008
+    def pause(self) -> None:
+        """現在位置を保持したままアニメーションを一時停止する。"""
+        if self.playback_state != "playing":
+            return
+        self.view.pause_animation()
+        self.playback_state = "paused"
+        self.view.set_playback_state("paused")
+
+    # 対応要求: REQ-SIM-009
+    def resume(self) -> None:
+        """一時停止中は現在位置から、完了後は先頭から再生する。"""
+        if self.plan is None or not self.plan.points:
+            return
+        if self.playback_state == "completed":
+            self.current_point_index = 0
+            self.view.render_frame(self.plan.points[0], 0.0)
+            self.view.restart_animation(
+                self.plan,
+                self.duration_s or 10.0,
+                lambda progress: self._frame_at(self.plan, progress),
+                self.on_animation_complete,
+            )
+        elif self.playback_state == "paused":
+            self.view.resume_animation()
+        else:
+            return
+        self.playback_state = "playing"
+        self.view.set_playback_state("playing")
+
+    # 対応要求: REQ-SIM-010, REQ-SIM-011, REQ-SIM-012
+    def seek_to_point(self, point_index: int) -> None:
+        """指定された較正点へ移動し、移動後は一時停止状態にする。"""
+        if self.plan is None or not self.plan.points:
+            return
+        if self.playback_state == "playing":
+            self.view.pause_animation()
+        index = max(0, min(int(round(point_index)), len(self.plan.points) - 1))
+        self.current_point_index = index
+        progress = index / max(1, len(self.plan.points) - 1)
+        self.view.render_frame(self.plan.points[index], progress)
+        self.playback_state = "paused"
+        self.view.set_playback_state("paused")
+
+    # 対応要求: REQ-SIM-009
+    def restart_from_beginning(self) -> None:
+        """完了後の再生を先頭から開始する。"""
+        if self.playback_state == "completed":
+            self.resume()
+
+    # 対応要求: REQ-SIM-013
+    def on_animation_complete(self) -> None:
+        """最終較正点を保持し、自動ループせず完了状態へ遷移する。"""
+        if self.plan is not None and self.plan.points:
+            self.current_point_index = len(self.plan.points) - 1
+        self.playback_state = "completed"
+        self.view.show_final_state()
+        self.view.set_playback_state("completed")
 
     # 対応要求: REQ-SIM-002
     def _frame_at(self, plan: CalibrationPlan, progress: float) -> PointEvaluation:
@@ -72,7 +144,7 @@ class SimulationView:
     """機構姿勢・較正点マップ・現在較正点情報をアニメーション表示する。
 
     対応要求:
-        REQ-SIM-002, REQ-SIM-003, REQ-SIM-004, REQ-SIM-005, REQ-SIM-006
+        REQ-SIM-002, REQ-SIM-003, REQ-SIM-004, REQ-SIM-005, REQ-SIM-006, REQ-SIM-007..016
     """
 
     FRAME_INTERVAL_MS = 100
@@ -100,6 +172,12 @@ class SimulationView:
         self._calibration_xlim = (-1.0, 1.0)
         self._calibration_ylim = (-1.0, 1.0)
         self._japanese_graph_text = False
+        self.seek_slider = None
+        self.playback_button = None
+        self._playback_state = "idle"
+        self._playback_callbacks = None
+        self._updating_seek_slider = False
+        self._animation_args = None
 
     # 対応要求: REQ-SIM-003, REQ-SIM-005, REQ-GUI-001
     def _configure_matplotlib_font(self) -> None:
@@ -228,12 +306,36 @@ class SimulationView:
         self._configure_front_axes()
         self._draw_calibration_map(plan)
 
-        status_axes.set_axis_off()
-        self._status_artist = status_axes.text(0.02, 0.92, "", transform=status_axes.transAxes, va="top")
-        self._progress_artist = status_axes.plot([0.02, 0.02], [0.08, 0.08], linewidth=9)[0]
-        status_axes.plot([0.02, 0.98], [0.08, 0.08], linewidth=9, alpha=0.15)
+        status_axes.set_axis_on()
+        status_axes.set_xticks([])
+        status_axes.set_yticks([])
         status_axes.set_xlim(0.0, 1.0)
         status_axes.set_ylim(0.0, 1.0)
+        self._status_artist = status_axes.text(0.02, 0.92, "", transform=status_axes.transAxes, va="top")
+        # 旧プログレスバーの内部互換用Artist。表示は透明化し、実UIはSliderへ置換する。
+        self._progress_artist = status_axes.plot([0.02, 0.02], [0.08, 0.08], linewidth=0, alpha=0.0)[0]
+        slider_max = max(0, len(getattr(plan, "points", ())) - 1)
+        self.seek_slider = Slider(
+            ax=status_axes,
+            label="",
+            valmin=0,
+            valmax=max(1, slider_max),
+            valinit=0,
+            valstep=1,
+            color="tab:blue",
+            initcolor="none",
+            track_color="0.85",
+        )
+        self.seek_slider.valmax = slider_max
+        self.seek_slider.handle.set_markersize(16)
+        self.seek_slider.on_changed(self._on_seek)
+        self.playback_button = Button(
+            self.figure.add_axes((0.86, 0.08, 0.10, 0.08)),
+            "▶",
+            color="0.90",
+            hovercolor="0.75",
+        )
+        self.playback_button.on_clicked(self._on_play_pause)
 
         self.figure.suptitle(self._text("5孔ピトー管 較正シミュレーション", "Five-hole Pitot Calibration Simulation"))
         self.figure.tight_layout(rect=(0.0, 0.0, 1.0, 0.95))
@@ -320,16 +422,23 @@ class SimulationView:
         )
 
     # 対応要求: REQ-SIM-002
-    def start_animation(self, plan: CalibrationPlan, duration_s: float, frame_provider) -> None:
+    def start_animation(
+        self,
+        plan: CalibrationPlan,
+        duration_s: float,
+        frame_provider,
+        on_complete=None,
+    ) -> None:
         """指定時間で全較正点を走査するMatplotlibアニメーションを開始する。
 
         引数:
             plan: 再生対象の較正計画。
             duration_s: シミュレーション全体の再生時間[s]。
             frame_provider: 正規化進捗から現在点を返す関数。
+            on_complete: 最終フレーム到達時に呼び出すコールバック。
 
         対応要求:
-            REQ-SIM-002
+            REQ-SIM-002, REQ-SIM-013
         """
         frame_count = max(2, round(duration_s * 1000.0 / self.FRAME_INTERVAL_MS) + 1)
 
@@ -339,9 +448,12 @@ class SimulationView:
             self.render_frame(point, progress)
             if frame_index == frame_count - 1:
                 self.show_final_state()
+                if on_complete is not None:
+                    on_complete()
             return ()
 
         # animationをメンバーとして保持し、Figure表示後のGCによる停止を防止する。
+        self._animation_args = (plan, duration_s, frame_provider, on_complete)
         self.animation = FuncAnimation(
             self.figure,
             update,
@@ -364,6 +476,7 @@ class SimulationView:
             REQ-SIM-003, REQ-SIM-004, REQ-SIM-006
         """
         self.current_point_index = point.point.index
+        self._update_seek_slider(point.point.index)
         if self._japanese_graph_text:
             state = "ZA範囲外" if point.rotational_error else (
                 "XY飽和" if point.x_saturated or point.y_saturated else "正常"
@@ -378,13 +491,14 @@ class SimulationView:
             progress_label = "Progress"
 
         command = point.command
+        total_points = len(getattr(self._plan, "points", ()))
         self.status_text = (
-            f"Point {point.point.index + 1} / AoA {point.point.aoa:.2f} / AoS {point.point.aos:.2f} / "
+            f"Point {point.point.index + 1} / {total_points} / AoA {point.point.aoa:.2f} / AoS {point.point.aos:.2f} / "
             f"X {command.x:.2f} / Y {command.y:.2f} / Z {command.z:.2f} / A {command.a:.2f} / "
             f"{state_label} {state} / {progress_label} {progress * 100:.0f}%"
         )
         display_text = (
-            f"Point {point.point.index + 1}\n"
+            f"Point {point.point.index + 1} / {total_points}\n"
             f"AoA {point.point.aoa:+.2f}°    AoS {point.point.aos:+.2f}°\n"
             f"X {command.x:.2f} mm    Y {command.y:.2f} mm\n"
             f"Z {command.z:.2f}°    A {command.a:.2f}°\n"
@@ -517,10 +631,65 @@ class SimulationView:
         axes.plot([0.0], [0.0], marker="o", markersize=7)
         axes.text(0.02, 0.96, f"A={point.command.a:.2f}°", transform=axes.transAxes, va="top")
 
+    # 対応要求: REQ-SIM-008, REQ-SIM-009, REQ-SIM-010, REQ-SIM-011, REQ-SIM-014, REQ-SIM-015, REQ-SIM-016
+    def bind_playback_controls(self, pause_callback, resume_callback, seek_callback) -> None:
+        """再生操作の通知先をControllerへ設定する。"""
+        self._playback_callbacks = (pause_callback, resume_callback, seek_callback)
+
+    def pause_animation(self) -> None:
+        """Matplotlibアニメーションのタイマーを停止する。"""
+        if self.animation is not None and self.animation.event_source is not None:
+            self.animation.event_source.stop()
+
+    def resume_animation(self) -> None:
+        """一時停止中のMatplotlibアニメーションを再開する。"""
+        if self.animation is not None and self.animation.event_source is not None:
+            self.animation.event_source.start()
+
+    def restart_animation(self, plan, duration_s, frame_provider, on_complete=None) -> None:
+        """完了済みアニメーションを新しいフレーム列で先頭から再生する。"""
+        self.start_animation(plan, duration_s, frame_provider, on_complete)
+
+    def set_playback_state(self, state: str) -> None:
+        """再生状態を保持し、状態に応じてボタン表示を切り替える。"""
+        self._playback_state = state
+        if self.playback_button is None:
+            return
+        self.playback_button.label.set_text("Ⅱ" if state == "playing" else "▶")
+        if self.figure is not None:
+            self.figure.canvas.draw_idle()
+
+    def _on_play_pause(self, _event) -> None:
+        """再生/一時停止ボタンの押下をControllerへ通知する。"""
+        if self._playback_callbacks is None:
+            return
+        pause_callback, resume_callback, _seek_callback = self._playback_callbacks
+        if self._playback_state == "playing":
+            pause_callback()
+        else:
+            resume_callback()
+
+    def _on_seek(self, value) -> None:
+        """シーク操作をControllerへ通知する。再生中操作はControllerが停止する。"""
+        if self._updating_seek_slider or self._playback_callbacks is None:
+            return
+        _pause_callback, _resume_callback, seek_callback = self._playback_callbacks
+        seek_callback(int(round(value)))
+
+    def _update_seek_slider(self, point_index: int) -> None:
+        """現在較正点へシークバーを同期する。"""
+        if self.seek_slider is None:
+            return
+        self._updating_seek_slider = True
+        try:
+            self.seek_slider.set_val(int(point_index))
+        finally:
+            self._updating_seek_slider = False
+
     def show_final_state(self) -> None:
         """再生終了後も最終較正状態を表示したままにする。
 
         対応要求:
-            REQ-SIM-002, REQ-SIM-004, REQ-SIM-006
+            REQ-SIM-002, REQ-SIM-004, REQ-SIM-006, REQ-SIM-013
         """
         self.final_state_visible = True
