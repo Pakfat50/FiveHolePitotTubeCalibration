@@ -510,76 +510,10 @@ GUI表示、シミュレーション、ファイルI/Oは、必要なユーザ�
 
 色だけに依存せず、ノード名によってもモジュールとデータを識別できるようにする。
 
-```mermaid
-%%{init: {"theme":"base","themeVariables":{"primaryTextColor":"#111827","lineColor":"#374151","primaryBorderColor":"#2563eb","primaryColor":"#dbeafe","secondaryColor":"#dcfce7","tertiaryColor":"#fef3c7","edgeLabelBackground":"#ffffff","fontFamily":"Noto Sans JP, sans-serif"}}}%%
-flowchart TB
-    Raw[GUI Raw Input]
-    Settings[CalibrationSettings]
-    Validator[InputValidator]
-    Validation[ValidationResult]
-    Controller[CalibrationController]
-    Service[CalibrationService]
-    Scan[ScanPlanner]
-    Points[CalibrationPoint list]
-    Transform[AngleTransformer]
-    Angles[Z / A]
-    Position[PositionCompensator]
-    XY[X / Y]
-    Cmd[AxisCommand]
-    Limit[LimitEvaluator]
-    Eval[PointEvaluation list]
-    Plan[CalibrationPlan]
-    GUI[MainWindow / CalibrationMapView]
-    Simulation[SimulationController / SimulationView\n横面図・正面図・較正点マップ・状態表示]
-    GCode[GCodeGenerator]
-    NC[G-code text]
-
-    Raw --> Controller
-    Controller --> Settings
-
-    Settings --> Validator
-    Validator --> Validation
-    Validation --> Controller
-
-    Settings --> Service
-    Settings --> Scan
-    Scan --> Points
-    Points --> Service
-
-    Points --> Transform
-    Settings --> Transform
-    Transform --> Angles
-    Angles --> Service
-
-    Angles --> Position
-    Settings --> Position
-    Position --> XY
-    XY --> Service
-
-    XY --> Cmd
-    Angles --> Cmd
-    Cmd --> Limit
-    Settings --> Limit
-    Limit --> Eval
-    Eval --> Service
-
-    Service --> Plan
-    Plan --> Controller
-    Plan --> GUI
-    Plan --> Simulation
-    Plan --> GCode
-    Settings --> GCode
-    GCode --> NC
-
-    classDef module fill:#dbeafe,stroke:#2563eb,stroke-width:1.5px,color:#111827;
-    classDef data fill:#dcfce7,stroke:#16a34a,stroke-width:1.5px,color:#111827;
-    classDef external fill:#ffedd5,stroke:#ea580c,stroke-width:1.5px,color:#111827;
-
-    class Validator,Controller,Service,Scan,Transform,Position,Limit,GUI,Simulation,GCode module;
-    class Settings,Validation,Points,Angles,XY,Cmd,Eval,Plan data;
-    class Raw,NC external;
-```
-
+<figure>
+  <img src="images/data-flow.svg" alt="ソフトウェア内部データフロー" style="max-width: 100%; height: auto;">
+  <figcaption>ソフトウェア内部データフロー（高コントラスト静的SVG）</figcaption>
+</figure>
 ## 6.1 データフローの原則
 
 1. `CalibrationController` はGUI入力を `CalibrationSettings` として保持する。
