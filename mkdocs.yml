@@ -5,24 +5,45 @@ site_url: https://pakfat50.github.io/FiveHolePitotTubeCalibration/
 repo_url: https://github.com/Pakfat50/FiveHolePitotTubeCalibration
 repo_name: Pakfat50/FiveHolePitotTubeCalibration
 edit_uri: edit/develop/docs/
+copyright: Copyright &copy; 2026 Pakfat50
 
 theme:
   name: material
   language: ja
+  icon:
+    logo: material/airplane
+  font:
+    text: Noto Sans JP
+    code: Roboto Mono
   features:
+    - navigation.instant
+    - navigation.instant.progress
+    - navigation.tabs
     - navigation.sections
+    - navigation.expand
     - navigation.top
+    - navigation.tracking
+    - toc.follow
     - search.suggest
     - search.highlight
+    - search.share
     - content.code.copy
+    - content.code.annotate
+    - content.action.edit
+    - content.action.view
+    - announce.dismiss
   palette:
     - media: "(prefers-color-scheme: light)"
       scheme: default
+      primary: indigo
+      accent: cyan
       toggle:
         icon: material/brightness-7
         name: ダークモードへ切り替え
     - media: "(prefers-color-scheme: dark)"
       scheme: slate
+      primary: indigo
+      accent: cyan
       toggle:
         icon: material/brightness-4
         name: ライトモードへ切り替え
@@ -37,11 +58,18 @@ markdown_extensions:
   - toc:
       permalink: true
   - pymdownx.highlight
+  - pymdownx.inlinehilite
   - pymdownx.superfences:
       custom_fences:
         - name: mermaid
           class: mermaid
           format: !!python/name:pymdownx.superfences.fence_code_format
+
+extra:
+  social:
+    - icon: fontawesome/brands/github
+      link: https://github.com/Pakfat50/FiveHolePitotTubeCalibration
+      name: GitHubリポジトリ
 
 nav:
   - ホーム: index.md
