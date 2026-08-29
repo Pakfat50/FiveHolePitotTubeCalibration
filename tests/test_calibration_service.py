@@ -26,7 +26,6 @@ class TestCalibrationService(unittest.TestCase):
             全較正点に対してPointEvaluationが生成されることを確認する。
 
         テスト手順:
-
             1. AoAを2点、AoSを3点の格子として設定する。
             2. 設定をCalibrationServiceへ渡して較正計画を生成する。
             3. 生成されたplan.pointsの件数を6件と比較する。
@@ -47,7 +46,6 @@ class TestCalibrationService(unittest.TestCase):
             planの最大X/Y偏差が各点偏差の最大値と一致することを確認する。
 
         テスト手順:
-
             1. X/Y可動範囲をそれぞれ-0.1から0.1に設定する。
             2. 設定をCalibrationServiceへ渡して較正計画を生成する。
             3. 全PointEvaluationからX/Y偏差の最大値を独立に算出する。
@@ -71,7 +69,6 @@ class TestCalibrationService(unittest.TestCase):
             1点でもZ/A範囲外があればplanが生成禁止状態になることを確認する。
 
         テスト手順:
-
             1. Z軸可動範囲を-1.0から1.0に設定する。
             2. 設定をCalibrationServiceへ渡して較正計画を生成する。
             3. 各PointEvaluationのrotational_errorを確認する。
@@ -95,7 +92,6 @@ class TestCalibrationService(unittest.TestCase):
             X/Y飽和だけではplanを生成禁止にしないことを確認する。
 
         テスト手順:
-
             1. X/Y可動範囲をそれぞれ-0.01から0.01に設定する。
             2. 設定をCalibrationServiceへ渡して較正計画を生成する。
             3. 各PointEvaluationのX/Y飽和状態を確認する。
@@ -119,7 +115,6 @@ class TestCalibrationService(unittest.TestCase):
             蛇行走査順とロール角連続性がplan内で維持されることを確認する。
 
         テスト手順:
-
             1. AoAを3点、AoSを3点、蛇行走査を有効として設定する。
             2. 設定をCalibrationServiceへ渡して較正計画を生成する。
             3. 各AoA行のAoS走査順が交互に反転していることを確認する。
@@ -144,7 +139,6 @@ class TestCalibrationService(unittest.TestCase):
             X/Y飽和時に理想指令と実指令の両方が保持されることを確認する。
 
         テスト手順:
-
             1. X/Y可動範囲をそれぞれ-0.01から0.01に設定する。
             2. 設定をCalibrationServiceへ渡して較正計画を生成する。
             3. XまたはYが飽和したPointEvaluationを1件選択する。
