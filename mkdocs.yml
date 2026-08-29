@@ -1,0 +1,47 @@
+site_name: Five-hole Pitot Tube Calibration Documentation
+site_description: 5孔ピトー管較正用Gコード生成アプリケーションの仕様・設計・テスト・APIドキュメント
+site_author: Pakfat50
+site_url: https://pakfat50.github.io/FiveHolePitotTubeCalibration/
+repo_url: https://github.com/Pakfat50/FiveHolePitotTubeCalibration
+repo_name: Pakfat50/FiveHolePitotTubeCalibration
+edit_uri: edit/develop/docs/
+
+theme:
+  name: material
+  language: ja
+  features:
+    - navigation.sections
+    - navigation.top
+    - search.suggest
+    - search.highlight
+    - content.code.copy
+  palette:
+    - media: "(prefers-color-scheme: light)"
+      scheme: default
+      toggle:
+        icon: material/brightness-7
+        name: ダークモードへ切り替え
+    - media: "(prefers-color-scheme: dark)"
+      scheme: slate
+      toggle:
+        icon: material/brightness-4
+        name: ライトモードへ切り替え
+
+plugins:
+  - search
+
+markdown_extensions:
+  - attr_list
+  - admonition
+  - tables
+  - toc:
+      permalink: true
+  - pymdownx.highlight
+  - pymdownx.superfences:
+      custom_fences:
+        - name: mermaid
+          class: mermaid
+          format: !!python/name:pymdownx.superfences.fence_code_format
+
+nav:
+  - ホーム: index.md
