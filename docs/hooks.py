@@ -201,6 +201,7 @@ _TRACE_TARGETS = {
 }
 
 _SHORT_MARKER = re.compile(r"\[\[TESTCODE_SHORT:([A-Za-z0-9_.]+)\]\]")
+_REQ_MARKER = re.compile(r"\[\[REQ:(REQ-[A-Z]+-\d+)\]\]")
 _ARCHREQ_MARKER = re.compile(r"\[\[ARCHREQ:(REQ-[A-Z]+-\d+)\]\]")
 _TESTSPEC_MARKER = re.compile(r"\[\[TESTSPEC:(TEST-(?:UNIT|UC)-[A-Z0-9-]+)\]\]")
 _UCTEST_MARKER = re.compile(r"\[\[UCTEST:(UC-\d+)\]\]")
@@ -218,6 +219,10 @@ def on_page_markdown(markdown, page, config, files):
     def replace_short(match):
         target = match.group(1)
         return f"[テストコード](../test-api/#{target})"
+
+    def replace_req(match):
+        requirement_id = match.group(1)
+        return f"[{requirement_id[4:]}](../pitot_calibration_gui_spec/#{requirement_id.lower()})"
 
     def replace(match):
         label, target = _TRACE_TARGETS[match.group(1)]
@@ -243,6 +248,7 @@ def on_page_markdown(markdown, page, config, files):
 
     markdown = _API_MARKER.sub(replace_api, markdown)
     markdown = _SHORT_MARKER.sub(replace_short, markdown)
+    markdown = _REQ_MARKER.sub(replace_req, markdown)
     markdown = _ARCHREQ_MARKER.sub(replace_archreq, markdown)
     markdown = _TESTSPEC_MARKER.sub(replace_testspec, markdown)
     markdown = _UCTEST_MARKER.sub(replace_uctest, markdown)
