@@ -411,7 +411,7 @@ classDiagram
         -_on_seek(point_index)
         -_on_play_pause()
         -_update_seek_bar(point_index)
-        -_update_playback_button(state)
+        -set_playback_state(state)
         -_configure_matplotlib_font()
         -_calculate_side_limits(plan)
         -_calculate_calibration_limits(plan)
