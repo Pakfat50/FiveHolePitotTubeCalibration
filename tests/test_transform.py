@@ -240,10 +240,11 @@ class TestAngleTransformer(unittest.TestCase):
     def _assert_reproduces(self, aoa, aos, z, a):
         """Z/AからAoA/AoS相当値を逆算し入力姿勢の再現性を確認する補助メソッド。
 
-        @param aoa 期待するAoA[deg]。
-        @param aos 期待するAoS[deg]。
-        @param z 実ピッチ角[deg]。
-        @param a 実ロール角[deg]。
+        Args:
+            aoa: 期待するAoA[deg]
+            aos: 期待するAoS[deg]
+            z: 実ピッチ角[deg]
+            a: 実ロール角[deg]
         Verification rationale:
         等価解の表記ではなく、変換後ベクトルが表す物理的なAoA/AoSを比較するため、複数解が存在するケースでも仕様適合性を判定できる。
         """
