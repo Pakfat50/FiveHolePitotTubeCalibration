@@ -192,6 +192,8 @@ _TRACE_TARGETS = {
     ),
 }
 
+_SHORT_MARKER = re.compile(r"\[\[TESTCODE_SHORT:([A-Za-z0-9_.]+)\]\]")
+
 _MARKER = re.compile(r"\[\[(" + "|".join(map(re.escape, _TRACE_TARGETS)) + r")\]\]")
 
 
@@ -200,8 +202,13 @@ def on_page_markdown(markdown, page, config, files):
     """Replace semantic trace markers while MkDocs builds each page."""
     del page, config, files
 
+    def replace_short(match):
+        target = match.group(1)
+        return f"[テストコード](../test-api/#{target})"
+
     def replace(match):
         label, target = _TRACE_TARGETS[match.group(1)]
         return f"[{label}]({target})"
 
+    markdown = _SHORT_MARKER.sub(replace_short, markdown)
     return _MARKER.sub(replace, markdown)
