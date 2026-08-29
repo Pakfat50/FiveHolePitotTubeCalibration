@@ -63,6 +63,7 @@ flowchart LR
 
 # 3. シーケンス図
 
+<a id="uc-01"></a>
 ## 3.1 UC-01 較正条件を入力・更新する
 
 ```mermaid
@@ -104,6 +105,7 @@ sequenceDiagram
     end
 ```
 
+<a id="uc-02"></a>
 ## 3.2 UC-02 初期化Gコードを読み込む
 
 ```mermaid
@@ -123,6 +125,7 @@ sequenceDiagram
     end
 ```
 
+<a id="uc-03"></a>
 ## 3.3 UC-03 設定を保存する
 
 ```mermaid
@@ -141,6 +144,7 @@ sequenceDiagram
     MainWindow->>MainWindow: ステータス表示
 ```
 
+<a id="uc-04"></a>
 ## 3.4 UC-04 設定を読み込む
 
 ```mermaid
@@ -227,6 +231,7 @@ sequenceDiagram
 
 対応要求: [[ARCHREQ:REQ-SIM-007]]
 
+<a id="uc-06"></a>
 ## 3.6 UC-06 Gコードを生成する
 
 ```mermaid
@@ -410,7 +415,7 @@ classDiagram
         +set_playback_state(state)
         -_on_seek(point_index)
         -_on_play_pause()
-        -_update_seek_bar(point_index)
+        -_update_seek_slider(point_index)
         -set_playback_state(state)
         -_configure_matplotlib_font()
         -_calculate_side_limits(plan)
@@ -802,9 +807,9 @@ stateDiagram-v2
 | <a id="architecture-req-sim-009"></a>[SIM-009](#architecture-req-sim-009) | [[API:simulation.SimulationController.resume]], [[API:simulation.SimulationController.restart_from_beginning]] | 一時停止中は現在位置から、最終位置では先頭から再生 |
 | <a id="architecture-req-sim-010"></a>[SIM-010](#architecture-req-sim-010) | [[API:simulation.SimulationView._on_seek]], [[API:simulation.SimulationController.seek_to_point]] | 較正点単位のシーク |
 | <a id="architecture-req-sim-011"></a>[SIM-011](#architecture-req-sim-011) | [[API:simulation.SimulationView._on_seek]], [[API:simulation.SimulationController.pause]] | 再生中のシーク開始時に自動一時停止 |
-| <a id="architecture-req-sim-012"></a>[SIM-012](#architecture-req-sim-012) | [[API:simulation.SimulationController.seek_to_point]], [[API:simulation.SimulationView.render_frame]], [[API:simulation.SimulationView._update_seek_bar]] | シーク位置を全表示へ即時反映 |
+| <a id="architecture-req-sim-012"></a>[SIM-012](#architecture-req-sim-012) | [[API:simulation.SimulationController.seek_to_point]], [[API:simulation.SimulationView.render_frame]], [[API:simulation.SimulationView._update_seek_slider]] | シーク位置を全表示へ即時反映 |
 | <a id="architecture-req-sim-013"></a>[SIM-013](#architecture-req-sim-013) | [[API:simulation.SimulationController.on_animation_complete]], [[API:simulation.SimulationView.show_final_state]] | 最終点で停止し、自動ループしない |
-| <a id="architecture-req-sim-014"></a>[SIM-014](#architecture-req-sim-014) | [[API:simulation.SimulationView.initialize]], [[API:simulation.SimulationView._update_seek_bar]] | 既存プログレスバーをシークバーへ置換 |
+| <a id="architecture-req-sim-014"></a>[SIM-014](#architecture-req-sim-014) | [[API:simulation.SimulationView.initialize]], [[API:simulation.SimulationView._update_seek_slider]] | 既存プログレスバーをシークバーへ置換 |
 | <a id="architecture-req-sim-015"></a>[SIM-015](#architecture-req-sim-015) | [[API:simulation.SimulationView.initialize]], [[API:simulation.SimulationView._on_seek]] | 大きなつまみ、ドラッグ、較正点単位操作 |
 | <a id="architecture-req-sim-016"></a>[SIM-016](#architecture-req-sim-016) | [[API:simulation.SimulationView.set_playback_state]], [[API:simulation.SimulationView._on_play_pause]] | 状態に応じたⅡ/▶ボタン表示と操作 |
 
@@ -861,7 +866,7 @@ stateDiagram-v2
 | simulation | `SimulationView.set_playback_state` | state | None | ボタン表示・シーク操作状態を更新 |
 | simulation | `SimulationView._on_seek` | point_index | None | シーク開始時に一時停止し、Controllerへ点選択を通知 |
 | simulation | `SimulationView._on_play_pause` | なし | None | 再生/一時停止操作をControllerへ通知 |
-| simulation | `SimulationView._update_seek_bar` | point_index | None | シークバーを現在較正点へ同期 |
+| simulation | `SimulationView._update_seek_slider` | point_index | None | シークバーを現在較正点へ同期 |
 | simulation | `SimulationView.set_playback_state` | state | None | 状態に応じⅡ/▶を表示 |
 | simulation | `SimulationView._calculate_side_limits` | plan | None | 横面図固定表示範囲を保持 |
 | simulation | `SimulationView._calculate_calibration_limits` | plan | None | 較正点マップ固定表示範囲を保持 |
