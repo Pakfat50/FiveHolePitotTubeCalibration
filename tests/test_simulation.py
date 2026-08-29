@@ -468,6 +468,9 @@ class TestSimulation(unittest.TestCase):
         self.assertEqual(0, view.seek_slider.valmin)
         self.assertEqual(4, view.seek_slider.valmax)
         self.assertGreaterEqual(view.seek_slider.handle.get_markersize(), 10)
+        self.assertEqual("s", view.seek_slider.handle.get_marker())
+        self.assertFalse(view.seek_slider.valtext.get_visible())
+        self.assertIsNot(view.seek_slider.ax, view._status_artist.axes)
         self.assertIsNotNone(view.playback_button)
 
     # TEST-UNIT-135
