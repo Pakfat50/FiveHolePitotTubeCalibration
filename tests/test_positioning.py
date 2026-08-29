@@ -105,9 +105,10 @@ class TestPositionCompensator(unittest.TestCase):
     def _assert_formula(self, theta, lx, ly):
         """REQ-POS-001の理論式から期待値を独立計算して実装値と比較する補助メソッド。
 
-        @param theta 実ピッチ角[deg]。
-        @param lx 基準姿勢のX方向オフセット[mm]。
-        @param ly 基準姿勢のY方向オフセット[mm]。
+        Args:
+            theta: 実ピッチ角[deg]
+            lx: 基準姿勢のX方向オフセット[mm]
+            ly: 基準姿勢のY方向オフセット[mm]
         Verification rationale:
         テスト側で明示的に回転後先端座標と補正量を算出することで、PositionCompensatorの公開出力を仕様式そのものと比較できる。
         See Also: REQ-POS-001
