@@ -219,7 +219,7 @@ class MainWindow:
     def _find_numeric_parse_errors(self) -> set[str]:
         """数値へ変換できないEntryをフィールド単位で特定する。
 
-        戻り値:
+        Returns:
             数値変換に失敗したEntryキーの集合。
 
         対応要求:
@@ -243,10 +243,10 @@ class MainWindow:
         範囲エラーはmin/maxの関係で成立するため両Entryを対象とし、単一値エラーは
         同名Entryだけを対象とする。
 
-        引数:
+        Args:
             field: ValidationIssueが示すフィールド名。
 
-        戻り値:
+        Returns:
             背景色をエラー表示へ切り替えるEntryキー。
 
         対応要求:
@@ -264,7 +264,7 @@ class MainWindow:
 
         枠色、配置、サイズ、新規の文字表示やアイコンは変更しない。
 
-        引数:
+        Args:
             invalid_entry_keys: 背景色をエラー表示へ切り替えるEntryキー集合。
 
         対応要求:
@@ -315,7 +315,7 @@ class MainWindow:
         入力欄近傍へ新規の文字表示やアイコンを追加せず、既存の固定メッセージ領域へ
         入力エラー理由を表示する。
 
-        引数:
+        Args:
             validation_result: フィールド単位の検証結果。
 
         対応要求:
