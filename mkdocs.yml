@@ -62,8 +62,7 @@ plugins:
             docstring_options:
               warn_missing_types: false
             members_order: source
-            filters:
-              - "!^__"
+            filters: []
             show_source: false
             show_root_heading: true
             show_object_full_path: false
