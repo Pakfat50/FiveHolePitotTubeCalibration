@@ -73,3 +73,13 @@ extra:
 
 nav:
   - ホーム: index.md
+  - 要求仕様:
+      - 較正GUI要求仕様: pitot_calibration_gui_spec.md
+  - アーキテクチャ設計:
+      - アーキテクチャ設計書: architecture_design.md
+  - テスト設計:
+      - テスト仕様書: test_specification.md
+  - コーディングルール:
+      - テストコードDoxygenルール: test_doxygen_guideline.md
+  - 参考資料:
+      - 要求整理: requirements_summary.md
