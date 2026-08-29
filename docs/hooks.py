@@ -6,6 +6,10 @@ from mkdocs.plugins import event_priority
 
 
 _TRACE_TARGETS = {
+    "ARCH:UC-01": ("UC-01（較正条件を入力・更新する）", "../architecture_design/#uc-01"),
+    "ARCH:UC-02": ("UC-02（初期化Gコードを読み込む）", "../architecture_design/#uc-02"),
+    "ARCH:UC-03": ("UC-03（設定を保存する）", "../architecture_design/#uc-03"),
+    "ARCH:UC-04": ("UC-04（設定を読み込む）", "../architecture_design/#uc-04"),
     "ARCH:UC-05": (
         "UC-05（シミュレーションする）",
         "../architecture_design/#uc-05",
@@ -195,7 +199,7 @@ _TRACE_TARGETS = {
 _SHORT_MARKER = re.compile(r"\[\[TESTCODE_SHORT:([A-Za-z0-9_.]+)\]\]")
 _ARCHREQ_MARKER = re.compile(r"\[\[ARCHREQ:(REQ-[A-Z]+-\d+)\]\]")
 _TESTSPEC_MARKER = re.compile(r"\[\[TESTSPEC:(TEST-(?:UNIT|UC)-[A-Z0-9-]+)\]\]")
-_UCTEST_MARKER = re.compile(r"\[\[UCTEST:(UC-\d+)\]\]")
+_UCTEST_MARKER = re.compile(r"\[\[UCTEST:(UC-\d+)\]\]")\n_API_MARKER = re.compile(r"\\[\\[API:([A-Za-z0-9_.]+)\\]\\]")\n
 
 _MARKER = re.compile(r"\[\[(" + "|".join(map(re.escape, _TRACE_TARGETS)) + r")\]\]")
 
@@ -225,7 +229,7 @@ def on_page_markdown(markdown, page, config, files):
         target = match.group(1).lower()
         return f"[テスト仕様](../test_specification/#test-uc-{target[3:]}-01)"
 
-    markdown = _SHORT_MARKER.sub(replace_short, markdown)
+    def replace_api(match):\n        target = match.group(1)\n        parts = target.split(".")\n        label = ".".join(parts[-2:]) if len(parts) >= 2 else parts[-1]\n        return f"[{label}](../api/#{target})"\n\n    markdown = _API_MARKER.sub(replace_api, markdown)\n    markdown = _SHORT_MARKER.sub(replace_short, markdown)
     markdown = _ARCHREQ_MARKER.sub(replace_archreq, markdown)
     markdown = _TESTSPEC_MARKER.sub(replace_testspec, markdown)
     markdown = _UCTEST_MARKER.sub(replace_uctest, markdown)
