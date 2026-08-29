@@ -3,7 +3,7 @@ name: Deploy documentation
 on:
   push:
     branches:
-      - develop
+      - feature/mkdocs-pages
   workflow_dispatch:
 
 permissions:
