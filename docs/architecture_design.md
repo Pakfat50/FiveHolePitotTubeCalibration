@@ -395,9 +395,13 @@ classDiagram
     }
     class SimulationView {
         +initialize(plan)
-        +start_animation(plan, duration_s, frame_provider)
+        +start_animation(plan, duration_s, frame_provider, on_complete)
         +render_frame(point, progress)
         +show_final_state()
+        +set_playback_callbacks(pause, resume, seek)
+        +pause_animation()
+        +resume_animation()
+        +restart_animation(plan, duration_s, frame_provider, on_complete)
         +set_playback_state(state)
         -_on_seek(point_index)
         -_on_play_pause()
@@ -833,6 +837,11 @@ stateDiagram-v2
 | repositories | `GCodeRepository.save` | path/text | None | ファイルI/O |
 | controller | `CalibrationController.on_settings_changed` | GUI入力 | 状態更新 | 内部状態更新 |
 | simulation | `SimulationController.start` | plan, duration | None | View初期化・アニメーション開始、再生状態初期化 |
+| simulation | `SimulationController.pause` | なし | None | アニメーション一時停止、状態をPausedへ更新 |
+| simulation | `SimulationController.resume` | なし | None | 現在位置から、完了後は先頭から再生 |
+| simulation | `SimulationController.seek_to_point` | point_index | None | 指定点を即時描画し、Pausedへ更新 |
+| simulation | `SimulationController.restart_from_beginning` | なし | None | 完了後に先頭から再生 |
+| simulation | `SimulationController.on_animation_complete` | なし | None | 最終点を保持し、Completedへ更新 |
 | simulation | `SimulationController.pause` | なし | None | アニメーションタイマー停止、状態をPausedへ更新 |
 | simulation | `SimulationController.resume` | なし | None | 現在位置からアニメーション再開 |
 | simulation | `SimulationController.seek_to_point` | point_index | None | 指定点を範囲内へ補正し、Viewへ即時描画 |
@@ -841,7 +850,10 @@ stateDiagram-v2
 | simulation | `SimulationController._frame_at` | plan, progress | `PointEvaluation` | なし |
 | simulation | `SimulationView._configure_matplotlib_font` | 利用可能フォント | None | Matplotlib font設定 |
 | simulation | `SimulationView.initialize` | plan | None | 横面図・正面図・全較正点マップ・状態領域を初期化 |
-| simulation | `SimulationView.start_animation` | plan, duration, frame_provider | None | `FuncAnimation`生成・タイマー駆動 |
+| simulation | `SimulationView.start_animation` | plan, duration, frame_provider, on_complete | None | `FuncAnimation`生成・タイマー駆動、完了通知 |
+| simulation | `SimulationView.set_playback_callbacks` | pause, resume, seek | None | Controllerの再生操作コールバックを登録 |
+| simulation | `SimulationView.pause_animation/resume_animation/restart_animation` | 状態/再生引数 | None | Matplotlibタイマーの停止・再開・再生成 |
+| simulation | `SimulationView.set_playback_state` | state | None | ボタン表示を状態に同期 |
 | simulation | `SimulationView.set_playback_state` | state | None | ボタン表示・シーク操作状態を更新 |
 | simulation | `SimulationView._on_seek` | point_index | None | シーク開始時に一時停止し、Controllerへ点選択を通知 |
 | simulation | `SimulationView._on_play_pause` | なし | None | 再生/一時停止操作をControllerへ通知 |
