@@ -22,9 +22,9 @@ _TRACE_TARGETS = {
         "SimulationView.start_animation",
         "../api/#simulation.SimulationView.start_animation",
     ),
-    "CODE:simulation.SimulationView._update_playback_button": (
-        "SimulationView._update_playback_button",
-        "../api/#simulation.SimulationView._update_playback_button",
+    "CODE:simulation.SimulationView.set_playback_state": (
+        "SimulationView.set_playback_state",
+        "../api/#simulation.SimulationView.set_playback_state",
     ),
     "TEST:TEST-UNIT-126": (
         "TEST-UNIT-126",
