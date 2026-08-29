@@ -751,8 +751,8 @@ stateDiagram-v2
 | <a id="architecture-req-input-005"></a>[INPUT-005](#architecture-req-input-005) | [[API:gui.MainWindow._build_widgets]], [[API:models.AxisLimits]], [[API:models.AxisRange]] | X/Y/Z/A可動範囲 |
 | <a id="architecture-req-input-006"></a>[INPUT-006](#architecture-req-input-006) | [[API:gui.MainWindow._on_load_initialization]], [[API:repositories.InitializationGCodeRepository.load]] | 初期化Gコード |
 | <a id="architecture-req-input-007"></a>[INPUT-007](#architecture-req-input-007) | [[API:gui.MainWindow._build_widgets]], [[API:models.CalibrationSettings]] | 蛇行走査、コメント |
-| <a id="architecture-req-valid-001"></a>[VALID-001](#architecture-req-valid-001) | [[API:controller.CalibrationController.on_settings_changed]], `InputValidator.validate`, [[API:gui.MainWindow._on_gui_input_changed]], [[API:gui.MainWindow._find_numeric_parse_errors]], [[API:gui.MainWindow._apply_validation_highlights]], [[API:gui.MainWindow._update_validation_display]] | リアルタイム非モーダル検証、数値パース失敗、フィールド背景強調 |
-| <a id="architecture-req-valid-002"></a>[VALID-002](#architecture-req-valid-002) | `InputValidator.validate`, [[API:controller.CalibrationController.can_generate]] | 入力整合性 |
+| <a id="architecture-req-valid-001"></a>[VALID-001](#architecture-req-valid-001) | [[API:controller.CalibrationController.on_settings_changed]], [[API:validation.InputValidator.validate]], [[API:gui.MainWindow._on_gui_input_changed]], [[API:gui.MainWindow._find_numeric_parse_errors]], [[API:gui.MainWindow._apply_validation_highlights]], [[API:gui.MainWindow._update_validation_display]] | リアルタイム非モーダル検証、数値パース失敗、フィールド背景強調 |
+| <a id="architecture-req-valid-002"></a>[VALID-002](#architecture-req-valid-002) | [[API:validation.InputValidator.validate]], [[API:controller.CalibrationController.can_generate]] | 入力整合性 |
 | <a id="architecture-req-valid-003"></a>[VALID-003](#architecture-req-valid-003) | [[API:limits.LimitEvaluator.evaluate]], [[API:controller.CalibrationController.can_generate]], [[API:gui.MainWindow._update_action_state]] | X/Y警告、Z/A禁止 |
 
 ## 10.2 座標変換・位置補正・制限
