@@ -36,3 +36,22 @@
   background: #d97706;
   color: #ffffff;
 }
+
+
+/* Add visual separation between generated classes and functions. */
+.md-typeset .doc.doc-object {
+  margin-bottom: 3rem;
+}
+
+.md-typeset .doc.doc-object > .doc-contents {
+  padding-bottom: 1.25rem;
+  border-bottom: 1px solid var(--md-default-fg-color--lightest);
+}
+
+.md-typeset .doc.doc-object .doc.doc-object {
+  margin-top: 2.25rem;
+}
+
+.md-typeset .doc.doc-object .doc.doc-object > .doc-contents {
+  padding-bottom: 1rem;
+}
