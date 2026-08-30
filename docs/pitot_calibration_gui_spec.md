@@ -196,11 +196,13 @@ $$
 
 同一のAoA/AoSを表す別解が存在する場合は候補解を生成し、可動範囲および前較正点からの連続性を考慮して解を選択しなければならない。
 
+AoA=AoS=0 degの場合、実ピッチ角は0 degで一意とし、実ロール角は任意とする。この場合、前較正点が存在すれば前較正点の実ロール角を保持し、前較正点が存在しない初期点ではA軸可動範囲の中央値を用いなければならない。
+
 **関連成果物**
 
 - アーキテクチャ設計: [[ARCH:UC-01]]
 - 製品コード: [[API:transform.AngleTransformer.transform]]、[[API:transform.AngleTransformer._generate_equivalent_solutions]]
-- テスト仕様: [[TESTSPEC:TEST-UNIT-025]]、[[TESTSPEC:TEST-UNIT-026]]、[[TESTSPEC:TEST-UNIT-027]]、[[TESTSPEC:TEST-UNIT-028]]、[[TESTSPEC:TEST-UNIT-029]]、[[TESTSPEC:TEST-UNIT-030]]、[[TESTSPEC:TEST-UNIT-031]]、[[TESTSPEC:TEST-UNIT-032]]、[[TESTSPEC:TEST-UNIT-040]]、[[TESTSPEC:TEST-UNIT-060]]
+- テスト仕様: [[TESTSPEC:TEST-UNIT-025]]、[[TESTSPEC:TEST-UNIT-026]]、[[TESTSPEC:TEST-UNIT-027]]、[[TESTSPEC:TEST-UNIT-028]]、[[TESTSPEC:TEST-UNIT-029]]、[[TESTSPEC:TEST-UNIT-030]]、[[TESTSPEC:TEST-UNIT-031]]、[[TESTSPEC:TEST-UNIT-032]]、[[TESTSPEC:TEST-UNIT-040]]、[[TESTSPEC:TEST-UNIT-060]]、[[TESTSPEC:TEST-UNIT-137]]、[[TESTSPEC:TEST-UNIT-138]]
 
 #### REQ-TRANS-003（解の選択）
 
