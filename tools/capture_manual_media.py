@@ -32,7 +32,10 @@ def capture(root: tk.Tk, name: str) -> Image.Image:
 
 
 root = tk.Tk()
+root.option_add("*font", "Noto Sans CJK JP 10")
 app = build_application(root)
+root.geometry("1200x900")
+root.update()
 root.update()
 frames: list[Image.Image] = []
 
