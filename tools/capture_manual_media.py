@@ -162,7 +162,11 @@ output = Path("sample-output.nc")
 root.after(
     1000,
     lambda: (
-        pyautogui.hotkey("ctrl", "a"),
+        pyautogui.press("home"),
+        pyautogui.keyDown("shift"),
+        pyautogui.press("end"),
+        pyautogui.keyUp("shift"),
+        pyautogui.press("backspace"),
         pyautogui.write(output.name),
         pyautogui.press("enter"),
     ),
