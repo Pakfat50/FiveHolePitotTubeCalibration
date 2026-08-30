@@ -5,6 +5,7 @@ from __future__ import annotations
 import sys
 import time
 import tkinter as tk
+from tkinter import font as tkfont
 from pathlib import Path
 
 from PIL import Image, ImageGrab
@@ -32,7 +33,9 @@ def capture(root: tk.Tk, name: str) -> Image.Image:
 
 
 root = tk.Tk()
-root.option_add("*font", "{Noto Sans CJK JP} 10")
+root.option_add("*font", "{IPAGothic} 10")
+for name in ("TkDefaultFont", "TkTextFont", "TkMenuFont", "TkCaptionFont", "TkSmallCaptionFont"):
+    tkfont.nametofont(name).configure(family="IPAGothic")
 app = build_application(root)
 root.geometry("1200x900")
 root.update()
