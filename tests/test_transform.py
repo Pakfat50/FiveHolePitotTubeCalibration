@@ -43,13 +43,15 @@ class TestAngleTransformer(unittest.TestCase):
         self.assertAlmostEqual(0.0, a, delta=ABS_TOL)
 
     def test_origin_preserves_previous_roll(self):
-        """原点では前回のロール角を保持する。"""
+        """TEST-UNIT-137
+        原点では前回のロール角を保持する。"""
         z, a = self.t.transform(0.0, 0.0, (12.0, 37.0), self.limits)
         self.assertAlmostEqual(0.0, z, delta=ABS_TOL)
         self.assertAlmostEqual(37.0, a, delta=ABS_TOL)
 
     def test_origin_uses_a_axis_midpoint_without_previous(self):
-        """前回値がない原点ではA軸可動範囲の中央値を初期値にする。"""
+        """TEST-UNIT-138
+        前回値がない原点ではA軸可動範囲の中央値を初期値にする。"""
         limits = make_limits(a=AxisRange(-30.0, 90.0))
         z, a = self.t.transform(0.0, 0.0, None, limits)
         self.assertAlmostEqual(0.0, z, delta=ABS_TOL)
