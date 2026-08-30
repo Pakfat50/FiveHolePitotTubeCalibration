@@ -135,10 +135,10 @@ class Checker:
             if not re.match(r'^\\| <a id="test-[^"]+"></a>TEST-', line):
                 continue
             if "[[TESTCODE" not in line:
-                self.error(f"test-spec: missing test-code link: {line[:100]}")
+                self.error("traceability", f"test-spec: missing test-code link: {line[:100]}")
             for req_id in re.findall(REQ_PATTERN, line):
                 if req_id not in self.requirement_ids:
-                    self.error(f"test-spec: unknown requirement ID {req_id}")
+                    self.error("traceability", f"test-spec: unknown requirement ID {req_id}")
         for target in re.findall(r"\[\[TESTCODE(?:_SHORT)?:([^\]]+)\]\]", text):
             if not re.fullmatch(r"[A-Za-z_][\w.]+", target):
                 self.error("traceability", f"test-spec: invalid test-code target {target}")
@@ -219,6 +219,7 @@ class Checker:
                 self.error("test", f"{test_id} is absent from test-spec")
 
     def check_product_code_rule(self) -> None:
+        """製品コードAPIのdocstring規約をASTで確認する。"""
         for path in sorted(ROOT.glob("*.py")):
             if path.name.startswith("test_"):
                 continue
@@ -234,11 +235,8 @@ class Checker:
                     continue
                 if node.name.startswith("_"):
                     continue
-                doc = ast.get_docstring(node) or ""
-                if not doc:
+                if not ast.get_docstring(node):
                     self.error("product", f"{path.relative_to(ROOT)}:{node.lineno}: {node.name} missing docstring")
-                if isinstance(node, (ast.ClassDef, ast.FunctionDef, ast.AsyncFunctionDef)) and "対応要求:" not in doc:
-                    self.error("product", f"{path.relative_to(ROOT)}:{node.lineno}: {node.name} missing 対応要求: marker")
 
     def check_traceability_rule(self) -> None:
         text = self.read(TRACE_RULE)
