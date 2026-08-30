@@ -361,7 +361,7 @@
 | <a id="test-uc-01-06"></a>TEST-UC-01-06 | UC-01 | XY上限飽和 | X/Y範囲を狭くして飽和発生 | Mapで警告点識別、X/Y最大偏差表示、Sim/G-codeは有効 | [[TESTCODE_SHORT:tests.test_use_cases.TestUseCases.test_uc01_xy_saturation_warns_but_allows_actions]] |
 | <a id="test-uc-01-07"></a>TEST-UC-01-07 | UC-01 | ZA範囲超過 | Z/A範囲を狭くする | Mapでエラー点識別、Z/A非飽和、Sim/G-code無効 | [[TESTCODE_SHORT:tests.test_use_cases.TestUseCases.test_uc01_za_overrange_blocks_actions]] |
 | <a id="test-uc-01-08"></a>TEST-UC-01-08 | UC-01 | XY警告とZAエラー同時 | 両方発生する設定 | XY警告情報を保持しつつ生成禁止はZAエラーが優先 | [[TESTCODE_SHORT:tests.test_use_cases.TestUseCases.test_uc01_xy_warning_and_za_error_coexist]] |
-| <a id="test-uc-01-09"></a>TEST-UC-01-09 | UC-01 | AoA/AoS=0を含む格子 | 中央点あり | 中央点Z=0,A=0、不要な角度ジャンプなし | [[TESTCODE_SHORT:tests.test_use_cases.TestUseCases.test_uc01_grid_origin_is_deterministic]] |
+| <a id="test-uc-01-09"></a>TEST-UC-01-09 | UC-01 | AoA/AoS=0を含む格子 | 中央点あり、走査順の直前点あり | 原点Z=0、原点Aは直前点Aを保持し、不要なロール角不連続なし | [[TESTCODE_SHORT:tests.test_use_cases.TestUseCases.test_uc01_grid_origin_is_deterministic]] |
 | <a id="test-uc-01-10"></a>TEST-UC-01-10 | UC-01 | ±180近傍の連続性を伴う走査 | ロールunwrapが必要な点列 | 走査点間で不要な±360°ジャンプがない | [[TESTCODE_SHORT:tests.test_use_cases.TestUseCases.test_uc01_roll_has_no_unnecessary_360_jump]] |
 | <a id="test-uc-01-11"></a>TEST-UC-01-11 | UC-01 | Lx/Ly下限違反 | LxまたはLyを0以下へ変更 | 該当入力欄を背景色で強調し既存固定メッセージ領域へ理由表示、plan更新停止、Sim/G-code無効 | [[TESTCODE_SHORT:tests.test_use_cases.TestUseCases.test_uc01_nonpositive_offsets_block_plan]] |
 | <a id="test-uc-01-12"></a>TEST-UC-01-12 | UC-01 | 保持時間/Feed下限境界 | hold=0.1, F=1→各下限未満へ変更 | 下限値は有効、下限未満では該当入力欄を背景色で強調し既存固定メッセージ領域へ理由表示、生成不可 | [[TESTCODE_SHORT:tests.test_use_cases.TestUseCases.test_uc01_hold_and_feed_boundaries]] |
