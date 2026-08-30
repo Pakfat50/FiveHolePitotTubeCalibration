@@ -132,13 +132,13 @@ class Checker:
         if not ids:
             self.error("traceability", "test-spec: no detailed test IDs found")
         for line in text.splitlines():
-            if "| TEST-" not in line or line.startswith("| テストID"):
+            if not re.match(r'^\\| <a id="test-[^"]+"></a>TEST-', line):
                 continue
             if "[[TESTCODE" not in line:
-                self.error("traceability", f"test-spec: missing test-code link: {line[:100]}")
+                self.error(f"test-spec: missing test-code link: {line[:100]}")
             for req_id in re.findall(REQ_PATTERN, line):
                 if req_id not in self.requirement_ids:
-                    self.error("traceability", f"test-spec: unknown requirement ID {req_id}")
+                    self.error(f"test-spec: unknown requirement ID {req_id}")
         for target in re.findall(r"\[\[TESTCODE(?:_SHORT)?:([^\]]+)\]\]", text):
             if not re.fullmatch(r"[A-Za-z_][\w.]+", target):
                 self.error("traceability", f"test-spec: invalid test-code target {target}")
