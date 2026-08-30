@@ -41,7 +41,11 @@ def widget_center(widget) -> tuple[int, int]:
 def type_into(root: tk.Tk, widget, value: str) -> None:
     """画面上の入力欄をクリックし、キーボード入力で値を置き換える。"""
     pyautogui.click(*widget_center(widget))
-    pyautogui.hotkey("ctrl", "a")
+    pyautogui.press("home")
+    pyautogui.keyDown("shift")
+    pyautogui.press("end")
+    pyautogui.keyUp("shift")
+    pyautogui.press("backspace")
     pyautogui.write(value)
     pump(root, 0.2)
 
