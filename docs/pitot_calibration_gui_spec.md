@@ -213,11 +213,13 @@ AoA=AoS=0 degの場合、実ピッチ角は0 degで一意とし、実ロール�
 3. 前の較正点からのZ/A総移動量が小さい
 4. ロール角の絶対値が小さい
 
+AoA=AoS=0 degでは、実ピッチ角を0 degとし、前較正点が存在する場合は前較正点の実ロール角を選択する。前較正点が存在しない場合は、A軸可動範囲の中央値を初期ロール角として選択する。
+
 **関連成果物**
 
 - アーキテクチャ設計: [[ARCH:UC-01]]
 - 製品コード: [[API:transform.AngleTransformer._select_solution]]
-- テスト仕様: [[TESTSPEC:TEST-UNIT-036]]、[[TESTSPEC:TEST-UNIT-037]]、[[TESTSPEC:TEST-UNIT-038]]、[[TESTSPEC:TEST-UNIT-039]]、[[TESTSPEC:TEST-UNIT-040]]
+- テスト仕様: [[TESTSPEC:TEST-UNIT-036]]、[[TESTSPEC:TEST-UNIT-037]]、[[TESTSPEC:TEST-UNIT-038]]、[[TESTSPEC:TEST-UNIT-039]]、[[TESTSPEC:TEST-UNIT-040]]、[[TESTSPEC:TEST-UNIT-137]]、[[TESTSPEC:TEST-UNIT-138]]
 
 #### REQ-TRANS-004（角度の連続性）
 
@@ -229,7 +231,7 @@ AoA=AoS=0 degの場合、実ピッチ角は0 degで一意とし、実ロール�
 
 - アーキテクチャ設計: [[ARCH:UC-01]]
 - 製品コード: [[API:transform.AngleTransformer._unwrap_angle]]
-- テスト仕様: [[TESTSPEC:TEST-UNIT-033]]、[[TESTSPEC:TEST-UNIT-034]]、[[TESTSPEC:TEST-UNIT-035]]、[[TESTSPEC:TEST-UNIT-064]]
+- テスト仕様: [[TESTSPEC:TEST-UNIT-033]]、[[TESTSPEC:TEST-UNIT-034]]、[[TESTSPEC:TEST-UNIT-035]]、[[TESTSPEC:TEST-UNIT-064]]、[[TESTSPEC:TEST-UNIT-137]]
 
 #### REQ-POS-001（先端位置補正）
 
