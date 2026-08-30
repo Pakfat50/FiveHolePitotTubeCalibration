@@ -118,8 +118,9 @@ class Checker:
             if req_id not in self.requirement_ids:
                 self.error("traceability", f"architecture: unknown requirement link {req_id}")
         for api in re.findall(r"\[\[API:([^\]]+)\]\]", text):
-            if not re.fullmatch(r"[A-Za-z_][\w.]*", api):
-                self.error("traceability", f"architecture: invalid API link {api}")
+            for target in api.split("|", 1)[0].split("/"):
+                if not re.fullmatch(r"[A-Za-z_][\w.]*", target):
+                    self.error("traceability", f"architecture: invalid API link {target}")
 
     def check_test_spec(self) -> None:
         text = self.read(TEST_SPEC)
@@ -178,9 +179,10 @@ class Checker:
 
     def check_api_links(self) -> None:
         combined = self.read(REQ_DOC) + self.read(ARCH_DOC) + self.read(TEST_SPEC)
-        for target in re.findall(r"\[\[API:([^\]]+)\]\]", combined):
-            if target not in self.product_api_targets:
-                self.error("traceability", f"unknown product API target: {target}")
+        for raw_target in re.findall(r"\[\[API:([^\]]+)\]\]", combined):
+            for target in raw_target.split("|", 1)[0].split("/"):
+                if target not in self.product_api_targets:
+                    self.error("traceability", f"unknown product API target: {target}")
         for target in re.findall(r"\[\[TESTCODE(?:_SHORT)?:([^\]]+)\]\]", combined):
             if target not in self.test_api_targets:
                 self.error("traceability", f"unknown test-code API target: {target}")
@@ -200,11 +202,11 @@ class Checker:
                 if not isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef)) or not node.name.startswith("test_"):
                     continue
                 doc = ast.get_docstring(node, clean=False) or ""
-                ids = re.findall(TEST_PATTERN, doc)
-                if len(ids) != 1:
-                    self.error("test", f"{path.relative_to(ROOT)}:{node.lineno}: exactly one TEST ID is required")
+                header_ids = re.findall(rf"^\s*({TEST_PATTERN})\b", doc, re.MULTILINE)
+                if len(header_ids) != 1:
+                    self.error("test", f"{path.relative_to(ROOT)}:{node.lineno}: exactly one TEST ID header is required")
                     continue
-                test_id = ids[0]
+                test_id = header_ids[0]
                 found.append(test_id)
                 for label in required_labels:
                     if label not in doc:
