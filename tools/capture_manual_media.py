@@ -25,10 +25,32 @@ def pump(root: tk.Tk, seconds: float) -> None:
         time.sleep(0.1)
 
 
+def remove_edge_black(image: Image.Image) -> Image.Image:
+    """画面端から連続する黒い余白を白で置換する。"""
+    image = image.convert("RGB")
+    width, height = image.size
+    pixels = image.load()
+    visited: set[tuple[int, int]] = set()
+    stack = [(x, y) for x in range(width) for y in (0, height - 1)]
+    stack.extend((x, y) for y in range(height) for x in (0, width - 1))
+    while stack:
+        x, y = stack.pop()
+        if (x, y) in visited or not (0 <= x < width and 0 <= y < height):
+            continue
+        visited.add((x, y))
+        r, g, b = pixels[x, y]
+        if max(r, g, b) > 32:
+            continue
+        pixels[x, y] = (255, 255, 255)
+        stack.extend(((x + 1, y), (x - 1, y), (x, y + 1), (x, y - 1)))
+    return image
+
+
 def crop_black_border(image: Image.Image) -> Image.Image:
     """仮想ディスプレイ外側の黒領域を除去する。"""
-    background = Image.new("RGB", image.size, "black")
-    bbox = ImageChops.difference(image.convert("RGB"), background).getbbox()
+    image = remove_edge_black(image)
+    background = Image.new("RGB", image.size, "white")
+    bbox = ImageChops.difference(image, background).getbbox()
     return image.crop(bbox) if bbox else image
 
 
