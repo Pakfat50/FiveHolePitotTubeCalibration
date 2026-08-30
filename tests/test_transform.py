@@ -42,39 +42,51 @@ class TestAngleTransformer(unittest.TestCase):
         self.assertAlmostEqual(0.0, z, delta=ABS_TOL)
         self.assertAlmostEqual(0.0, a, delta=ABS_TOL)
 
+    # TEST-UNIT-137
     def test_origin_preserves_previous_roll(self):
         """TEST-UNIT-137
 
         テスト目的:
             AoA=AoS=0°の通過点で、前回ロール角が保持されることを確認する。
 
-        テスト条件:
-            AoA=0°、AoS=0°、前回実軸姿勢=(Z=12°、A=37°)。
+        テスト手順:
+            1. 前回実軸姿勢を(Z=12°、A=37°)として、AoA=0°、AoS=0°を入力する。
+            2. AngleTransformer.transform()の変換結果を取得する。
+            3. ZおよびAを期待値と比較する。
 
-        期待結果:
+        パスクライテリア:
             Z=0°、A=37°となり、ロール角が0°へ不連続に戻らないこと。
 
         検証根拠:
             原点ではピッチ角だけが一意でロール角は任意であるため、前回ロール角を保持することで走査中の連続性を直接確認できる。
+
+        See Also:
+            REQ-TRANS-002, REQ-TRANS-003, REQ-TRANS-004
         """
         z, a = self.t.transform(0.0, 0.0, (12.0, 37.0), self.limits)
         self.assertAlmostEqual(0.0, z, delta=ABS_TOL)
         self.assertAlmostEqual(37.0, a, delta=ABS_TOL)
 
+    # TEST-UNIT-138
     def test_origin_uses_a_axis_midpoint_without_previous(self):
         """TEST-UNIT-138
 
         テスト目的:
             前回実軸姿勢がない初期点で、A軸可動範囲の中央値が使用されることを確認する。
 
-        テスト条件:
-            AoA=0°、AoS=0°、前回実軸姿勢なし、A軸範囲=-30°～90°。
+        テスト手順:
+            1. A軸可動範囲を-30°～90°に設定する。
+            2. 前回実軸姿勢なしで、AoA=0°、AoS=0°を入力する。
+            3. AngleTransformer.transform()の変換結果を取得する。
 
-        期待結果:
+        パスクライテリア:
             Z=0°、A=30°となること。
 
         検証根拠:
             原点のロール角は任意であり、前回値がない場合の決定的な初期値として可動範囲中央値を採用する仕様を確認できる。
+
+        See Also:
+            REQ-TRANS-002, REQ-TRANS-003
         """
         limits = make_limits(a=AxisRange(-30.0, 90.0))
         z, a = self.t.transform(0.0, 0.0, None, limits)
