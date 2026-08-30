@@ -8,7 +8,7 @@ import tkinter as tk
 from tkinter import font as tkfont
 from pathlib import Path
 
-from PIL import Image, ImageChops, ImageDraw, ImageGrab
+from PIL import Image, ImageChops, ImageDraw, ImageFont, ImageGrab
 import pyautogui
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
@@ -105,21 +105,64 @@ def capture(root: tk.Tk, name: str) -> Image.Image:
     return image
 
 
-def make_overview(frames: list[Image.Image]) -> None:
-    """操作の各段階を1枚にまとめる。"""
-    width = 600
-    tiles = []
-    for index, frame in enumerate(frames):
-        tile = frame.convert("RGB")
-        tile.thumbnail((width, 420))
-        canvas = Image.new("RGB", (width, 460), "white")
-        canvas.paste(tile, ((width - tile.width) // 2, 32))
-        ImageDraw.Draw(canvas).text((12, 8), f"Step {index + 1}", fill="black")
-        tiles.append(canvas)
-    overview = Image.new("RGB", (width * 2, 460 * 3), "#eeeeee")
-    for index, tile in enumerate(tiles):
-        overview.paste(tile, ((index % 2) * width, (index // 2) * 460))
-    overview.save(OUTPUT / "getting-started-overview.png")
+def annotation_font(size: int):
+    """注記用の日本語フォントを取得する。"""
+    candidates = (
+        "/usr/share/fonts/opentype/ipafont-gothic/ipag.ttf",
+        "/usr/share/fonts/opentype/ipafont-gothic/ipagp.ttf",
+        "/usr/share/fonts/opentype/noto/NotoSansCJK-Regular.ttc",
+    )
+    for path in candidates:
+        try:
+            return ImageFont.truetype(path, size)
+        except OSError:
+            continue
+    return ImageFont.load_default()
+
+
+def annotate_frame(image: Image.Image, stage: str) -> Image.Image:
+    """GIF用に操作対象を赤枠と注記で示す。"""
+    image = image.convert("RGB")
+    draw = ImageDraw.Draw(image)
+    font = annotation_font(max(22, image.width // 52))
+    red = "#d7191c"
+
+    def label(x: int, y: int, text: str) -> None:
+        bounds = draw.textbbox((0, 0), text, font=font)
+        width = bounds[2] - bounds[0]
+        height = bounds[3] - bounds[1]
+        x = max(8, min(x, image.width - width - 24))
+        y = max(8, min(y, image.height - height - 18))
+        draw.rounded_rectangle(
+            (x - 8, y - 5, x + width + 8, y + height + 5),
+            radius=7,
+            fill=red,
+        )
+        draw.text((x, y), text, fill="white", font=font)
+
+    def box(left: int, top: int, right: int, bottom: int, text: str, label_x: int, label_y: int) -> None:
+        draw.rounded_rectangle((left, top, right, bottom), radius=8, outline=red, width=5)
+        label(label_x, label_y, text)
+
+    if stage == "launch":
+        label(18, 14, "① ツールを起動")
+    elif stage == "input":
+        box(8, 48, 368, 612, "② 条件値を入力", 18, 14)
+    elif stage == "simulation":
+        # シミュレーション画面の状態表示と進捗バーを強調する。
+        box(685, 454, 1134, 744, "③ シミュレーションを確認", 698, 420)
+        box(695, 687, 1035, 730, "進捗", 900, 650)
+    elif stage == "gcode":
+        box(8, 810, 1192, 897, "④ Gコードを生成", 18, 778)
+        box(1055, 842, 1192, 897, "クリック", 1000, 778)
+    return image
+
+
+def add_gif_padding(image: Image.Image, padding: int = 24) -> Image.Image:
+    """GIFの画面端に余白を追加し、ボタンの見切れを防ぐ。"""
+    canvas = Image.new("RGB", (image.width + padding * 2, image.height + padding * 2), "white")
+    canvas.paste(image, (padding, padding))
+    return canvas
 
 
 root = tk.Tk()
@@ -138,10 +181,10 @@ pump(root, 2.0)
 # 入力欄を順番にクリックし、実際のキーボード入力で設定値を入力する。
 values = {
     "aoa_min": "-20", "aoa_max": "20", "aos_min": "-20", "aos_max": "20",
-    "aoa_points": "5", "aos_points": "5", "tip_offset_x": "100", "tip_offset_y": "10",
-    "hold_time_s": "1", "feed_rate": "100", "x_min": "-1000", "x_max": "1000",
-    "y_min": "-1000", "y_max": "1000", "z_min": "-180", "z_max": "180",
-    "a_min": "-720", "a_max": "720",
+    "aoa_points": "15", "aos_points": "15", "tip_offset_x": "200", "tip_offset_y": "200",
+    "hold_time_s": "1", "feed_rate": "100", "x_min": "-100", "x_max": "100",
+    "y_min": "-100", "y_max": "100", "z_min": "-45", "z_max": "45",
+    "a_min": "-90", "a_max": "90",
 }
 for key, value in values.items():
     type_into(root, app._entry_widgets[key], value)
@@ -175,13 +218,16 @@ pump(root, 1.0)
 frames.append(capture(root, "05-gcode-generated"))
 pump(root, 2.0)
 
-# 5枚の実画面をつないだ、操作の流れを示す約30秒のGIF。
+# 5枚の実画面へ注記と赤枠を追加し、操作の流れを示す約30秒のGIFにする。
 durations = [5000, 5000, 6000, 8000, 6000]
-frames = [crop_black_border(frame) for frame in frames]
-make_overview(frames)
-canvas_size = (max(frame.width for frame in frames), max(frame.height for frame in frames))
+stages = ["launch", "input", "simulation", "simulation", "gcode"]
+annotated = [
+    add_gif_padding(annotate_frame(crop_black_border(frame), stage))
+    for frame, stage in zip(frames, stages)
+]
+canvas_size = (max(frame.width for frame in annotated), max(frame.height for frame in annotated))
 normalized = []
-for frame in frames:
+for frame in annotated:
     canvas = Image.new("RGB", canvas_size, "white")
     canvas.paste(frame, ((canvas_size[0] - frame.width) // 2, (canvas_size[1] - frame.height) // 2))
     normalized.append(canvas)
