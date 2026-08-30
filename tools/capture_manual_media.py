@@ -8,7 +8,7 @@ import tkinter as tk
 from tkinter import font as tkfont
 from pathlib import Path
 
-from PIL import Image, ImageGrab
+from PIL import Image, ImageChops, ImageDraw, ImageGrab, ImageOps
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 from main import build_application
@@ -25,11 +25,35 @@ def pump(root: tk.Tk, seconds: float) -> None:
         time.sleep(0.1)
 
 
+def crop_black_border(image: Image.Image) -> Image.Image:
+    """仮想ディスプレイ外側の黒領域を除去する。"""
+    background = Image.new("RGB", image.size, "black")
+    bbox = ImageChops.difference(image.convert("RGB"), background).getbbox()
+    return image.crop(bbox) if bbox else image
+
+
 def capture(root: tk.Tk, name: str) -> Image.Image:
     root.update()
-    image = ImageGrab.grab()
+    image = crop_black_border(ImageGrab.grab())
     image.save(OUTPUT / f"{name}.png")
     return image
+
+
+def make_overview(frames: list[Image.Image]) -> None:
+    """操作の各段階を1枚にまとめる。"""
+    width = 600
+    tiles = []
+    for index, frame in enumerate(frames):
+        tile = frame.convert("RGB")
+        tile.thumbnail((width, 420))
+        canvas = Image.new("RGB", (width, 460), "white")
+        canvas.paste(tile, ((width - tile.width) // 2, 32))
+        ImageDraw.Draw(canvas).text((12, 8), f"Step {index + 1}", fill="black")
+        tiles.append(canvas)
+    overview = Image.new("RGB", (width * 2, 460 * 3), "#eeeeee")
+    for index, tile in enumerate(tiles):
+        overview.paste(tile, ((index % 2) * width, (index // 2) * 460))
+    overview.save(OUTPUT / "getting-started-overview.png")
 
 
 root = tk.Tk()
@@ -70,10 +94,18 @@ pump(root, 2.0)
 
 # 5枚の実画面をつないだ、操作の流れを示す約30秒のGIF。
 durations = [5000, 5000, 6000, 8000, 6000]
-frames[0].save(
+frames = [crop_black_border(frame) for frame in frames]
+make_overview(frames)
+canvas_size = (max(frame.width for frame in frames), max(frame.height for frame in frames))
+normalized = []
+for frame in frames:
+    canvas = Image.new("RGB", canvas_size, "white")
+    canvas.paste(frame, ((canvas_size[0] - frame.width) // 2, (canvas_size[1] - frame.height) // 2))
+    normalized.append(canvas)
+normalized[0].save(
     OUTPUT / "getting-started.gif",
     save_all=True,
-    append_images=frames[1:],
+    append_images=normalized[1:],
     duration=durations,
     loop=0,
 )
