@@ -134,7 +134,7 @@ class Checker:
         if not ids:
             self.error("traceability", "test-spec: no detailed test IDs found")
         for line in text.splitlines():
-            if not re.match(r'^\\| <a id="test-[^"]+"></a>TEST-', line):
+            if not re.match(r'^\| <a id="test-[^"]+"></a>TEST-', line):
                 continue
             if "[[TESTCODE" not in line:
                 self.error("traceability", f"test-spec: missing test-code link: {line[:100]}")
