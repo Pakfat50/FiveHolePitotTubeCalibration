@@ -95,7 +95,8 @@ class Checker:
             text,
             re.MULTILINE | re.DOTALL,
         ):
-            req_id = match.group(1)\n            block = match.group(0)
+            req_id = match.group(1)
+            block = match.group(0)
             if block.count("関連成果物") != 1:
                 self.error("traceability", f"{req_id}: related-artifacts block must occur exactly once")
             for marker in ("[[ARCH:", "[[TESTSPEC:", "[[API:"):
@@ -210,7 +211,8 @@ class Checker:
                         self.error("test", f"{path.relative_to(ROOT)}:{node.lineno}: {test_id} missing {label}")
                 if "期待結果:" in doc:
                     self.error("test", f"{path.relative_to(ROOT)}:{node.lineno}: {test_id} uses 期待結果 instead of パスクライテリア")
-                preceding = "\n".join(lines[max(0, node.lineno - 4): node.lineno - 1])
+                preceding = "
+".join(lines[max(0, node.lineno - 4): node.lineno - 1])
                 if test_id not in preceding:
                     self.error("test", f"{path.relative_to(ROOT)}:{node.lineno}: {test_id} missing source comment")
         self.duplicate_ids(found, "test-code")
