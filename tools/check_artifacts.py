@@ -27,7 +27,7 @@ TEST_ROOT = ROOT / "tests"
 
 REQ_PATTERN = r"REQ-[A-Z0-9]+-\d{3}"
 TEST_PATTERN = r"TEST-(?:UNIT-\d{3}|UC-\d{2}-\d{2})"
-UC_PATTERN = r"UC-\\d{2}"
+UC_PATTERN = r"UC-\d{2}"
 
 def expand_api_target(raw_target: str) -> list[str]:
     """表示名付き・親省略のAPI表記を実在API候補へ展開する。"""
