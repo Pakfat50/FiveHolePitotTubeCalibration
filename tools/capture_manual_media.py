@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import sys
+import threading
 import time
 import tkinter as tk
 from tkinter import font as tkfont
@@ -159,18 +160,21 @@ frames.append(capture(root, "04-simulation-progress"))
 pyautogui.hotkey("alt", "f4")
 pump(root, 1.0)
 output = Path("sample-output.nc")
-root.after(
-    1000,
-    lambda: (
-        pyautogui.press("home"),
-        pyautogui.keyDown("shift"),
-        pyautogui.press("end"),
-        pyautogui.keyUp("shift"),
-        pyautogui.press("backspace"),
-        pyautogui.write(output.name),
-        pyautogui.press("enter"),
-    ),
-)
+
+
+def fill_save_dialog() -> None:
+    """保存ダイアログが開いた後に、別スレッドからキーボード操作する。"""
+    time.sleep(1.5)
+    pyautogui.press("home")
+    pyautogui.keyDown("shift")
+    pyautogui.press("end")
+    pyautogui.keyUp("shift")
+    pyautogui.press("backspace")
+    pyautogui.write(output.name)
+    pyautogui.press("enter")
+
+
+threading.Thread(target=fill_save_dialog, daemon=True).start()
 click_widget(root, app.gcode_button)
 pump(root, 1.0)
 frames.append(capture(root, "05-gcode-generated"))
