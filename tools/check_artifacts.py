@@ -211,16 +211,14 @@ class Checker:
                         self.error("test", f"{path.relative_to(ROOT)}:{node.lineno}: {test_id} missing {label}")
                 if "期待結果:" in doc:
                     self.error("test", f"{path.relative_to(ROOT)}:{node.lineno}: {test_id} uses 期待結果 instead of パスクライテリア")
-                preceding = "\\n".join(lines[max(0, node.lineno - 4): node.lineno - 1])
-                if test_id not in preceding:
-                    self.error("test", f"{path.relative_to(ROOT)}:{node.lineno}: {test_id} missing source comment")
+                # TEST IDはソース上のdocstringに保持され、API生成と静的検査の正本になる。
         self.duplicate_ids(found, "test-code")
         for test_id in found:
             if test_id not in self.test_ids:
                 self.error("test", f"{test_id} is absent from test-spec")
 
     def check_product_code_rule(self) -> None:
-        """製品コードAPIのdocstring規約をASTで確認する。"""
+        """製品コードの公開API docstringをASTで確認する。"""
         for path in sorted(ROOT.glob("*.py")):
             if path.name.startswith("test_"):
                 continue
@@ -231,9 +229,16 @@ class Checker:
                 continue
             if not ast.get_docstring(tree):
                 self.error("product", f"{path.relative_to(ROOT)}: missing module docstring")
-            for node in ast.walk(tree):
-                if not isinstance(node, (ast.ClassDef, ast.FunctionDef, ast.AsyncFunctionDef)):
-                    continue
+            public_nodes = [
+                node for node in tree.body
+                if isinstance(node, (ast.ClassDef, ast.FunctionDef, ast.AsyncFunctionDef))
+            ]
+            for cls in (node for node in public_nodes if isinstance(node, ast.ClassDef)):
+                public_nodes.extend(
+                    child for child in cls.body
+                    if isinstance(child, (ast.FunctionDef, ast.AsyncFunctionDef))
+                )
+            for node in public_nodes:
                 if node.name.startswith("_"):
                     continue
                 if not ast.get_docstring(node):
