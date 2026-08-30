@@ -14,11 +14,11 @@ class LimitEvaluator:
     def evaluate(self, command: AxisCommand, limits: AxisLimits) -> PointEvaluation:
         """1つの理想軸指令を設定済みの全軸可動範囲に対して評価する。
 
-        引数:
+        Args:
             command: 理想X/Y/Z/A指令。
             limits: 軸可動範囲。
 
-        戻り値:
+        Returns:
             理想指令を保持し、X/Yのみ必要に応じて飽和させ、Z/A範囲超過を
             フラグ化したPointEvaluation。較正点との対応付けはCalibrationServiceで行う。
 
@@ -55,11 +55,11 @@ class LimitEvaluator:
     def _saturate_translation(self, value: float, axis_range: AxisRange) -> tuple[float, bool, float]:
         """並進指令を可動範囲内へ飽和させ、飽和有無と絶対逸脱量を返す。
 
-        引数:
+        Args:
             value: 理想並進指令。
             axis_range: 許容並進範囲。
 
-        戻り値:
+        Returns:
             ``(実指令値, 飽和有無, 逸脱量)``のタプル。
 
         対応要求:
@@ -75,11 +75,11 @@ class LimitEvaluator:
     def _rotation_in_range(self, value: float, axis_range: AxisRange) -> bool:
         """回転軸指令を変更せず、可動範囲内かを判定する。
 
-        引数:
-            value: ZまたはA指令 [deg]。
+        Args:
+            value: ZまたはA指令 [deg]
             axis_range: 許容角度範囲。
 
-        戻り値:
+        Returns:
             端点を含めて範囲内の場合True。
 
         対応要求:

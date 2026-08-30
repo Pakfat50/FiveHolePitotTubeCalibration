@@ -23,10 +23,10 @@ class InputValidator:
     def validate(self, settings: CalibrationSettings) -> ValidationResult:
         """すべての較正入力項目を検証する。
 
-        引数:
+        Args:
             settings: 解析済みの較正設定。
 
-        戻り値:
+        Returns:
             フィールド単位で検出した問題をすべて含むValidationResult。
             生成を禁止するエラーがない場合のみ入力を有効とする。
 

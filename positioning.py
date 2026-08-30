@@ -17,13 +17,13 @@ class PositionCompensator:
     def calculate_xy(self, theta: float, lx: float, ly: float) -> tuple[float, float]:
         """ピトー管先端を風洞中心に保持するための並進指令を算出する。
 
-        引数:
-            theta: 実ピッチ角 [deg]。
-            lx: ピッチ中心から先端までの基準X方向距離 [mm]。
-            ly: ピッチ中心から先端までの基準Y方向距離 [mm]。
+        Args:
+            theta: 実ピッチ角 [deg]
+            lx: ピッチ中心から先端までの基準X方向距離 [mm]
+            ly: ピッチ中心から先端までの基準Y方向距離 [mm]
 
-        戻り値:
-            必要な``(x, y)``並進量 [mm]。
+        Returns:
+            必要な``(x, y)``並進量 [mm]
 
         対応要求:
             REQ-POS-001, REQ-POS-002

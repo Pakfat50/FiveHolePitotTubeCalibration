@@ -1,0 +1,115 @@
+site_name: Five-hole Pitot Tube Calibration Documentation
+site_description: 5孔ピトー管較正用Gコード生成アプリケーションの仕様・設計・テスト・APIドキュメント
+site_author: Pakfat50
+site_url: https://pakfat50.github.io/FiveHolePitotTubeCalibration/
+repo_url: https://github.com/Pakfat50/FiveHolePitotTubeCalibration
+repo_name: Pakfat50/FiveHolePitotTubeCalibration
+edit_uri: edit/develop/docs/
+copyright: Copyright &copy; 2026 Pakfat50
+
+hooks:
+  - docs/hooks.py
+
+theme:
+  name: material
+  language: ja
+  icon:
+    logo: material/airplane
+  font:
+    text: Noto Sans JP
+    code: Roboto Mono
+  features:
+    - navigation.instant
+    - navigation.instant.progress
+    - navigation.tabs
+    - navigation.sections
+    - navigation.expand
+    - navigation.top
+    - navigation.tracking
+    - toc.follow
+    - search.suggest
+    - search.highlight
+    - search.share
+    - content.code.copy
+    - content.code.annotate
+    - content.action.edit
+    - content.action.view
+    - announce.dismiss
+  palette:
+    - media: "(prefers-color-scheme: light)"
+      scheme: default
+      primary: indigo
+      accent: cyan
+      toggle:
+        icon: material/brightness-7
+        name: ダークモードへ切り替え
+    - media: "(prefers-color-scheme: dark)"
+      scheme: slate
+      primary: indigo
+      accent: cyan
+      toggle:
+        icon: material/brightness-4
+        name: ライトモードへ切り替え
+
+plugins:
+  - search
+  - mkdocstrings:
+      handlers:
+        python:
+          options:
+            docstring_style: google
+            docstring_section_style: table
+            docstring_options:
+              warn_missing_types: false
+            members_order: source
+            filters: []
+            show_source: false
+            show_root_heading: true
+            show_object_full_path: false
+
+markdown_extensions:
+  - attr_list
+  - admonition
+  - tables
+  - toc:
+      permalink: true
+  - pymdownx.arithmatex:
+      generic: true
+  - pymdownx.highlight
+  - pymdownx.inlinehilite
+  - pymdownx.superfences:
+      custom_fences:
+        - name: mermaid
+          class: mermaid
+          format: !!python/name:pymdownx.superfences.fence_code_format
+
+extra_css:
+  - stylesheets/api-docs.css
+
+extra_javascript:
+  - javascripts/mathjax.js
+  - https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js
+  - javascripts/traceability-links-v2.js
+
+extra:
+  social:
+    - icon: fontawesome/brands/github
+      link: https://github.com/Pakfat50/FiveHolePitotTubeCalibration
+      name: GitHubリポジトリ
+
+nav:
+  - ホーム: index.md
+  - 要求仕様:
+      - 較正GUI要求仕様: pitot_calibration_gui_spec.md
+  - アーキテクチャ設計:
+      - アーキテクチャ設計書: architecture_design.md
+  - テスト設計:
+      - テスト仕様書: test_specification.md
+  - 開発ルール:
+      - 開発プロセスルール: development_process_guideline.md
+      - トレーサビリティ運用ルール: traceability_rules.md
+      - 製品コード開発ルール: product_code_guideline.md
+      - テストコード開発ルール: test_doxygen_guideline.md
+  - コードドキュメント:
+      - 製品コードAPI: api.md
+      - テストコードAPI: test-api.md

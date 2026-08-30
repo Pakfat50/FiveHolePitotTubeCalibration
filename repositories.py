@@ -35,11 +35,11 @@ class SettingsRepository:
     def save(self, path: str, settings: CalibrationSettings) -> None:
         """すべての入力条件とオプションをCSVへ保存する。
 
-        引数:
+        Args:
             path: 保存先パス。
             settings: シリアライズ対象の較正設定。
 
-        例外:
+        Raises:
             OSError: ファイルへ書き込めない場合。
 
         対応要求:
@@ -83,13 +83,13 @@ class SettingsRepository:
         確認した後にのみCalibrationSettingsを返す。失敗時に部分的な設定を外部へ
         公開しない。
 
-        引数:
+        Args:
             path: 読込対象CSVパス。
 
-        戻り値:
+        Returns:
             全項目の解析に成功したCalibrationSettings。
 
-        例外:
+        Raises:
             SettingsLoadError: 必須項目欠損、空欄、CSV構造不正、数値変換失敗、
                 またはファイルI/O失敗の場合。
 
@@ -185,13 +185,13 @@ class InitializationGCodeRepository:
     def load(self, path: str) -> str:
         """初期化Gコード文字列を読み込む。
 
-        引数:
+        Args:
             path: テキストファイルのパス。
 
-        戻り値:
+        Returns:
             行順序を保持したファイル内容。
 
-        例外:
+        Raises:
             OSError: ファイルを読み込めない場合。
 
         対応要求:
@@ -213,11 +213,11 @@ class GCodeRepository:
     def save(self, path: str, text: str) -> None:
         """生成済みGコードを指定パスへ保存する。
 
-        引数:
+        Args:
             path: 保存先`.nc`パス。
             text: 完全なGコード文字列。
 
-        例外:
+        Raises:
             OSError: ファイルへ書き込めない場合。
 
         対応要求:

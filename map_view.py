@@ -57,11 +57,11 @@ class CalibrationMapView:
     def _text(self, japanese: str, english: str) -> str:
         """フォント環境に応じて日本語または英語のグラフ文字列を返す。
 
-        引数:
+        Args:
             japanese: 日本語表示文字列。
             english: 日本語フォント非搭載環境で使用する英語表示文字列。
 
-        戻り値:
+        Returns:
             現在のグラフフォント環境に適した文字列。
 
         対応要求:
@@ -80,10 +80,10 @@ class CalibrationMapView:
         日本語フォントを利用できる環境では凡例を日本語表示し、利用できない
         環境では英語へ切り替えて文字化けを回避する。
 
-        引数:
+        Args:
             plan: 警告・エラー状態を含むCalibrationPlan。
 
-        戻り値:
+        Returns:
             MatplotlibのAxesオブジェクト。
 
         対応要求:
@@ -153,7 +153,7 @@ class CalibrationMapView:
     ) -> None:
         """同じ飽和状態・回転軸状態の較正点を1つのscatterとして描画する。
 
-        引数:
+        Args:
             points: AoS, AoA座標の一覧。
             label: 凡例に表示する文字列。
             color: 点の表示色。

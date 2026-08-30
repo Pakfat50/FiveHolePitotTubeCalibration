@@ -19,14 +19,14 @@ class AngleTransformer:
     def transform(self, aoa: float, aos: float, previous: tuple[float, float] | None, limits: AxisLimits) -> tuple[float, float]:
         """1つのAoA/AoS点から実ピッチZと実ロールAを算出する。
 
-        引数:
-            aoa: 要求AoA [deg]。
-            aos: 要求AoS [deg]。
+        Args:
+            aoa: 要求AoA [deg]
+            aos: 要求AoS [deg]
             previous: 前回選択した``(z, a)``指令。先頭点ではNone。
             limits: 軸可動範囲。
 
-        戻り値:
-            等価解の中から可動範囲と連続性を考慮して選択した``(z, a)``角度 [deg]。
+        Returns:
+            等価解の中から可動範囲と連続性を考慮して選択した``(z, a)``角度 [deg]
 
         対応要求:
             REQ-TRANS-001, REQ-TRANS-002, REQ-TRANS-003, REQ-TRANS-004

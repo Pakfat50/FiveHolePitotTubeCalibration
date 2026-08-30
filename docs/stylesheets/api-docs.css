@@ -1,0 +1,117 @@
+/* Improve visual separation of generated API docstring sections. */
+.md-typeset .doc.doc-object > .doc-contents > p:first-of-type {
+  padding: 0.7rem 0.9rem;
+  border-left: 0.25rem solid var(--md-primary-fg-color);
+  border-radius: 0.2rem;
+  background: var(--md-code-bg-color);
+}
+
+.md-typeset .doc-section-label {
+  display: inline-block;
+  margin: 0.35rem 0.25rem 0.15rem 0;
+  padding: 0.12rem 0.5rem;
+  border-radius: 0.25rem;
+  background: var(--md-primary-fg-color);
+  color: var(--md-primary-bg-color);
+  font-weight: 700;
+  letter-spacing: 0.02em;
+}
+
+.md-typeset .doc-section-label[data-section="requirements"] {
+  background: var(--md-accent-fg-color);
+  color: var(--md-accent-bg-color);
+}
+
+.md-typeset .doc-section-label[data-section="parameters"] {
+  background: #2563eb;
+  color: #ffffff;
+}
+
+.md-typeset .doc-section-label[data-section="returns"] {
+  background: #16a34a;
+  color: #ffffff;
+}
+
+.md-typeset .doc-section-label[data-section="rationale"] {
+  background: #d97706;
+  color: #ffffff;
+}
+
+
+/* Add visual separation between generated classes and functions. */
+.md-typeset .doc.doc-object {
+  margin-bottom: 3rem;
+}
+
+.md-typeset .doc.doc-object > .doc-contents {
+  padding-bottom: 1.25rem;
+  border-bottom: 1px solid var(--md-default-fg-color--lightest);
+}
+
+.md-typeset .doc.doc-object .doc.doc-object {
+  margin-top: 2.25rem;
+}
+
+.md-typeset .doc.doc-object .doc.doc-object > .doc-contents {
+  padding-bottom: 1rem;
+}
+
+
+/* Trial colors for tests.test_calibration_service only.
+ * Geometry, spacing, typography, and disclosure behavior remain unchanged. */
+.md-typeset details.パスクライテリア > summary {
+  background-color: #fff1e6;
+  color: #9a3412;
+}
+
+.md-typeset details.パスクライテリア {
+  border-color: #d97706;
+}
+
+.md-typeset details.検証根拠 > summary {
+  background-color: #e8f5e9;
+  color: #166534;
+}
+
+.md-typeset details.検証根拠 {
+  border-color: #16a34a;
+}
+
+
+/* Render function and dataclass arguments as a readable two-column table. */
+.md-typeset table.api-parameters {
+  display: table;
+  width: 100%;
+  margin: 0.65rem 0 0.9rem;
+  font-size: 0.92rem;
+}
+
+.md-typeset table.api-parameters th:first-child,
+.md-typeset table.api-parameters td:first-child {
+  width: 30%;
+  white-space: nowrap;
+}
+
+.md-typeset table.api-parameters code {
+  display: inline-block;
+  padding: 0.15rem 0.45rem;
+  border-radius: 0.25rem;
+  background: var(--md-code-bg-color);
+  color: var(--md-code-fg-color);
+  font-weight: 700;
+}
+
+.md-typeset table.api-parameters th {
+  background: var(--md-code-bg-color);
+}
+
+@media screen and (max-width: 600px) {
+  .md-typeset table.api-parameters {
+    font-size: 0.82rem;
+  }
+
+  .md-typeset table.api-parameters th:first-child,
+  .md-typeset table.api-parameters td:first-child {
+    width: 35%;
+  }
+}
