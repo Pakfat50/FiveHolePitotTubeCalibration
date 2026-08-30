@@ -105,6 +105,10 @@ sequenceDiagram
     end
 ```
 
+### 原点における実軸解の選択
+
+AoA=AoS=0 degでは実ピッチ角Zを0 degとする。実ロール角Aは任意であるため、前回の実軸指令が存在する場合は前回Aを保持する。走査の先頭点など前回値が存在しない場合は、入力されたA軸可動範囲の中央値を初期値として使用する。これにより、原点通過時の不要なロール角不連続を防止する。
+
 <a id="uc-02"></a>
 ## 3.2 UC-02 初期化Gコードを読み込む
 
@@ -765,8 +769,8 @@ stateDiagram-v2
 | 要求ID | 実装クラス/メソッド | 備考 |
 |---|---|---|
 | <a id="architecture-req-trans-001"></a>[[REQ:REQ-TRANS-001]] | [[API:transform.AngleTransformer.transform]] | ピッチ後ロールのモデル |
-| <a id="architecture-req-trans-002"></a>[[REQ:REQ-TRANS-002]] | [[API:transform.AngleTransformer.transform]], [[API:transform.AngleTransformer._generate_equivalent_solutions]] | AoA/AoS→Z/A |
-| <a id="architecture-req-trans-003"></a>[[REQ:REQ-TRANS-003]] | [[API:transform.AngleTransformer._select_solution]] | 等価解優先順位 |
+| <a id="architecture-req-trans-002"></a>[[REQ:REQ-TRANS-002]] | [[API:transform.AngleTransformer.transform]], [[API:transform.AngleTransformer._generate_equivalent_solutions]] | AoA/AoS→Z/A。原点ではZ=0、前回A保持またはA軸範囲中央値 |
+| <a id="architecture-req-trans-003"></a>[[REQ:REQ-TRANS-003]] | [[API:transform.AngleTransformer._select_solution]], [[API:transform.AngleTransformer.transform]] | 等価解優先順位、原点のロール選択 |
 | <a id="architecture-req-trans-004"></a>[[REQ:REQ-TRANS-004]] | [[API:transform.AngleTransformer._unwrap_angle]] | ±360°ジャンプ回避 |
 | <a id="architecture-req-pos-001"></a>[[REQ:REQ-POS-001]] | [[API:positioning.PositionCompensator.calculate_xy]] | X/Y補正式 |
 | <a id="architecture-req-pos-002"></a>[[REQ:REQ-POS-002]] | [[API:positioning.PositionCompensator.calculate_xy]] | ロール非依存 |

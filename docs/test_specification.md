@@ -99,7 +99,9 @@
 
 | テストID | 要求ID | テスト内容 | 入力/条件 | 期待結果 | 対象テスト |
 |---|---|---|---|---|---|
-| <a id="test-unit-025"></a>TEST-UNIT-025 | REQ-TRANS-001, REQ-TRANS-002 | 原点変換 | AoA=0, AoS=0 | Z=0, A=0を決定論的に返す | [[TESTCODE_SHORT:tests.test_transform.TestAngleTransformer.test_origin_transform]] |
+| <a id="test-unit-025"></a>TEST-UNIT-025 | REQ-TRANS-001, REQ-TRANS-002 | 初期点の原点変換 | AoA=0, AoS=0、前回姿勢なし、A軸範囲[-180°,180°] | Z=0°、A軸可動範囲の中央値A=0°を返す | [[TESTCODE_SHORT:tests.test_transform.TestAngleTransformer.test_origin_transform]] |
+| <a id="test-unit-137"></a>TEST-UNIT-137 | REQ-TRANS-002, REQ-TRANS-003, REQ-TRANS-004 | 原点通過時のロール角保持 | AoA=0, AoS=0、previous=(12°,37°) | Z=0°、A=37°を返し、ロール角の不連続を発生させない | [[TESTCODE_SHORT:tests.test_transform.TestAngleTransformer.test_origin_preserves_previous_roll]] |
+| <a id="test-unit-138"></a>TEST-UNIT-138 | REQ-TRANS-002, REQ-TRANS-003 | 前回姿勢なしの原点初期値 | AoA=0, AoS=0、previousなし、A軸範囲[-30°,90°] | Z=0°、A軸可動範囲の中央値A=30°を返す | [[TESTCODE_SHORT:tests.test_transform.TestAngleTransformer.test_origin_uses_a_axis_midpoint_without_previous]] |
 | <a id="test-unit-026"></a>TEST-UNIT-026 | REQ-TRANS-002 | AoA正、AoS=0 | AoA=10°, AoS=0 | Z=10°, A=0°に絶対誤差0.001 deg以内で一致 | [[TESTCODE_SHORT:tests.test_transform.TestAngleTransformer.test_positive_aoa_zero_aos]] |
 | <a id="test-unit-027"></a>TEST-UNIT-027 | REQ-TRANS-002 | AoA負、AoS=0 | AoA=-10°, AoS=0 | 指定変換式に対応する等価Z/Aを絶対誤差0.001 deg以内で返す | [[TESTCODE_SHORT:tests.test_transform.TestAngleTransformer.test_negative_aoa_zero_aos_reproduces_input]] |
 | <a id="test-unit-028"></a>TEST-UNIT-028 | REQ-TRANS-002 | AoA=0、AoS正 | AoA=0, AoS=10° | 基本式に絶対誤差0.001 deg以内で一致 | [[TESTCODE_SHORT:tests.test_transform.TestAngleTransformer.test_zero_aoa_positive_aos]] |
@@ -269,7 +271,7 @@
 | <a id="trace-req-valid-002"></a>[[REQ:REQ-VALID-002]] | [001](#test-unit-001), [002](#test-unit-002), [003](#test-unit-003), [004](#test-unit-004), [005](#test-unit-005), [006](#test-unit-006), [007](#test-unit-007), [008](#test-unit-008), [009](#test-unit-009), [010](#test-unit-010), [011](#test-unit-011), [012](#test-unit-012), [013](#test-unit-013), [014](#test-unit-014), [015](#test-unit-015), [111](#test-unit-111), [112](#test-unit-112), [113](#test-unit-113), [114](#test-unit-114), [115](#test-unit-115), [116](#test-unit-116), [085](#test-unit-085) |
 | <a id="trace-req-valid-003"></a>[[REQ:REQ-VALID-003]] | [047](#test-unit-047), [054](#test-unit-054), [055](#test-unit-055), [056](#test-unit-056), [057](#test-unit-057), [087](#test-unit-087), [088](#test-unit-088) |
 | <a id="trace-req-trans-001"></a>[[REQ:REQ-TRANS-001]] | [025](#test-unit-025) |
-| <a id="trace-req-trans-002"></a>[[REQ:REQ-TRANS-002]] | [025](#test-unit-025), [026](#test-unit-026), [027](#test-unit-027), [028](#test-unit-028), [029](#test-unit-029), [030](#test-unit-030), [031](#test-unit-031), [032](#test-unit-032), [040](#test-unit-040), [060](#test-unit-060) |
+| <a id="trace-req-trans-002"></a>[[REQ:REQ-TRANS-002]] | [025](#test-unit-025), [026](#test-unit-026), [027](#test-unit-027), [028](#test-unit-028), [029](#test-unit-029), [030](#test-unit-030), [031](#test-unit-031), [032](#test-unit-032), [040](#test-unit-040), [060](#test-unit-060), [137](#test-unit-137), [138](#test-unit-138) |
 | <a id="trace-req-trans-003"></a>[[REQ:REQ-TRANS-003]] | [036](#test-unit-036), [037](#test-unit-037), [038](#test-unit-038), [039](#test-unit-039), [040](#test-unit-040) |
 | <a id="trace-req-trans-004"></a>[[REQ:REQ-TRANS-004]] | [033](#test-unit-033), [034](#test-unit-034), [035](#test-unit-035), [064](#test-unit-064) |
 | <a id="trace-req-pos-001"></a>[[REQ:REQ-POS-001]] | [041](#test-unit-041), [042](#test-unit-042), [043](#test-unit-043), [044](#test-unit-044), [045](#test-unit-045), [060](#test-unit-060), [065](#test-unit-065) |
@@ -315,7 +317,7 @@
 |---|---|
 | [[API:validation.InputValidator.validate]] | [001](#test-unit-001), [002](#test-unit-002), [003](#test-unit-003), [004](#test-unit-004), [005](#test-unit-005), [006](#test-unit-006), [007](#test-unit-007), [008](#test-unit-008), [009](#test-unit-009), [010](#test-unit-010), [011](#test-unit-011), [012](#test-unit-012), [013](#test-unit-013), [014](#test-unit-014), [015](#test-unit-015), [016](#test-unit-016), [111](#test-unit-111), [112](#test-unit-112), [113](#test-unit-113), [114](#test-unit-114), [115](#test-unit-115), [116](#test-unit-116) |
 | [[API:scan.ScanPlanner.generate_points]] | [017](#test-unit-017), [018](#test-unit-018), [019](#test-unit-019), [020](#test-unit-020), [021](#test-unit-021), [022](#test-unit-022), [023](#test-unit-023), [024](#test-unit-024) |
-| [[API:transform.AngleTransformer.transform]] | [025](#test-unit-025), [026](#test-unit-026), [027](#test-unit-027), [028](#test-unit-028), [029](#test-unit-029), [030](#test-unit-030), [031](#test-unit-031), [032](#test-unit-032), [040](#test-unit-040) |
+| [[API:transform.AngleTransformer.transform]] | [025](#test-unit-025), [026](#test-unit-026), [027](#test-unit-027), [028](#test-unit-028), [029](#test-unit-029), [030](#test-unit-030), [031](#test-unit-031), [032](#test-unit-032), [040](#test-unit-040), [137](#test-unit-137), [138](#test-unit-138) |
 | [[API:transform.AngleTransformer._unwrap_angle]] | [033](#test-unit-033), [034](#test-unit-034), [035](#test-unit-035) |
 | [[API:transform.AngleTransformer._select_solution]] | [036](#test-unit-036), [037](#test-unit-037), [038](#test-unit-038), [039](#test-unit-039) |
 | [[API:transform.AngleTransformer._generate_equivalent_solutions]] | [040](#test-unit-040) |
@@ -359,7 +361,7 @@
 | <a id="test-uc-01-06"></a>TEST-UC-01-06 | UC-01 | XY上限飽和 | X/Y範囲を狭くして飽和発生 | Mapで警告点識別、X/Y最大偏差表示、Sim/G-codeは有効 | [[TESTCODE_SHORT:tests.test_use_cases.TestUseCases.test_uc01_xy_saturation_warns_but_allows_actions]] |
 | <a id="test-uc-01-07"></a>TEST-UC-01-07 | UC-01 | ZA範囲超過 | Z/A範囲を狭くする | Mapでエラー点識別、Z/A非飽和、Sim/G-code無効 | [[TESTCODE_SHORT:tests.test_use_cases.TestUseCases.test_uc01_za_overrange_blocks_actions]] |
 | <a id="test-uc-01-08"></a>TEST-UC-01-08 | UC-01 | XY警告とZAエラー同時 | 両方発生する設定 | XY警告情報を保持しつつ生成禁止はZAエラーが優先 | [[TESTCODE_SHORT:tests.test_use_cases.TestUseCases.test_uc01_xy_warning_and_za_error_coexist]] |
-| <a id="test-uc-01-09"></a>TEST-UC-01-09 | UC-01 | AoA/AoS=0を含む格子 | 中央点あり | 中央点Z=0,A=0、不要な角度ジャンプなし | [[TESTCODE_SHORT:tests.test_use_cases.TestUseCases.test_uc01_grid_origin_is_deterministic]] |
+| <a id="test-uc-01-09"></a>TEST-UC-01-09 | UC-01 | AoA/AoS=0を含む格子 | 中央点あり、走査順の直前点あり | 原点Z=0、原点Aは直前点Aを保持し、不要なロール角不連続なし | [[TESTCODE_SHORT:tests.test_use_cases.TestUseCases.test_uc01_grid_origin_is_deterministic]] |
 | <a id="test-uc-01-10"></a>TEST-UC-01-10 | UC-01 | ±180近傍の連続性を伴う走査 | ロールunwrapが必要な点列 | 走査点間で不要な±360°ジャンプがない | [[TESTCODE_SHORT:tests.test_use_cases.TestUseCases.test_uc01_roll_has_no_unnecessary_360_jump]] |
 | <a id="test-uc-01-11"></a>TEST-UC-01-11 | UC-01 | Lx/Ly下限違反 | LxまたはLyを0以下へ変更 | 該当入力欄を背景色で強調し既存固定メッセージ領域へ理由表示、plan更新停止、Sim/G-code無効 | [[TESTCODE_SHORT:tests.test_use_cases.TestUseCases.test_uc01_nonpositive_offsets_block_plan]] |
 | <a id="test-uc-01-12"></a>TEST-UC-01-12 | UC-01 | 保持時間/Feed下限境界 | hold=0.1, F=1→各下限未満へ変更 | 下限値は有効、下限未満では該当入力欄を背景色で強調し既存固定メッセージ領域へ理由表示、生成不可 | [[TESTCODE_SHORT:tests.test_use_cases.TestUseCases.test_uc01_hold_and_feed_boundaries]] |

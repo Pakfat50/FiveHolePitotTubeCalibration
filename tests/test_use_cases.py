@@ -232,21 +232,26 @@ class TestUseCases(unittest.TestCase):
         """TEST-UC-01-09
 
         テスト目的:
-            AoA=AoS=0の格子点がZ=A=0へ決定的に変換されることを確認する。
+            AoA=AoS=0の格子点で、ピッチ角が0となりロール角が前点から保持されることを確認する。
 
         テスト手順:
-            1. テスト対象の処理を実行し、結果を確認する。
-            2. テスト対象のメソッドを呼び出して結果を取得する。
-            3. 取得した結果を期待値と比較する。
+            1. AoA/AoS=0を含む3×3の較正計画を生成する。
+            2. 走査順の原点点と、その直前の点を取得する。
+            3. 原点のZ/Aを直前点のAおよび期待Zと比較する。
 
         パスクライテリア:
-            中央点command.z/aが0±0.001度であること。
+            原点command.zが0±0.001度、command.aが直前点のA±0.001度であること。
 
         検証根拠:
-            実Scan→Transform→Serviceを通した中央点を検索して出力角を確認するため、原点特例が統合後も保持されることを確認できる。
+            実Scan→Transform→Serviceを通した原点の前後関係を確認するため、原点でロール角が0度へ戻る不連続を検出できる。
         """
-        plan=self.h.service.build_plan(make_settings(aoa_points=3,aos_points=3)); p=next(p for p in plan.points if p.point.aoa==0 and p.point.aos==0)
-        self.assertAlmostEqual(0,p.command.z,delta=0.001); self.assertAlmostEqual(0,p.command.a,delta=0.001)
+        plan=self.h.service.build_plan(make_settings(aoa_points=3,aos_points=3))
+        origin_index=next(i for i,p in enumerate(plan.points) if p.point.aoa==0 and p.point.aos==0)
+        self.assertGreater(origin_index,0)
+        previous=plan.points[origin_index-1]
+        origin=plan.points[origin_index]
+        self.assertAlmostEqual(0,origin.command.z,delta=0.001)
+        self.assertAlmostEqual(previous.command.a,origin.command.a,delta=0.001)
 
     # TEST-UC-01-10
     # UseCase: UC-01
