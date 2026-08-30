@@ -211,8 +211,7 @@ class Checker:
                         self.error("test", f"{path.relative_to(ROOT)}:{node.lineno}: {test_id} missing {label}")
                 if "期待結果:" in doc:
                     self.error("test", f"{path.relative_to(ROOT)}:{node.lineno}: {test_id} uses 期待結果 instead of パスクライテリア")
-                preceding = "
-".join(lines[max(0, node.lineno - 4): node.lineno - 1])
+                preceding = "\\n".join(lines[max(0, node.lineno - 4): node.lineno - 1])
                 if test_id not in preceding:
                     self.error("test", f"{path.relative_to(ROOT)}:{node.lineno}: {test_id} missing source comment")
         self.duplicate_ids(found, "test-code")
