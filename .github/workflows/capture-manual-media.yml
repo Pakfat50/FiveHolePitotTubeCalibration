@@ -25,7 +25,7 @@ jobs:
       - name: Install system dependencies
         run: |
           sudo apt-get update
-          sudo apt-get install -y xvfb python3-tk
+          sudo apt-get install -y xvfb python3-tk fonts-noto-cjk
 
       - name: Install Python dependencies
         run: |
@@ -35,7 +35,7 @@ jobs:
       - name: Capture running GUI
         env:
           MPLBACKEND: TkAgg
-        run: xvfb-run -a python tools/capture_manual_media.py
+        run: xvfb-run --server-args="-screen 0 1600x1200x24" python tools/capture_manual_media.py
 
       - name: Commit generated media
         run: |
