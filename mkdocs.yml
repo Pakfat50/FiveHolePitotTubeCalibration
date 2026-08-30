@@ -99,6 +99,7 @@ extra:
 
 nav:
   - ホーム: index.md
+  - 取扱説明書: user_manual.md
   - 要求仕様:
       - 較正GUI要求仕様: pitot_calibration_gui_spec.md
   - アーキテクチャ設計:
