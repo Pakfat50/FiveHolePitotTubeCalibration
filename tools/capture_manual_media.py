@@ -51,7 +51,20 @@ def crop_black_border(image: Image.Image) -> Image.Image:
     image = remove_edge_black(image)
     background = Image.new("RGB", image.size, "white")
     bbox = ImageChops.difference(image, background).getbbox()
-    return image.crop(bbox) if bbox else image
+    image = image.crop(bbox) if bbox else image
+
+    # Matplotlib/Tkの端に残る暗色の余白行・列を除去する。
+    while image.height > 1:
+        dark = sum(max(image.getpixel((x, image.height - 1))) <= 32 for x in range(image.width))
+        if dark <= image.width * 0.01:
+            break
+        image = image.crop((0, 0, image.width, image.height - 1))
+    while image.width > 1:
+        dark = sum(max(image.getpixel((image.width - 1, y))) <= 32 for y in range(image.height))
+        if dark <= image.height * 0.01:
+            break
+        image = image.crop((0, 0, image.width - 1, image.height))
+    return image
 
 
 def capture(root: tk.Tk, name: str) -> Image.Image:
