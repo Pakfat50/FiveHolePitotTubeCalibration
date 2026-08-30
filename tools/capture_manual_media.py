@@ -156,7 +156,13 @@ pump(root, 5.0)
 frames.append(capture(root, "04-simulation-progress"))
 
 # シミュレーション画面を閉じ、メイン画面のGコード生成ボタンをクリックする。
-pyautogui.hotkey("alt", "f4")
+# Tkのウィンドウマネージャー差異を避け、表示専用のシミュレーション窓だけを閉じる。
+simulation_view = app.simulation_controller.view
+simulation_figure = getattr(simulation_view, "figure", None)
+simulation_manager = getattr(getattr(simulation_figure, "canvas", None), "manager", None)
+simulation_window = getattr(simulation_manager, "window", None)
+if simulation_window is not None:
+    simulation_window.destroy()
 pump(root, 1.0)
 output = Path("sample-output.nc")
 # キャプチャでは保存ダイアログの環境差を避けるため保存先だけ固定し、
