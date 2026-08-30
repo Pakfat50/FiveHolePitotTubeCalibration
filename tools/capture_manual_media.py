@@ -8,7 +8,8 @@ import tkinter as tk
 from tkinter import font as tkfont
 from pathlib import Path
 
-from PIL import Image, ImageChops, ImageDraw, ImageGrab, ImageOps
+from PIL import Image, ImageChops, ImageDraw, ImageGrab
+import pyautogui
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 from main import build_application
@@ -18,11 +19,37 @@ OUTPUT = Path("docs/media")
 OUTPUT.mkdir(parents=True, exist_ok=True)
 
 
+pyautogui.PAUSE = 0.15
+
+
 def pump(root: tk.Tk, seconds: float) -> None:
     end = time.monotonic() + seconds
     while time.monotonic() < end:
         root.update()
         time.sleep(0.1)
+
+
+def widget_center(widget) -> tuple[int, int]:
+    """Tkウィジェットの画面上の中心座標を返す。"""
+    widget.update_idletasks()
+    return (
+        widget.winfo_rootx() + widget.winfo_width() // 2,
+        widget.winfo_rooty() + widget.winfo_height() // 2,
+    )
+
+
+def type_into(root: tk.Tk, widget, value: str) -> None:
+    """画面上の入力欄をクリックし、キーボード入力で値を置き換える。"""
+    pyautogui.click(*widget_center(widget))
+    pyautogui.hotkey("ctrl", "a")
+    pyautogui.write(value)
+    pump(root, 0.2)
+
+
+def click_widget(root: tk.Tk, widget) -> None:
+    """画面上のボタンをマウスクリックする。"""
+    pyautogui.click(*widget_center(widget))
+    pump(root, 0.5)
 
 
 def remove_edge_black(image: Image.Image) -> Image.Image:
@@ -104,26 +131,40 @@ frames: list[Image.Image] = []
 frames.append(capture(root, "01-launch"))
 pump(root, 2.0)
 
-for key, value in {
+# 入力欄を順番にクリックし、実際のキーボード入力で設定値を入力する。
+values = {
     "aoa_min": "-20", "aoa_max": "20", "aos_min": "-20", "aos_max": "20",
     "aoa_points": "5", "aos_points": "5", "tip_offset_x": "100", "tip_offset_y": "10",
     "hold_time_s": "1", "feed_rate": "100", "x_min": "-1000", "x_max": "1000",
     "y_min": "-1000", "y_max": "1000", "z_min": "-180", "z_max": "180",
     "a_min": "-720", "a_max": "720",
-}.items():
-    app._widget_vars[key].set(value)
-app._on_gui_input_changed()
+}
+for key, value in values.items():
+    type_into(root, app._entry_widgets[key], value)
 frames.append(capture(root, "02-input-valid"))
-pump(root, 3.0)
+pump(root, 2.0)
 
-app._on_simulate()
+# シミュレーションボタンを実際にクリックする。
+click_widget(root, app.simulation_button)
 pump(root, 1.0)
 frames.append(capture(root, "03-simulation-start"))
 pump(root, 5.0)
 frames.append(capture(root, "04-simulation-progress"))
 
-output = OUTPUT / "sample-output.nc"
-app._on_generate_gcode(str(output))
+# シミュレーション画面を閉じ、メイン画面のGコード生成ボタンをクリックする。
+pyautogui.hotkey("alt", "f4")
+pump(root, 1.0)
+output = Path("sample-output.nc")
+root.after(
+    1000,
+    lambda: (
+        pyautogui.hotkey("ctrl", "a"),
+        pyautogui.write(output.name),
+        pyautogui.press("enter"),
+    ),
+)
+click_widget(root, app.gcode_button)
+pump(root, 1.0)
 frames.append(capture(root, "05-gcode-generated"))
 pump(root, 2.0)
 
