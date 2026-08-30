@@ -170,6 +170,16 @@ root.option_add("*font", "{IPAGothic} 10")
 for name in ("TkDefaultFont", "TkTextFont", "TkMenuFont", "TkCaptionFont", "TkSmallCaptionFont"):
     tkfont.nametofont(name).configure(family="IPAGothic")
 app = build_application(root)
+# 実操作でシミュレーションを開始した後、開始直後と途中の2画面を
+# 取得できるよう、キャプチャ時だけ再生時間を30秒へ延長する。
+original_simulation_start = app.simulation_controller.start
+
+
+def start_capture_simulation(plan, duration_s=10.0):
+    original_simulation_start(plan, duration_s=30.0)
+
+
+app.simulation_controller.start = start_capture_simulation
 root.geometry("1200x900")
 root.update()
 root.update()
