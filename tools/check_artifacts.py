@@ -27,7 +27,16 @@ TEST_ROOT = ROOT / "tests"
 
 REQ_PATTERN = r"REQ-[A-Z0-9]+-\d{3}"
 TEST_PATTERN = r"TEST-(?:UNIT-\d{3}|UC-\d{2}-\d{2})"
-UC_PATTERN = r"UC-\d{2}"
+UC_PATTERN = r"UC-\\d{2}"
+
+def expand_api_target(raw_target: str) -> list[str]:
+    """表示名付き・親省略のAPI表記を実在API候補へ展開する。"""
+    target = raw_target.split("|", 1)[0]
+    if "/" not in target:
+        return [target]
+    parent, methods = target.rsplit(".", 1)
+    return [f"{parent}.{method}" for method in methods.split("/")]
+
 
 
 class Checker:
@@ -118,7 +127,7 @@ class Checker:
             if req_id not in self.requirement_ids:
                 self.error("traceability", f"architecture: unknown requirement link {req_id}")
         for api in re.findall(r"\[\[API:([^\]]+)\]\]", text):
-            for target in api.split("|", 1)[0].split("/"):
+            for target in expand_api_target(api):
                 if not re.fullmatch(r"[A-Za-z_][\w.]*", target):
                     self.error("traceability", f"architecture: invalid API link {target}")
 
@@ -180,7 +189,7 @@ class Checker:
     def check_api_links(self) -> None:
         combined = self.read(REQ_DOC) + self.read(ARCH_DOC) + self.read(TEST_SPEC)
         for raw_target in re.findall(r"\[\[API:([^\]]+)\]\]", combined):
-            for target in raw_target.split("|", 1)[0].split("/"):
+            for target in expand_api_target(raw_target):
                 if target not in self.product_api_targets:
                     self.error("traceability", f"unknown product API target: {target}")
         for target in re.findall(r"\[\[TESTCODE(?:_SHORT)?:([^\]]+)\]\]", combined):
