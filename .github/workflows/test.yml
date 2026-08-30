@@ -29,6 +29,9 @@ jobs:
           python -m pip install --upgrade pip
           python -m pip install numpy matplotlib
 
+      - name: Check development artifacts
+        run: python tools/check_artifacts.py
+
       - name: Run tests
         env:
           MPLBACKEND: TkAgg
