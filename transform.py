@@ -40,11 +40,13 @@ class AngleTransformer:
         r = math.hypot(u, v)
         theta = math.degrees(math.atan(r))
 
-        # AoA=AoS=0ではロール方向は数学的に不定となる。
-        # ここで前点からの連続性を適用すると、走査途中の原点がA=±180 deg等の
-        # 等価解へ変化し得るため、仕様どおり原点だけは常に(Z,A)=(0,0)とする。
+        # AoA=AoS=0ではピッチ角は0度で一意だが、ロール角は任意である。
+        # 走査途中では前点のロール角を保持し、不要なロール方向の不連続を避ける。
+        # 先頭点など前点がない場合は、A軸可動範囲の中央値を初期値とする。
         if r == 0.0:
-            return 0.0, 0.0
+            initial_roll = (limits.a.minimum + limits.a.maximum) / 2.0
+            roll = previous[1] if previous is not None else initial_roll
+            return 0.0, roll
 
         # ロール角phiは傾きベクトル(u, v)の方向である。
         phi = math.degrees(math.atan2(v, u))
