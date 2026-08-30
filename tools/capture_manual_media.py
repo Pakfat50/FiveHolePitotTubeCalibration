@@ -2,12 +2,14 @@
 
 from __future__ import annotations
 
+import sys
 import time
 import tkinter as tk
 from pathlib import Path
 
 from PIL import Image, ImageGrab
 
+sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 from main import build_application
 
 
