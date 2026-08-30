@@ -95,7 +95,7 @@ class Checker:
             text,
             re.MULTILINE | re.DOTALL,
         ):
-            req_id, block = match.groups()
+            req_id = match.group(1)\n            block = match.group(0)
             if block.count("関連成果物") != 1:
                 self.error("traceability", f"{req_id}: related-artifacts block must occur exactly once")
             for marker in ("[[ARCH:", "[[TESTSPEC:", "[[API:"):
