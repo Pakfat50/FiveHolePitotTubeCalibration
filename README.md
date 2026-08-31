@@ -104,13 +104,15 @@ X/Yはmm、Z/Aはdegで入力します。指定範囲を超える場合は状態
 
 ## ドキュメント
 
-- [要求仕様書](https://pakfat50.github.io/FiveHolePitotTubeCalibration/requirements/)
-- [アーキテクチャ設計書](https://pakfat50.github.io/FiveHolePitotTubeCalibration/architecture/)
-- [テスト仕様書](https://pakfat50.github.io/FiveHolePitotTubeCalibration/test-specification/)
+- [要求仕様書](https://pakfat50.github.io/FiveHolePitotTubeCalibration/pitot_calibration_gui_spec/)
+- [アーキテクチャ設計書](https://pakfat50.github.io/FiveHolePitotTubeCalibration/architecture_design/)
+- [テスト仕様書](https://pakfat50.github.io/FiveHolePitotTubeCalibration/test_specification/)
 - [製品コードAPI](https://pakfat50.github.io/FiveHolePitotTubeCalibration/api/)
 - [テストコードAPI](https://pakfat50.github.io/FiveHolePitotTubeCalibration/test-api/)
-- [開発プロセスルール](https://pakfat50.github.io/FiveHolePitotTubeCalibration/development-process-guideline/)
-- [トレーサビリティ運用ルール](https://pakfat50.github.io/FiveHolePitotTubeCalibration/traceability-rules/)
+- [開発プロセスルール](https://pakfat50.github.io/FiveHolePitotTubeCalibration/development_process_guideline/)
+- [トレーサビリティ運用ルール](https://pakfat50.github.io/FiveHolePitotTubeCalibration/traceability_rules/)
+- [製品コード開発ルール](https://pakfat50.github.io/FiveHolePitotTubeCalibration/product_code_guideline/)
+- [テストコード開発ルール](https://pakfat50.github.io/FiveHolePitotTubeCalibration/test_doxygen_guideline/)
 
 ## 開発者向け
 
