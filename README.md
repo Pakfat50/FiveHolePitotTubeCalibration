@@ -121,6 +121,15 @@ python tools/check_artifacts.py
 python -m unittest discover -s tests -v
 ```
 
+ドキュメントサイトをローカルで確認する場合は、リポジトリのルートで以下を実行します。
+
+```bash
+python -m pip install mkdocs-material "mkdocstrings[python]"
+mkdocs serve
+```
+
+ブラウザで `http://127.0.0.1:8000/` を開きます。
+
 ## ライセンス
 
 [MIT License](LICENSE)
