@@ -33,14 +33,3 @@
 | コードドキュメント | [製品コードAPI](api.md) / [テストコードAPI](test-api.md) |
 | 開発ルール | [開発プロセスルール](development_process_guideline.md) / [トレーサビリティ運用ルール](traceability_rules.md) |
 | 開発ルール | [製品コード開発ルール](product_code_guideline.md) / [テストコード開発ルール](test_doxygen_guideline.md) |
-
-## ローカルプレビュー
-
-リポジトリのルートで以下を実行します。
-
-```bash
-python -m pip install mkdocs-material mkdocstrings[python]
-mkdocs serve
-```
-
-ブラウザで http://127.0.0.1:8000/ を開いて確認できます。
