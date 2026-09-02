@@ -338,43 +338,48 @@ class TestInputValidator(unittest.TestCase):
         result = self.validator.validate(make_settings(aoa_min=10, aoa_max=10, aoa_points=1, feed_rate=0))
         self.assertGreaterEqual(sum(i.severity.name == "ERROR" for i in result.issues), 3)
 
-    def test_lx_zero_is_invalid(self):
+    def test_zero_offsets_are_valid(self):
         """TEST-UNIT-111
 
         テスト目的:
-            Lx=0を拒否することを確認する。
+            LxまたはLyが0.0 mmの場合に受理することを確認する。
 
         テスト手順:
-            1. 仕様境界値0.0を入力して無効判定を確認する。
+            1. Lx、Lyをそれぞれ0.0 mmに設定して検証結果を確認する。
             2. テスト対象のメソッドを呼び出して結果を取得する。
             3. 取得した結果を期待値と比較する。
 
         パスクライテリア:
-            Lxは0より大きくなければならない。
+            Lx=0.0 mmまたはLy=0.0 mmは有効であり、エラーを含まないこと。
 
         検証根拠:
-            禁止境界そのものを入力するため、Lx>0という厳密不等号の実装を確認できる。
+            許容境界そのものを入力するため、Lx/Ly>=0という境界条件の実装を確認できる。
         """
-        self.assertFalse(self.validator.validate(make_settings(tip_offset_x=0.0)).is_valid)
+        for field in ("tip_offset_x", "tip_offset_y"):
+            with self.subTest(field=field):
+                result = self.validator.validate(make_settings(**{field: 0.0}))
+                self.assertTrue(result.is_valid)
 
-    def test_ly_negative_is_invalid(self):
+    def test_negative_offsets_are_invalid(self):
         """TEST-UNIT-112
 
         テスト目的:
-            Lyが負値の場合を拒否することを確認する。
+            LxまたはLyが負値の場合を拒否することを確認する。
 
         テスト手順:
-            1. 代表的な負値-0.1を入力して検証結果を確認する。
+            1. Lx、Lyをそれぞれ代表的な負値-0.1に設定して検証結果を確認する。
             2. テスト対象のメソッドを呼び出して結果を取得する。
             3. 取得した結果を期待値と比較する。
 
         パスクライテリア:
-            Ly<=0 は無効であること。
+            Lx<0またはLy<0は無効であること。
 
         検証根拠:
-            正値制約に明確に違反する入力を与えるため、Lyの符号条件を確認できる。
+            0.0 mmは許容し、負値だけを拒否する境界条件を両寸法で確認できる。
         """
-        self.assertFalse(self.validator.validate(make_settings(tip_offset_y=-0.1)).is_valid)
+        for field in ("tip_offset_x", "tip_offset_y"):
+            with self.subTest(field=field):
+                self.assertFalse(self.validator.validate(make_settings(**{field: -0.1})).is_valid)
 
     def test_hold_time_minimum_is_valid(self):
         """TEST-UNIT-113
