@@ -75,8 +75,8 @@
 | <a id="test-unit-014"></a>TEST-UNIT-014 | REQ-INPUT-005, REQ-VALID-002 | Z軸最小>=最大 | Z range不正 | Z可動範囲エラー | [[TESTCODE_SHORT:tests.test_validation.TestInputValidator.test_z_range_invalid]] |
 | <a id="test-unit-015"></a>TEST-UNIT-015 | REQ-INPUT-005, REQ-VALID-002 | A軸最小>=最大 | A range不正 | A可動範囲エラー | [[TESTCODE_SHORT:tests.test_validation.TestInputValidator.test_a_range_invalid]] |
 | <a id="test-unit-016"></a>TEST-UNIT-016 | REQ-VALID-001 | 複数エラー同時検出 | AoA範囲、点数、Feed等を同時不正 | 複数の`ValidationIssue`を返す | [[TESTCODE_SHORT:tests.test_validation.TestInputValidator.test_multiple_errors_are_reported]] |
-| <a id="test-unit-111"></a>TEST-UNIT-111 | REQ-INPUT-003, REQ-VALID-002 | Lx下限違反 | `Lx=0` | 距離エラー | [[TESTCODE_SHORT:tests.test_validation.TestInputValidator.test_lx_zero_is_invalid]] |
-| <a id="test-unit-112"></a>TEST-UNIT-112 | REQ-INPUT-003, REQ-VALID-002 | Ly負値 | `Ly<0` | 距離エラー | [[TESTCODE_SHORT:tests.test_validation.TestInputValidator.test_ly_negative_is_invalid]] |
+| <a id="test-unit-111"></a>TEST-UNIT-111 | REQ-INPUT-003, REQ-VALID-002 | Lx/Lyゼロ境界 | `Lx=0` または `Ly=0` | 距離エラーなし | [[TESTCODE_SHORT:tests.test_validation.TestInputValidator.test_zero_offsets_are_valid]] |
+| <a id="test-unit-112"></a>TEST-UNIT-112 | REQ-INPUT-003, REQ-VALID-002 | Lx/Ly負値 | `Lx<0` または `Ly<0` | 距離エラー | [[TESTCODE_SHORT:tests.test_validation.TestInputValidator.test_negative_offsets_are_invalid]] |
 | <a id="test-unit-113"></a>TEST-UNIT-113 | REQ-INPUT-004, REQ-VALID-002 | 保持時間下限正常 | `hold_time_s=0.1` | 保持時間エラーなし | [[TESTCODE_SHORT:tests.test_validation.TestInputValidator.test_hold_time_minimum_is_valid]] |
 | <a id="test-unit-114"></a>TEST-UNIT-114 | REQ-INPUT-004, REQ-VALID-002 | 保持時間下限未満 | `0 <= hold_time_s < 0.1` | 保持時間エラー | [[TESTCODE_SHORT:tests.test_validation.TestInputValidator.test_hold_time_below_minimum_is_invalid]] |
 | <a id="test-unit-115"></a>TEST-UNIT-115 | REQ-INPUT-004, REQ-VALID-002 | Feed rate下限正常 | `feed_rate=1` | Feed rateエラーなし | [[TESTCODE_SHORT:tests.test_validation.TestInputValidator.test_feed_rate_minimum_is_valid]] |
@@ -363,7 +363,8 @@
 | <a id="test-uc-01-08"></a>TEST-UC-01-08 | UC-01 | XY警告とZAエラー同時 | 両方発生する設定 | XY警告情報を保持しつつ生成禁止はZAエラーが優先 | [[TESTCODE_SHORT:tests.test_use_cases.TestUseCases.test_uc01_xy_warning_and_za_error_coexist]] |
 | <a id="test-uc-01-09"></a>TEST-UC-01-09 | UC-01 | AoA/AoS=0を含む格子 | 中央点あり、走査順の直前点あり | 原点Z=0、原点Aは直前点Aを保持し、不要なロール角不連続なし | [[TESTCODE_SHORT:tests.test_use_cases.TestUseCases.test_uc01_grid_origin_is_deterministic]] |
 | <a id="test-uc-01-10"></a>TEST-UC-01-10 | UC-01 | ±180近傍の連続性を伴う走査 | ロールunwrapが必要な点列 | 走査点間で不要な±360°ジャンプがない | [[TESTCODE_SHORT:tests.test_use_cases.TestUseCases.test_uc01_roll_has_no_unnecessary_360_jump]] |
-| <a id="test-uc-01-11"></a>TEST-UC-01-11 | UC-01 | Lx/Ly下限違反 | LxまたはLyを0以下へ変更 | 該当入力欄を背景色で強調し既存固定メッセージ領域へ理由表示、plan更新停止、Sim/G-code無効 | [[TESTCODE_SHORT:tests.test_use_cases.TestUseCases.test_uc01_nonpositive_offsets_block_plan]] |
+| <a id="test-uc-01-11"></a>TEST-UC-01-11 | UC-01 | Lx/Ly負値 | LxまたはLyを0未満へ変更 | 該当入力欄を背景色で強調し既存固定メッセージ領域へ理由表示、plan更新停止、Sim/G-code無効 | [[TESTCODE_SHORT:tests.test_use_cases.TestUseCases.test_uc01_negative_offsets_block_plan]] |
+| <a id="test-uc-01-13"></a>TEST-UC-01-13 | UC-01 | Lx/Lyゼロ境界 | LxまたはLyを0.0 mmへ変更 | 入力を有効としplanを生成、Sim/G-codeを許可 | [[TESTCODE_SHORT:tests.test_use_cases.TestUseCases.test_uc01_zero_offsets_allow_plan]] |
 | <a id="test-uc-01-12"></a>TEST-UC-01-12 | UC-01 | 保持時間/Feed下限境界 | hold=0.1, F=1→各下限未満へ変更 | 下限値は有効、下限未満では該当入力欄を背景色で強調し既存固定メッセージ領域へ理由表示、生成不可 | [[TESTCODE_SHORT:tests.test_use_cases.TestUseCases.test_uc01_hold_and_feed_boundaries]] |
 
 ## 7.2 UC-02 初期化Gコードを読み込む
@@ -464,7 +465,7 @@
 
 | ユースケースID | ユースケース名 | テストID |
 |---|---|---|
-| [[ARCH:UC-01]] | 較正条件を入力・更新する | [01](#test-uc-01-01), [02](#test-uc-01-02), [03](#test-uc-01-03), [04](#test-uc-01-04), [05](#test-uc-01-05), [06](#test-uc-01-06), [07](#test-uc-01-07), [08](#test-uc-01-08), [09](#test-uc-01-09), [10](#test-uc-01-10), [11](#test-uc-01-11), [12](#test-uc-01-12) |
+| [[ARCH:UC-01]] | 較正条件を入力・更新する | [01](#test-uc-01-01), [02](#test-uc-01-02), [03](#test-uc-01-03), [04](#test-uc-01-04), [05](#test-uc-01-05), [06](#test-uc-01-06), [07](#test-uc-01-07), [08](#test-uc-01-08), [09](#test-uc-01-09), [10](#test-uc-01-10), [11](#test-uc-01-11), [12](#test-uc-01-12), [13](#test-uc-01-13) |
 | [[ARCH:UC-02]] | 初期化Gコードを読み込む | [01](#test-uc-02-01), [02](#test-uc-02-02), [03](#test-uc-02-03), [04](#test-uc-02-04) |
 | [[ARCH:UC-03]] | 設定を保存する | [01](#test-uc-03-01), [02](#test-uc-03-02), [03](#test-uc-03-03), [04](#test-uc-03-04) |
 | [[ARCH:UC-04]] | 設定を読み込む | [01](#test-uc-04-01), [02](#test-uc-04-02), [03](#test-uc-04-03), [04](#test-uc-04-04), [05](#test-uc-04-05), [06](#test-uc-04-06), [07](#test-uc-04-07), [08](#test-uc-04-08), [09](#test-uc-04-09), [10](#test-uc-04-10), [11](#test-uc-04-11) |
