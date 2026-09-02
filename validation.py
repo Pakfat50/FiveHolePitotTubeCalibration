@@ -47,10 +47,10 @@ class InputValidator:
         if settings.aos_points < 2:
             issues.append(self._error("aos_points", "AoS較正点数は2点以上である必要があります。"))
 
-        # Lx/Lyは幾何学計算に直接使用するため、0以下だけでなくNaNや無限大も
-        # 明示的に除外する。math.isfiniteを先に判定し、非有限値を比較演算へ渡さない。
-        self._require_positive_finite(issues, "tip_offset_x", settings.tip_offset_x, "Lx")
-        self._require_positive_finite(issues, "tip_offset_y", settings.tip_offset_y, "Ly")
+        # Lx/Lyは幾何学計算に直接使用するため、負値とNaNや無限大を除外する。
+        # 0.0 mmは退化形状を表す有効な境界値として許容する。
+        self._require_non_negative_finite(issues, "tip_offset_x", settings.tip_offset_x, "Lx")
+        self._require_non_negative_finite(issues, "tip_offset_y", settings.tip_offset_y, "Ly")
 
         # 保持時間とFeed rateはそれぞれ仕様上の下限値を含む。
         # 非有限値はGRBL出力値として成立しないため、下限判定とは別に除外する。
@@ -93,13 +93,13 @@ class InputValidator:
             issues.append(cls._error(field, f"{label}の最小値は最大値より小さくする必要があります。"))
 
     @classmethod
-    def _require_positive_finite(
+    def _require_non_negative_finite(
         cls,
         issues: list[ValidationIssue],
         field: str,
         value: float,
         label: str,
     ) -> None:
-        """値が0より大きい有限値であることを検証する。"""
-        if not math.isfinite(value) or value <= 0.0:
-            issues.append(cls._error(field, f"{label}は0より大きい有限値である必要があります。"))
+        """値が0以上の有限値であることを検証する。"""
+        if not math.isfinite(value) or value < 0.0:
+            issues.append(cls._error(field, f"{label}は0以上の有限値である必要があります。"))
