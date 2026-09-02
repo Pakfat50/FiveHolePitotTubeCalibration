@@ -755,13 +755,13 @@ stateDiagram-v2
 |---|---|---|
 | <a id="architecture-req-input-001"></a>[[REQ:REQ-INPUT-001]] | [[API:gui.MainWindow._build_widgets]], [[API:gui.MainWindow._collect_raw_input]], [[API:models.CalibrationSettings]] | AoA/AoS範囲 |
 | <a id="architecture-req-input-002"></a>[[REQ:REQ-INPUT-002]] | [[API:gui.MainWindow._build_widgets]], [[API:gui.MainWindow._collect_raw_input]], [[API:models.CalibrationSettings]] | 点数 |
-| <a id="architecture-req-input-003"></a>[[REQ:REQ-INPUT-003]] | [[API:gui.MainWindow._build_widgets]], [[API:gui.MainWindow._collect_raw_input]], [[API:models.CalibrationSettings]] | Lx/Ly |
+| <a id="architecture-req-input-003"></a>[[REQ:REQ-INPUT-003]] | [[API:gui.MainWindow._build_widgets]], [[API:gui.MainWindow._collect_raw_input]], [[API:models.CalibrationSettings]] | Lx/Ly（0.0 mm以上、0.0 mmを許容） |
 | <a id="architecture-req-input-004"></a>[[REQ:REQ-INPUT-004]] | [[API:gui.MainWindow._build_widgets]], [[API:gui.MainWindow._collect_raw_input]], [[API:models.CalibrationSettings]], [[API:gcode.GCodeGenerator._format_point]] | 保持時間、Feed rate |
 | <a id="architecture-req-input-005"></a>[[REQ:REQ-INPUT-005]] | [[API:gui.MainWindow._build_widgets]], [[API:models.AxisLimits]], [[API:models.AxisRange]] | X/Y/Z/A可動範囲 |
 | <a id="architecture-req-input-006"></a>[[REQ:REQ-INPUT-006]] | [[API:gui.MainWindow._on_load_initialization]], [[API:repositories.InitializationGCodeRepository.load]] | 初期化Gコード |
 | <a id="architecture-req-input-007"></a>[[REQ:REQ-INPUT-007]] | [[API:gui.MainWindow._build_widgets]], [[API:models.CalibrationSettings]] | 蛇行走査、コメント |
 | <a id="architecture-req-valid-001"></a>[[REQ:REQ-VALID-001]] | [[API:controller.CalibrationController.on_settings_changed]], [[API:validation.InputValidator.validate]], [[API:gui.MainWindow._on_gui_input_changed]], [[API:gui.MainWindow._find_numeric_parse_errors]], [[API:gui.MainWindow._apply_validation_highlights]], [[API:gui.MainWindow._update_validation_display]] | リアルタイム非モーダル検証、数値パース失敗、フィールド背景強調 |
-| <a id="architecture-req-valid-002"></a>[[REQ:REQ-VALID-002]] | [[API:validation.InputValidator.validate]], [[API:controller.CalibrationController.can_generate]] | 入力整合性 |
+| <a id="architecture-req-valid-002"></a>[[REQ:REQ-VALID-002]] | [[API:validation.InputValidator.validate]], [[API:controller.CalibrationController.can_generate]] | 入力整合性（Lx/Lyは0以上の有限値） |
 | <a id="architecture-req-valid-003"></a>[[REQ:REQ-VALID-003]] | [[API:limits.LimitEvaluator.evaluate]], [[API:controller.CalibrationController.can_generate]], [[API:gui.MainWindow._update_action_state]] | X/Y警告、Z/A禁止 |
 
 ## 10.2 座標変換・位置補正・制限

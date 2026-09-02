@@ -277,11 +277,11 @@ class TestUseCases(unittest.TestCase):
 
     # TEST-UC-01-11
     # UseCase: UC-01
-    def test_uc01_nonpositive_offsets_block_plan(self):
+    def test_uc01_negative_offsets_block_plan(self):
         """TEST-UC-01-11
 
         テスト目的:
-            Lx/Lyが0以下の場合に生成操作を禁止することを確認する。
+            Lx/Lyが負値の場合に生成操作を禁止することを確認する。
 
         テスト手順:
             1. テスト対象の処理を実行し、結果を確認する。
@@ -289,14 +289,40 @@ class TestUseCases(unittest.TestCase):
             3. 取得した結果を期待値と比較する。
 
         パスクライテリア:
-            tip_offset_xまたはtip_offset_y=0でcan_generate=Falseとなること。
+            tip_offset_xまたはtip_offset_y<0でcan_generate=Falseとなること。
 
         検証根拠:
-            両フィールドを個別に同じ禁止境界へ設定するため、どちらの寸法制約もController経路で有効であることを確認できる。
+            両フィールドを個別に負値へ設定するため、どちらの寸法制約もController経路で有効であることを確認できる。
         """
         for field in ("tip_offset_x","tip_offset_y"):
             with self.subTest(field=field):
-                self.h.controller.on_settings_changed(make_settings(**{field:0})); self.assertFalse(self.h.controller.can_generate())
+                self.h.controller.on_settings_changed(make_settings(**{field:-0.1})); self.assertFalse(self.h.controller.can_generate())
+
+    # TEST-UC-01-13
+    # UseCase: UC-01
+    def test_uc01_zero_offsets_allow_plan(self):
+        """TEST-UC-01-13
+
+        テスト目的:
+            LxまたはLyが0.0 mmでも較正計画を生成できることを確認する。
+
+        テスト手順:
+            1. Lx、Lyをそれぞれ0.0 mmに設定する。
+            2. Controller経由で設定を検証し、較正計画を生成する。
+            3. 検証結果と生成可否を確認する。
+
+        パスクライテリア:
+            Lx=0.0 mmまたはLy=0.0 mmは有効であり、planが生成されcan_generate=Trueとなること。
+
+        検証根拠:
+            GUI入力からController、Validator、CalibrationServiceへ至る実経路で許容境界を確認するため、単体検証だけでは確認できないユースケース成立性を判定できる。
+        """
+        for field in ("tip_offset_x", "tip_offset_y"):
+            with self.subTest(field=field):
+                result = self.h.controller.on_settings_changed(make_settings(**{field: 0.0}))
+                self.assertTrue(result.is_valid)
+                self.assertIsNotNone(self.h.controller.get_current_plan())
+                self.assertTrue(self.h.controller.can_generate())
 
     # TEST-UC-01-12
     # UseCase: UC-01
