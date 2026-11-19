@@ -127,6 +127,7 @@ class TestPlots(unittest.TestCase):
             with patch('tkinter.messagebox.showerror', side_effect=AssertionError):
                 app.run(False)
             app.root.update()
+            self.assertEqual(app.calibration_identity.get(),'未保存（一時）')
             self.assertEqual(app.sfig.axes[0].name,'3d')
             app.surface_choice.current(2)
             app.show_surface()
@@ -148,16 +149,20 @@ class TestPlots(unittest.TestCase):
             app.files.selection_set(q)
             app.remove()
             self.assertIsNone(app.coef)
+            self.assertEqual(app.calibration_identity.get(),'未選択')
             self.assertFalse(app.rmse_table.get_children())
             self.assertEqual(list(app.comparison_files.pages),[p])
             with TemporaryDirectory() as folder, patch.object(app,'OUTPUT_DIR',Path(folder)/'output'), patch.object(app.messagebox,'showerror',side_effect=AssertionError):
-                app.run(True)
+                app.run(False)
+                app.generate_c()
+                self.assertEqual(app.calibration_identity.get(),f'保存済み　{app.saved_csv.name}')
                 app.run(True)
                 outputs=sorted(app.OUTPUT_DIR.glob('*.csv'))
                 models=[path for path in outputs if not path.stem.endswith('_points')]
                 self.assertEqual((len(outputs),len(models)),(2,1))
                 original=app.coef.copy()
                 model=models[0]
+                self.assertEqual(app.calibration_identity.get(),f'保存済み　{model.name}')
                 with patch.object(app.filedialog,'askopenfilename',return_value=str(model)):
                     app.load_result()
                     np.testing.assert_array_equal(app.coef,original)
@@ -168,6 +173,7 @@ class TestPlots(unittest.TestCase):
                     model.with_name(model.stem+'_points.csv').unlink()
                     app.load_result()
                     app.generate_c()
+                    self.assertEqual(app.calibration_identity.get(),f'読込済み　{model.name}')
                     self.assertTrue((app.OUTPUT_DIR/'C'/model.with_suffix('.h').name).is_file())
                     self.assertEqual(len(app.mesh[3]),0)
                     np.testing.assert_array_equal(app.coef,original)
