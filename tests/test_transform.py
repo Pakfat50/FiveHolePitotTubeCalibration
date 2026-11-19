@@ -167,18 +167,16 @@ class TestAngleTransformer(unittest.TestCase):
             3. 取得した結果を期待値と比較する。
 
         パスクライテリア:
-            AoA=12,AoS=7でZ=atan(hypot(tanAoA,tanAoS)), A=atan2(v,u)となること。
+            全象限の複合角でZが正の基本解となり、復元角が0.001 deg以内で一致する。
 
         検証根拠:
-            テスト側で仕様数式から期待値を独立計算し実装出力と比較するため、一般ケースの数式実装誤りを検出できる。
+            実軸角から単位流速ベクトルを再構成し、独立した空力角定義で指令値と照合する。
         """
-        aoa, aos = 12.0, 7.0
-        u, v = math.tan(math.radians(aoa)), math.tan(math.radians(aos))
-        expected_z = math.degrees(math.atan(math.hypot(u, v)))
-        expected_a = math.degrees(math.atan2(v, u))
-        z, a = self.t.transform(aoa, aos, None, self.limits)
-        self.assertAlmostEqual(expected_z, z, delta=ABS_TOL)
-        self.assertAlmostEqual(expected_a, a, delta=ABS_TOL)
+        for aoa, aos in ((12, 7), (30, 30), (-30, 30), (30, -30), (-30, -30)):
+            with self.subTest(aoa=aoa, aos=aos):
+                z, a = self.t.transform(aoa, aos, None, self.limits)
+                self.assertGreater(z, 0.0)
+                self._assert_reproduces(aoa, aos, z, a)
 
     def test_quadrant_ii(self):
         """TEST-UNIT-030
@@ -411,11 +409,12 @@ class TestAngleTransformer(unittest.TestCase):
         検証根拠:
         等価解の表記ではなく、変換後ベクトルが表す物理的なAoA/AoSを比較するため、複数解が存在するケースでも仕様適合性を判定できる。
         """
-        r = math.tan(math.radians(z))
-        u = r * math.cos(math.radians(a))
-        v = r * math.sin(math.radians(a))
-        self.assertAlmostEqual(aoa, math.degrees(math.atan(u)), delta=ABS_TOL)
-        self.assertAlmostEqual(aos, math.degrees(math.atan(v)), delta=ABS_TOL)
+        pitch, roll = math.radians(z), math.radians(a)
+        forward = math.cos(pitch)
+        lateral = math.sin(pitch) * math.sin(roll)
+        vertical = math.sin(pitch) * math.cos(roll)
+        self.assertAlmostEqual(aoa, math.degrees(math.atan2(vertical, forward)), delta=ABS_TOL)
+        self.assertAlmostEqual(aos, math.degrees(math.asin(lateral)), delta=ABS_TOL)
 
 
 if __name__ == "__main__":

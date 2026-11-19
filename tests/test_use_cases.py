@@ -312,17 +312,24 @@ class TestUseCases(unittest.TestCase):
             3. 検証結果と生成可否を確認する。
 
         パスクライテリア:
-            Lx=0.0 mmまたはLy=0.0 mmは有効であり、planが生成されcan_generate=Trueとなること。
+            片方または両方がゼロでも全点を出力でき、両方ゼロの場合は全点の並進指令がゼロとなること。
 
         検証根拠:
             GUI入力からController、Validator、CalibrationServiceへ至る実経路で許容境界を確認するため、単体検証だけでは確認できないユースケース成立性を判定できる。
         """
-        for field in ("tip_offset_x", "tip_offset_y"):
-            with self.subTest(field=field):
-                result = self.h.controller.on_settings_changed(make_settings(**{field: 0.0}))
+        for lx, ly in ((0, 10), (100, 0), (0, 0)):
+            with self.subTest(lx=lx, ly=ly):
+                settings = make_settings(tip_offset_x=lx, tip_offset_y=ly)
+                result = self.h.controller.on_settings_changed(settings)
                 self.assertTrue(result.is_valid)
-                self.assertIsNotNone(self.h.controller.get_current_plan())
                 self.assertTrue(self.h.controller.can_generate())
+                plan = self.h.controller.get_current_plan()
+                code = self.h.generator.generate(plan, settings, "")
+                moves = [line.split() for line in code.splitlines() if line.startswith("G01 ")]
+                self.assertEqual(len(moves), settings.aoa_points * settings.aos_points)
+                if lx == ly == 0:
+                    for move in moves:
+                        self.assertEqual([float(word[1:]) for word in move if word[0] in "XY"], [0, 0])
 
     # TEST-UC-01-12
     # UseCase: UC-01
@@ -951,13 +958,24 @@ class TestUseCases(unittest.TestCase):
             3. 取得した結果を期待値と比較する。
 
         パスクライテリア:
-            2×2planの出力に$Hを含みG01行が4件であること。
+            起動時のLyは0 mmで、2×2点の全移動にF1000が出力され、自動ホームがないこと。
 
         検証根拠:
             実Service→Generator経路で点数と移動行数を対応付けるため、全較正点がGコードへ出力されることを確認できる。
         """
-        s=make_settings(aoa_points=2,aos_points=2); text=self.h.generator.generate(self.h.service.build_plan(s),s,"G92 X0\n")
-        self.assertIn("$H",text); self.assertEqual(4,len([l for l in text.splitlines() if l.startswith("G01 ")]))
+        settings = make_settings(
+            aoa_points=2, aos_points=2,
+            tip_offset_y=float(MainWindow.DEFAULT_VALUES["tip_offset_y"]),
+            feed_rate=float(MainWindow.DEFAULT_VALUES["feed_rate"]),
+        )
+        self.assertEqual(settings.tip_offset_y, 0.0)
+        plan = self.h.service.build_plan(settings)
+        lines = self.h.generator.generate(plan, settings, "G92 X0").splitlines()
+        self.assertNotIn("$H", lines)
+        moves = [line for line in lines if line.startswith("G01 ")]
+        self.assertEqual(len(moves), 4)
+        for move in moves:
+            self.assertIn("F1000.000000", move.split())
 
     # TEST-UC-06-02
     # UseCase: UC-06

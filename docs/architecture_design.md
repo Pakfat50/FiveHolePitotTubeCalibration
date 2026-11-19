@@ -92,6 +92,7 @@ sequenceDiagram
         Scan-->>Service: CalibrationPoint[]
         loop 各較正点
             Service->>Transform: transform(aoa, aos, previous, limits)
+            Note over Transform: TM765の迎角・横滑り角を前方軸に対する縦横の傾きに変換
             Transform-->>Service: Z, A
             Service->>Position: calculate_xy(Z, Lx, Ly)
             Position-->>Service: X, Y
@@ -622,7 +623,7 @@ flowchart TB
 | `limits.py` | 可動範囲判定 | `LimitEvaluator.evaluate()` | X/Y飽和、X/Y偏差、Z/A範囲エラーを判定する |
 | `calibration_service.py` | 較正計画生成サービス | `CalibrationService.build_plan()` | 点列生成から軸指令、補正、制限判定までを統合し `CalibrationPlan` を構築する |
 | `controller.py` | アプリケーション制御 | `CalibrationController` | GUIイベントを受け、入力検証と較正計画再生成を制御し、現在状態を保持する |
-| `gcode.py` | Gコード生成 | `GCodeGenerator.generate()` | 初期化コード、`$H`, `G21`, `G90`, `G94`, `G01 ... F...`, `G04`、任意コメントを文字列化する |
+| `gcode.py` | Gコード生成 | `GCodeGenerator.generate()` | 初期化コード、 `G21`, `G90`, `G94`, `G01 ... F...`, `G04`、任意コメントを文字列化する |
 | `repositories.py` | ファイル入出力 | `SettingsRepository`, `InitializationGCodeRepository`, `GCodeRepository` | CSV設定、初期化Gコード、`.nc`ファイルの読み書きを担当する。CSV読込時の欠損・空欄・型変換・I/Oエラーを防御的に処理する |
 | `map_view.py` | 較正点マップ表示 | `CalibrationMapView` | メインGUIでAoA/AoS点列と警告・エラー状態を表示し、日本語対応フォントがない環境では英語表示へフォールバックする |
 | `simulation.py` | 動作シミュレーション | `SimulationController`, `SimulationView` | 約10秒の再生、再生/一時停止、較正点単位のシーク、最終点停止、横面図・正面図、全較正点マップ、現在点強調、現在点・軸値・進捗を表示し、Matplotlibのアニメーションと日本語フォントフォールバックを管理する |
@@ -791,7 +792,7 @@ stateDiagram-v2
 | 要求ID | 実装クラス/メソッド | 備考 |
 |---|---|---|
 | <a id="architecture-req-gcode-001"></a>[[REQ:REQ-GCODE-001]] | [[API:gui.MainWindow._on_generate_gcode]], [[API:repositories.GCodeRepository.save]] | `.nc`保存 |
-| <a id="architecture-req-gcode-002"></a>[[REQ:REQ-GCODE-002]] | [[API:gcode.GCodeGenerator._format_header]] | 初期化、`$H`, G21/G90/G94 |
+| <a id="architecture-req-gcode-002"></a>[[REQ:REQ-GCODE-002]] | [[API:gcode.GCodeGenerator._format_header]] | 初期化後にG21/G90/G94（自動ホーミングなし） |
 | <a id="architecture-req-gcode-003"></a>[[REQ:REQ-GCODE-003]] | [[API:gcode.GCodeGenerator._format_point]] | `G01 X Y Z A F`, `G04 P` |
 | <a id="architecture-req-gcode-004"></a>[[REQ:REQ-GCODE-004]] | [[API:gcode.GCodeGenerator._format_point]] | 任意コメント |
 | <a id="architecture-req-gcode-005"></a>[[REQ:REQ-GCODE-005]] | [[API:gcode.GCodeGenerator.generate]] | 終了時復帰指令なし |

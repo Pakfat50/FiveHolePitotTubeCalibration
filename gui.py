@@ -23,8 +23,8 @@ class MainWindow:
 
     DEFAULT_VALUES = {
         "aoa_min": "-10.0", "aoa_max": "10.0", "aos_min": "-10.0", "aos_max": "10.0",
-        "aoa_points": "5", "aos_points": "5", "tip_offset_x": "100.0", "tip_offset_y": "10.0",
-        "hold_time_s": "1.0", "feed_rate": "100.0", "x_min": "-1000.0", "x_max": "1000.0",
+        "aoa_points": "5", "aos_points": "5", "tip_offset_x": "100.0", "tip_offset_y": "0.0",
+        "hold_time_s": "1.0", "feed_rate": "1000.0", "x_min": "-1000.0", "x_max": "1000.0",
         "y_min": "-1000.0", "y_max": "1000.0", "z_min": "-180.0", "z_max": "180.0",
         "a_min": "-720.0", "a_max": "720.0",
     }
