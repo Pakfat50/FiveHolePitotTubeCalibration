@@ -13,7 +13,9 @@ import java.util.Locale;
 public class Monitor {
   private final PApplet app;
   private final Telemetry data = new Telemetry();
-  private final PanelArt art = new PanelArt();
+  private final PanelArt rawPanel=new PanelArt(false), calibratedPanel=new PanelArt(true);
+  private volatile PanelArt activePanel=rawPanel;
+  private volatile Calibration calibration;
   private volatile String port="", message="COMポートを選択してください。";
   private volatile Serial serial;
   private volatile boolean busy, closing;
@@ -30,16 +32,26 @@ public class Monitor {
   }
 
   public void paint(Graphics2D g) {
-    synchronized(art){
+    PanelArt art=activePanel;
+    synchronized(rawPanel){
       Telemetry.View view=data.snapshot(fromSecond,toSecond);
+      Calibration model=calibration;
+      if(art.calibrated) Calibration.apply(view,model);
       art.paint(g,view,port,serial!=null,data.recording,data.pending!=null,busy,
-        data.written,data.invalid,data.error.isEmpty()?message:data.error);
+        data.written,data.invalid,data.error.isEmpty()?message:data.error,model==null?"係数CSV未選択":model.filename);
     }
   }
 
   public void click(int x,int y) {
     EventQueue.invokeLater(()->{
       if(busy || closing) return;
+      if(PanelArt.RAW_TAB.contains(x,y)){activePanel=rawPanel;return;}
+      if(PanelArt.CAL_TAB.contains(x,y)){activePanel=calibratedPanel;return;}
+      PanelArt art=activePanel;
+      if(art.calibrated && PanelArt.LOAD.contains(x,y)){
+        chooseCalibration();
+        return;
+      }
       for(int i=0;i<art.buttons.length;i++) if(art.buttons[i].contains(x,y)) {
         try { action(i); }
         catch(Exception ex){report(ex);}
@@ -123,24 +135,41 @@ public class Monitor {
   }
 
   private void editRange(int k){
+    PanelArt art=activePanel;
     JTextField lo=new JTextField(Float.toString(art.low[k]),10), hi=new JTextField(Float.toString(art.high[k]),10);
     JTextField from=new JTextField(Integer.toString(fromSecond)), to=new JTextField(Integer.toString(toSecond));
     JPanel fields=new JPanel(new GridLayout(4,2,8,8));
-    fields.add(new JLabel("最小 [Pa]"));fields.add(lo);
-    fields.add(new JLabel("最大 [Pa]"));fields.add(hi);
+    fields.add(new JLabel("最小 ["+art.unit(k)+"]"));fields.add(lo);
+    fields.add(new JLabel("最大 ["+art.unit(k)+"]"));fields.add(hi);
     fields.add(new JLabel("共通時間軸・開始 [秒]"));fields.add(from);
     fields.add(new JLabel("共通時間軸・終了 [秒]（最新 = 0）"));fields.add(to);
-    while(JOptionPane.showConfirmDialog(parent,fields,PanelArt.NAMES[k]+" Δp の表示範囲",
+    while(JOptionPane.showConfirmDialog(parent,fields,art.title(k)+" の表示範囲",
           JOptionPane.OK_CANCEL_OPTION,JOptionPane.PLAIN_MESSAGE)==JOptionPane.OK_OPTION){
       try{
         float a=Float.parseFloat(lo.getText().trim()),b=Float.parseFloat(hi.getText().trim());
         int start=Integer.parseInt(from.getText().trim()), end=Integer.parseInt(to.getText().trim());
         if(Float.isFinite(a)&&Float.isFinite(b)&&a<b && start>=-Telemetry.HISTORY_SECONDS && start<end && end<=0){
-          synchronized(art){art.low[k]=a;art.high[k]=b;fromSecond=start;toSecond=end;}
+          synchronized(rawPanel){art.low[k]=a;art.high[k]=b;fromSecond=start;toSecond=end;}
           return;
         }
       }catch(NumberFormatException ignored){}
-      JOptionPane.showMessageDialog(parent,"差圧は最小 < 最大、時間は -600 ≦ 開始 < 終了 ≦ 0 の整数秒で入力してください。");
+      JOptionPane.showMessageDialog(parent,"縦軸は最小 < 最大、時間は -600 ≦ 開始 < 終了 ≦ 0 の整数秒で入力してください。");
+    }
+  }
+
+  private void chooseCalibration(){
+    FileDialog dialog=new FileDialog(parent,"較正係数CSVを開く",FileDialog.LOAD);
+    dialog.setFile("*.csv");
+    dialog.setVisible(true);
+    String name=dialog.getFile(), dir=dialog.getDirectory();
+    dialog.dispose();
+    if(name==null)return;
+    try{
+      calibration=Calibration.load(Paths.get(dir,name));
+      message="較正係数を読み込みました。";
+    }catch(IOException ex){
+      report(ex);
+      JOptionPane.showMessageDialog(parent,ex.getMessage(),"較正係数CSV読込",JOptionPane.ERROR_MESSAGE);
     }
   }
 
