@@ -23,6 +23,13 @@ def read_log(path):
         return np.asarray([[number(row[k]) for k in FIELDS] for row in reader], float).reshape(-1,6)
 
 
+def flow_angles(pitch, roll):
+    """装置の姿勢からTM765の迎角・横滑り角へ変換する（スカラー・配列共通）。"""
+    th,ph = np.deg2rad(pitch),np.deg2rad(roll)
+    x,y,z = np.cos(th),np.sin(th)*np.sin(ph),np.sin(th)*np.cos(ph)
+    return np.rad2deg(np.arctan2(z,x)),np.rad2deg(np.arctan2(y,np.hypot(x,z)))
+
+
 def stable_points(path, qref, width, min_sec, trim):
     """両軸の全振幅が許容幅以内の連続区間を検出し、前後を除いて平均する。"""
     return analyze_intervals(read_log(path), path, qref, width, min_sec, trim)[0]
@@ -46,9 +53,7 @@ def analyze_intervals(raw, path, qref, width, min_sec, trim):
         pitch,roll,total,aoa,aos = b[:,1:].mean(axis=0)
         if total<=0 or abs(pitch)>=90:
             return
-        th,ph = np.deg2rad([pitch,roll])
-        x,y,z = np.cos(th),np.sin(th)*np.sin(ph),np.sin(th)*np.cos(ph)
-        alpha,beta = np.rad2deg([np.arctan2(z,x),np.arctan2(y,np.hypot(x,z))])
+        alpha,beta = flow_angles(pitch,roll)
         intervals.append((start+first,start+last))
         points.append(dict(file=str(path),start_ms=b[0,0],end_ms=b[-1,0],n=len(b),
                            pitch_deg=pitch,roll_deg=(roll+180)%360-180,alpha_deg=alpha,beta_deg=beta,
@@ -121,3 +126,31 @@ def write_rows(path, rows):
         writer=csv.DictWriter(stream,fieldnames=list(rows[0]))
         writer.writeheader()
         writer.writerows(rows)
+
+def compare_samples(raw, qref, coef):
+    """CSV各行の推定値と真値を、迎角・横滑り角・動圧の列順で返す。"""
+    time,pitch,roll,total,aoa,aos = raw.T
+    valid = np.isfinite(time) & np.isfinite(total) & (total > 0) & np.isfinite(aoa) & np.isfinite(aos)
+    predicted = np.full((len(raw),3),np.nan)
+    with np.errstate(over='ignore',invalid='ignore',divide='ignore'):
+        fitted = basis(aoa[valid]/total[valid],aos[valid]/total[valid]) @ coef
+        fitted[:,2] *= total[valid]
+        predicted[valid] = np.where(np.isfinite(fitted),fitted,np.nan)
+    attitude_ok = np.isfinite(pitch) & np.isfinite(roll) & (np.abs(pitch)<90)
+    truth = np.full_like(predicted,np.nan)
+    truth[attitude_ok,:2] = np.column_stack(flow_angles(pitch[attitude_ok],roll[attitude_ok]))
+    truth[:,2] = qref
+    truth[~np.isfinite(time)] = np.nan
+    return predicted,truth
+
+
+def error_totals(predicted, truth, intervals):
+    """全区間・採用区間別、出力別の二乗誤差和と有効数（ファイル間で加算可）。"""
+    residual = predicted-truth
+    accepted = np.zeros(len(residual),dtype=bool)
+    for first,last in intervals:
+        accepted[first:last] = True
+    squares = np.where(np.isfinite(residual), residual, 0)**2
+    valid = np.isfinite(residual)
+    return (np.stack((squares.sum(axis=0),squares[accepted].sum(axis=0))),
+            np.stack((valid.sum(axis=0),valid[accepted].sum(axis=0))))

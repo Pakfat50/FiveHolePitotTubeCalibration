@@ -7,8 +7,8 @@ from matplotlib.backends.backend_agg import FigureCanvasAgg
 from matplotlib.backend_bases import MouseEvent
 from matplotlib.figure import Figure
 
-from calibration import analyze_intervals, basis, fit
-from charts import draw_surface, time_history, surface_mesh
+from calibration import analyze_intervals, basis, fit, compare_samples, error_totals
+from charts import draw_surface, time_history, surface_mesh, comparison_history
 
 
 def samples():
@@ -61,6 +61,25 @@ class TestPlots(unittest.TestCase):
                 canvas.callbacks.process(name,event)
             self.assertNotEqual(angle,(ax.elev,ax.azim,ax.roll))
 
+    def test_reference_and_sample_rmse(self):
+        # 推定値を0°, 0°, Totalとする既知係数。Total=0は推定不能。
+        coef=np.zeros((10,3))
+        coef[0,2]=1
+        raw=np.array([[0,30,90,90,0,0],[10,0,0,120,0,0],[20,0,0,0,0,0]],float)
+        pred,truth=compare_samples(raw,100,coef)
+        np.testing.assert_allclose(truth[0],[0,30,100],atol=1e-12)
+        np.testing.assert_allclose(pred[:2,2],[90,120])
+        self.assertTrue(np.isnan(pred[-1]).all())
+        ss,n=error_totals(pred,truth,[(0,1)])
+        np.testing.assert_array_equal(n,[[2,2,2],[1,1,1]])
+        np.testing.assert_allclose(np.sqrt(ss/n),[[0,30/np.sqrt(2),np.sqrt(250)],[0,30,10]],atol=1e-12)
+        fig=Figure()
+        comparison_history(fig,raw[:,0],pred,truth,[(0,1)])
+        self.assertEqual([len(ax.lines) for ax in fig.axes],[2,2,2])
+        np.testing.assert_equal(fig.axes[2].lines[1].get_ydata(),[100,100,100])
+        fig.axes[1].set_xlim(0,.01)
+        self.assertEqual(fig.axes[2].get_xlim(),(0,.01))
+
     @unittest.skipUnless(os.environ.get('DISPLAY') or os.name=='nt','GUI display required')
     def test_embedded_tabs(self):
         with patch('tkinter.Tk.mainloop'):
@@ -81,5 +100,11 @@ class TestPlots(unittest.TestCase):
             app.surface_choice.current(2)
             app.show_surface()
             self.assertIn('q_ref',app.sfig.axes[0].get_zlabel())
+            app.tabs.select(app.comparison)
+            app.root.update()
+            self.assertEqual(len(app.cfig.axes),3)
+            self.assertIn('0.000 Pa',app.rmse_rows[1].get())
+            app.inputs_changed()
+            self.assertEqual(app.rmse_rows[1].get(),'—')
         finally:
             app.root.destroy()

@@ -4,8 +4,8 @@ from tkinter import ttk, filedialog, simpledialog, messagebox
 import numpy as np
 from matplotlib.figure import Figure
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg, NavigationToolbar2Tk
-from calibration import TERMS, read_log, analyze_intervals, fit, estimate, write_rows
-from charts import SURFACES, time_history, surface_mesh, draw_surface
+from calibration import TERMS, read_log, analyze_intervals, fit, estimate, write_rows, compare_samples, error_totals
+from charts import SURFACES, time_history, surface_mesh, draw_surface, comparison_history
 
 root=tk.Tk()
 root.title('5孔ピトー管 較正')
@@ -15,9 +15,11 @@ tabs.pack(fill='both',expand=True)
 frame=ttk.Frame(tabs,padding=10)
 history=ttk.Frame(tabs,padding=8)
 surfaces=ttk.Frame(tabs,padding=8)
-for page, name in ((frame,'入力・較正'),(history,'時系列'),(surfaces,'3D較正曲面')):
+comparison=ttk.Frame(tabs,padding=8)
+for page, name in ((frame,'入力・較正'),(history,'時系列'),(surfaces,'3D較正曲面'),(comparison,'推定値と真値')):
     tabs.add(page,text=name)
 logs={}
+used_intervals={}
 coef=None
 mesh=None
 files=ttk.Treeview(frame,columns=('file','q'),show='headings',height=7)
@@ -72,14 +74,28 @@ def analyze(p,settings):
     return analyze_intervals(logs[p],p,float(files.set(p,'q')),*settings[:3])
 
 def run(save=True):
-    global coef,mesh
+    global coef,mesh,used_intervals
     try:
         settings=parameters()
         points=[]
+        ranges={}
         for p in files.get_children():
-            points.extend(analyze(p,settings)[0])
+            selected,ranges[p]=analyze(p,settings)
+            points.extend(selected)
         model=fit(points,settings[3])
+        sums=np.zeros((2,3))
+        counts=np.zeros((2,3),dtype=np.int64)
+        for p,intervals in ranges.items():
+            pred,truth=compare_samples(logs[p],float(files.set(p,'q')),model)
+            ss,n=error_totals(pred,truth,intervals)
+            sums+=ss
+            counts+=n
+        rmse=np.sqrt(np.divide(sums,counts,out=np.full_like(sums,np.nan),where=counts>0))
         mesh=surface_mesh(points,model)
+        used_intervals=ranges
+        for var,row in zip(rmse_rows,rmse):
+            var.set('     '.join(f'{name}  {v:.3f} {unit}' if np.isfinite(v) else f'{name}  —'
+                                 for name,v,unit in zip(('AoA','AoS','動圧'),row,('°','°','Pa'))))
         coef=model
         result.set(f'{len(points)} 静定区間を使用。3D較正曲面を表示できます。')
         if not save:
@@ -102,6 +118,14 @@ actions=ttk.Frame(frame)
 actions.pack(anchor='w',pady=7)
 ttk.Button(actions,text='較正して曲面を表示',command=lambda: run(False)).pack(side='left')
 ttk.Button(actions,text='較正して係数CSVを保存',command=run).pack(side='left')
+rmse_box=ttk.LabelFrame(frame,text='RMSE（読み込んだ全CSV・各サンプルを等重みで集計）',padding=4)
+rmse_box.pack(fill='x')
+rmse_rows=[]
+for i,name in enumerate(('全有効区間','採用した静定区間')):
+    var=tk.StringVar(value='—')
+    rmse_rows.append(var)
+    ttk.Label(rmse_box,text=name).grid(row=i,column=0,sticky='w',padx=4)
+    ttk.Label(rmse_box,textvariable=var).grid(row=i,column=1,sticky='w',padx=8)
 test=ttk.LabelFrame(frame,text='作成した係数で推定',padding=8);test.pack(fill='x')
 inputs=[entry(test,i,n,'') for i,n in enumerate(('Total [Pa]','AoA [Pa]','AoS [Pa]'))]
 def predict():
@@ -117,7 +141,8 @@ ttk.Label(frame,textvariable=result).pack(anchor='w',pady=8)
 history_bar=ttk.Frame(history)
 history_bar.pack(fill='x')
 ttk.Label(history_bar,text='表示するCSV').pack(side='left')
-file_choice=ttk.Combobox(history_bar,state='readonly')
+selected_csv=tk.StringVar()
+file_choice=ttk.Combobox(history_bar,state='readonly',textvariable=selected_csv)
 file_choice.pack(side='left',expand=True,fill='x',padx=6)
 history_note=tk.StringVar()
 ttk.Label(history,textvariable=history_note).pack(anchor='w')
@@ -130,6 +155,14 @@ surface_choice.pack(side='left')
 surface_note=tk.StringVar()
 ttk.Label(surface_bar,textvariable=surface_note).pack(side='left',padx=10)
 
+comparison_bar=ttk.Frame(comparison)
+comparison_bar.pack(fill='x')
+ttk.Label(comparison_bar,text='表示するCSV').pack(side='left')
+compare_choice=ttk.Combobox(comparison_bar,state='readonly',textvariable=selected_csv)
+compare_choice.pack(side='left',expand=True,fill='x',padx=6)
+compare_note=tk.StringVar()
+ttk.Label(comparison,textvariable=compare_note).pack(anchor='w')
+
 def make_canvas(parent):
     figure=Figure(figsize=(8,5),constrained_layout=True)
     canvas=FigureCanvasTkAgg(figure,master=parent)
@@ -140,6 +173,20 @@ def make_canvas(parent):
 
 hfig,hcanvas,htool=make_canvas(history)
 sfig,scanvas,stool=make_canvas(surfaces)
+
+cfig,ccanvas,ctool=make_canvas(comparison)
+
+def show_comparison(event=None):
+    p=selected_csv.get()
+    cfig.clear()
+    if coef is None or p not in used_intervals:
+        compare_note.set('入力・較正タブで較正を実行してください。')
+    else:
+        pred,truth=compare_samples(logs[p],float(files.set(p,'q')),coef)
+        comparison_history(cfig,logs[p][:,0],pred,truth,used_intervals[p])
+        compare_note.set('青実線：推定値　橙破線：真値　緑の帯：較正に採用した静定区間')
+    ctool.update()
+    ccanvas.draw_idle()
 
 def show_history(event=None):
     hfig.clear()
@@ -169,7 +216,11 @@ def show_surface(event=None):
 def inputs_changed(*_):
     global coef,mesh
     coef=mesh=None
+    used_intervals.clear()
+    for var in rmse_rows:
+        var.set('—')
     choices=files.get_children()
+    compare_choice.configure(values=choices)
     file_choice.configure(values=choices)
     selected=files.selection()
     if selected:
@@ -182,6 +233,8 @@ def tab_changed(event):
     page=tabs.select()
     if page==str(history):
         show_history()
+    elif page==str(comparison):
+        show_comparison()
     elif page==str(surfaces):
         show_surface()
 
@@ -192,6 +245,7 @@ def select_history_file(event):
 
 files.bind('<<TreeviewSelect>>',select_history_file)
 file_choice.bind('<<ComboboxSelected>>',show_history)
+compare_choice.bind('<<ComboboxSelected>>',show_comparison)
 surface_choice.bind('<<ComboboxSelected>>',show_surface)
 tabs.bind('<<NotebookTabChanged>>',tab_changed)
 for param in params:

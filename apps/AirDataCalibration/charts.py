@@ -7,6 +7,15 @@ SURFACES = ('迎角 α', '横滑り角 β', '動圧補正係数')
 ZLABELS = ('Angle of attack [deg]', 'Sideslip [deg]', 'q_ref / Total [-]')
 
 
+def time_axis(ticks):
+    # 時計が巻き戻ったら新しい時系列として直後に並べ、境界の線は切る。
+    delta = np.diff(ticks)
+    elapsed = np.r_[0, np.cumsum(np.where(np.isfinite(delta) & (delta > 0), delta, 0))]/1000 if len(ticks) else ticks
+    cuts = np.flatnonzero(~np.isfinite(delta) | (delta <= 0) | (delta > 50)) + 1
+    x = np.insert(elapsed, cuts, np.nan)
+    return elapsed,cuts,x
+
+
 def time_history(figure, raw, intervals):
     figure.clear()
     attitude, pressure = figure.subplots(2, 1, sharex=True)
@@ -14,11 +23,7 @@ def time_history(figure, raw, intervals):
     pressure.set_ylabel('Differential pressure [Pa]')
     pressure.set_xlabel('Elapsed time [s]')
     ticks = raw[:, 0]
-    # 時計が巻き戻ったら新しい時系列として直後に並べ、境界の線は切る。
-    delta = np.diff(ticks)
-    elapsed = np.r_[0, np.cumsum(np.where(np.isfinite(delta) & (delta > 0), delta, 0))]/1000 if len(raw) else ticks
-    cuts = np.flatnonzero(~np.isfinite(delta) | (delta <= 0) | (delta > 50)) + 1
-    x = np.insert(elapsed, cuts, np.nan)
+    elapsed,cuts,x = time_axis(ticks)
     for axis in (attitude, pressure):
         for i, (first, last) in enumerate(intervals):
             axis.axvspan(elapsed[first], elapsed[last-1], color='#45ae84', alpha=.22,
@@ -56,3 +61,18 @@ def draw_surface(figure, mesh, index):
     ax.set(xlabel='AoA / Total [-]',ylabel='AoS / Total [-]',zlabel=ZLABELS[index])
     ax.legend(loc='upper left')
     return ax
+
+def comparison_history(figure, ticks, predicted, truth, intervals):
+    """3出力を同一時間軸で比較し、平均に採用した行範囲を淡色で示す。"""
+    figure.clear()
+    elapsed,cuts,x = time_axis(ticks)
+    axes = figure.subplots(3,1,sharex=True)
+    for col,(axis,label) in enumerate(zip(axes,('AoA [deg]','AoS [deg]','Dynamic pressure [Pa]'))):
+        for first,last in intervals:
+            axis.axvspan(elapsed[first],elapsed[last-1],color='#45ae84',alpha=.18)
+        axis.plot(x,np.insert(predicted[:,col],cuts,np.nan),color='#215c9c',lw=1.3,label='Estimated')
+        axis.plot(x,np.insert(truth[:,col],cuts,np.nan),'--',color='#ad451b',lw=1.2,label='Reference')
+        axis.set_ylabel(label)
+        axis.grid(alpha=.25)
+    axes[0].legend(ncol=2)
+    axes[-1].set_xlabel('Elapsed time [s]')
