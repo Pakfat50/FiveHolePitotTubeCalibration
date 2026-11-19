@@ -21,7 +21,7 @@ TEST_RULE = ROOT / "docs" / "test_doxygen_guideline.md"
 PRODUCT_RULE = ROOT / "docs" / "product_code_guideline.md"
 TRACE_RULE = ROOT / "docs" / "traceability_rules.md"
 PROCESS_RULE = ROOT / "docs" / "development_process_guideline.md"
-WORKFLOW = ROOT / ".github" / "workflows" / "test.yml"
+WORKFLOW = ROOT.parents[1] / ".github" / "workflows" / "test.yml"
 TEST_ROOT = ROOT / "tests"
 
 
@@ -56,7 +56,7 @@ class Checker:
         try:
             return path.read_text(encoding="utf-8")
         except OSError as exc:
-            self.error("process", f"{path.relative_to(ROOT)} cannot be read: {exc}")
+            self.error("process", f"{path.relative_to(ROOT.parents[1])} cannot be read: {exc}")
             return ""
 
     def duplicate_ids(self, values: list[str], label: str) -> None:
@@ -79,7 +79,7 @@ class Checker:
         )
         for path in required:
             if not path.exists():
-                self.error("process", f"required artifact is missing: {path.relative_to(ROOT)}")
+                self.error("process", f"required artifact is missing: {path.relative_to(ROOT.parents[1])}")
 
         process = self.read(PROCESS_RULE)
         workflow = self.read(WORKFLOW)
@@ -162,7 +162,7 @@ class Checker:
             try:
                 tree = ast.parse(self.read(path), filename=str(path))
             except SyntaxError as exc:
-                self.error("product", f"{path.relative_to(ROOT)}: syntax error: {exc}")
+                self.error("product", f"{path.relative_to(ROOT.parents[1])}: syntax error: {exc}")
                 continue
             self.product_api_targets.add(module)
             for node in ast.walk(tree):
@@ -204,7 +204,7 @@ class Checker:
             try:
                 tree = ast.parse(source, filename=str(path))
             except SyntaxError as exc:
-                self.error("test", f"{path.relative_to(ROOT)}: syntax error: {exc}")
+                self.error("test", f"{path.relative_to(ROOT.parents[1])}: syntax error: {exc}")
                 continue
             lines = source.splitlines()
             for node in ast.walk(tree):
@@ -213,15 +213,15 @@ class Checker:
                 doc = ast.get_docstring(node, clean=False) or ""
                 header_ids = re.findall(rf"^\s*({TEST_PATTERN})\b", doc, re.MULTILINE)
                 if len(header_ids) != 1:
-                    self.error("test", f"{path.relative_to(ROOT)}:{node.lineno}: exactly one TEST ID header is required")
+                    self.error("test", f"{path.relative_to(ROOT.parents[1])}:{node.lineno}: exactly one TEST ID header is required")
                     continue
                 test_id = header_ids[0]
                 found.append(test_id)
                 for label in required_labels:
                     if label not in doc:
-                        self.error("test", f"{path.relative_to(ROOT)}:{node.lineno}: {test_id} missing {label}")
+                        self.error("test", f"{path.relative_to(ROOT.parents[1])}:{node.lineno}: {test_id} missing {label}")
                 if "期待結果:" in doc:
-                    self.error("test", f"{path.relative_to(ROOT)}:{node.lineno}: {test_id} uses 期待結果 instead of パスクライテリア")
+                    self.error("test", f"{path.relative_to(ROOT.parents[1])}:{node.lineno}: {test_id} uses 期待結果 instead of パスクライテリア")
                 # TEST IDはソース上のdocstringに保持され、API生成と静的検査の正本になる。
         self.duplicate_ids(found, "test-code")
         for test_id in found:
@@ -239,7 +239,7 @@ class Checker:
             except SyntaxError:
                 continue
             if not ast.get_docstring(tree):
-                self.error("product", f"{path.relative_to(ROOT)}: missing module docstring")
+                self.error("product", f"{path.relative_to(ROOT.parents[1])}: missing module docstring")
             public_nodes = [
                 node for node in tree.body
                 if isinstance(node, (ast.ClassDef, ast.FunctionDef, ast.AsyncFunctionDef))
@@ -253,7 +253,7 @@ class Checker:
                 if node.name.startswith("_"):
                     continue
                 if not ast.get_docstring(node):
-                    self.error("product", f"{path.relative_to(ROOT)}:{node.lineno}: {node.name} missing docstring")
+                    self.error("product", f"{path.relative_to(ROOT.parents[1])}:{node.lineno}: {node.name} missing docstring")
 
     def check_traceability_rule(self) -> None:
         text = self.read(TRACE_RULE)

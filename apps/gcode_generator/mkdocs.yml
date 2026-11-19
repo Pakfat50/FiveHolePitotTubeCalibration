@@ -4,7 +4,7 @@ site_author: Pakfat50
 site_url: https://pakfat50.github.io/FiveHolePitotTubeCalibration/
 repo_url: https://github.com/Pakfat50/FiveHolePitotTubeCalibration
 repo_name: Pakfat50/FiveHolePitotTubeCalibration
-edit_uri: edit/develop/docs/
+edit_uri: edit/develop/apps/gcode_generator/docs/
 copyright: Copyright &copy; 2026 Pakfat50
 
 hooks:

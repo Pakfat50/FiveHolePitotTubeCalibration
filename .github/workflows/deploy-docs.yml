@@ -17,6 +17,9 @@ concurrency:
 
 jobs:
   build:
+    defaults:
+      run:
+        working-directory: apps/gcode_generator
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -39,7 +42,7 @@ jobs:
       - name: Upload Pages artifact
         uses: actions/upload-pages-artifact@v3
         with:
-          path: site
+          path: apps/gcode_generator/site
 
   deploy:
     needs: build

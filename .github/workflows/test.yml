@@ -8,6 +8,9 @@ on:
 jobs:
   unit-and-use-case-tests:
     name: Unit and use-case tests
+    defaults:
+      run:
+        working-directory: apps/gcode_generator
     runs-on: ubuntu-latest
 
     steps:
