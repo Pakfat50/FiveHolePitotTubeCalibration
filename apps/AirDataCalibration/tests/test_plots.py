@@ -1,4 +1,6 @@
 import os
+from tempfile import TemporaryDirectory
+from pathlib import Path
 import unittest
 from unittest.mock import patch
 
@@ -7,7 +9,7 @@ from matplotlib.backends.backend_agg import FigureCanvasAgg
 from matplotlib.backend_bases import MouseEvent
 from matplotlib.figure import Figure
 
-from calibration import analyze_intervals, basis, fit, compare_samples, error_totals
+from calibration import calibration_digest, save_calibration, analyze_intervals, basis, fit, compare_samples, error_totals
 from charts import draw_surface, time_history, surface_mesh, comparison_history
 
 
@@ -26,6 +28,29 @@ def samples():
 
 
 class TestPlots(unittest.TestCase):
+    def test_short_result_names(self):
+        first=samples()
+        other=first.copy()
+        other[0,3]+=1
+        runs=[(first,100),(other,120)]
+        settings=(.3,1,.15,1)
+        digest=calibration_digest(runs,settings)
+        self.assertEqual(digest,calibration_digest(reversed(runs),settings))
+        self.assertNotEqual(digest,calibration_digest([(first,100),(first,120)],settings))
+        self.assertNotEqual(digest,calibration_digest([(first,120),(other,100)],settings))
+        self.assertNotEqual(digest,calibration_digest(runs,(.4,1,.15,1)))
+        with TemporaryDirectory() as folder:
+            directory=Path(folder)
+            coef=np.ones((10,3))
+            points=[{'total_Pa':100}]
+            path=save_calibration(directory,coef,points,digest)
+            self.assertEqual(path.name,f'cal_{digest[:4]}.csv')
+            self.assertEqual(path,save_calibration(directory,coef,points,digest))
+            other_digest=digest[:4]+('f' if digest[4]!='f' else '0')+digest[5:]
+            collision=save_calibration(directory,coef,points,other_digest)
+            self.assertEqual(collision.name,f'cal_{other_digest[:6]}.csv')
+            self.assertTrue(path.exists())
+
     def test_history_matches_trimmed_rows_after_clock_reset(self):
         raw=samples()[:300]
         raw[150:,0]-=1600
@@ -125,5 +150,26 @@ class TestPlots(unittest.TestCase):
             self.assertIsNone(app.coef)
             self.assertFalse(app.rmse_table.get_children())
             self.assertEqual(list(app.comparison_files.pages),[p])
+            with TemporaryDirectory() as folder, patch.object(app,'OUTPUT_DIR',Path(folder)/'output'), patch.object(app.messagebox,'showerror',side_effect=AssertionError):
+                app.run(True)
+                app.run(True)
+                outputs=sorted(app.OUTPUT_DIR.glob('*.csv'))
+                models=[path for path in outputs if not path.stem.endswith('_points')]
+                self.assertEqual((len(outputs),len(models)),(2,1))
+                original=app.coef.copy()
+                model=models[0]
+                with patch.object(app.filedialog,'askopenfilename',return_value=str(model)):
+                    app.load_result()
+                    np.testing.assert_array_equal(app.coef,original)
+                    self.assertEqual(len(app.mesh[3]),25)
+                    self.assertEqual(len(app.rmse_table.get_children()),2)
+                    app.files.selection_set(p)
+                    app.remove()
+                    model.with_name(model.stem+'_points.csv').unlink()
+                    app.load_result()
+                    app.generate_c()
+                    self.assertTrue((app.OUTPUT_DIR/'C'/model.with_suffix('.h').name).is_file())
+                    self.assertEqual(len(app.mesh[3]),0)
+                    np.testing.assert_array_equal(app.coef,original)
         finally:
             app.root.destroy()

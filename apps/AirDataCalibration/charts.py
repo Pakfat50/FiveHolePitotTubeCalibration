@@ -40,6 +40,10 @@ def time_history(figure, raw, intervals):
 
 def surface_mesh(points, coef):
     """測定点の凸包境界を含む細分メッシュ上でCSVと同じ10項を評価する。"""
+    if not points:
+        a, s = np.meshgrid(np.linspace(-1, 1, 36), np.linspace(-1, 1, 36))
+        nodes = np.column_stack((a.ravel(), s.ravel()))
+        return nodes, Delaunay(nodes).simplices, basis(*nodes.T) @ coef, np.empty((0,2)), np.empty((0,3))
     ratios = np.array([[p['aoa_Pa']/p['total_Pa'],p['aos_Pa']/p['total_Pa']] for p in points])
     measured = np.array([[p['alpha_deg'],p['beta_deg'],p['qref_Pa']/p['total_Pa']] for p in points])
     hull = Delaunay(np.unique(ratios, axis=0))
@@ -57,9 +61,11 @@ def draw_surface(figure, mesh, index):
     nodes, faces, fitted, ratios, measured = mesh
     ax.plot_trisurf(*nodes.T, fitted[:,index], triangles=faces, cmap='viridis',
                     alpha=.74, linewidth=0, antialiased=True)
-    ax.scatter(*ratios.T, measured[:,index],color='#ad301a',s=17,depthshade=False,label='Measured')
+    if len(ratios):
+        ax.scatter(*ratios.T, measured[:,index],color='#ad301a',s=17,depthshade=False,label='Measured')
     ax.set(xlabel='AoA / Total [-]',ylabel='AoS / Total [-]',zlabel=ZLABELS[index])
-    ax.legend(loc='upper left')
+    if len(ratios):
+        ax.legend(loc='upper left')
     return ax
 
 def comparison_history(figure, ticks, predicted, truth, intervals):
