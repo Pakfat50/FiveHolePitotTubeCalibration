@@ -4,7 +4,7 @@ from tkinter import ttk, filedialog, simpledialog, messagebox
 import numpy as np
 from matplotlib.figure import Figure
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg, NavigationToolbar2Tk
-from calibration import TERMS, read_log, analyze_intervals, fit, estimate, write_rows, compare_samples, error_totals
+from calibration import calibration_digest, read_coefficients, read_surface_points, save_calibration, read_log, analyze_intervals, fit, estimate, compare_samples, error_totals
 from charts import SURFACES, time_history, surface_mesh, draw_surface, comparison_history
 
 root=tk.Tk()
@@ -22,6 +22,8 @@ logs={}
 used_intervals={}
 coef=None
 mesh=None
+loaded_path=None
+OUTPUT_DIR=Path(__file__).resolve().parent / 'output'
 files=ttk.Treeview(frame,columns=('file','q'),show='headings',height=7)
 for col,title,width in [('file','計測CSV',510),('q','基準動圧 [Pa]',120)]:
     files.heading(col,text=title);files.column(col,width=width)
@@ -74,7 +76,7 @@ def analyze(p,settings):
     return analyze_intervals(logs[p],p,float(files.set(p,'q')),*settings[:3])
 
 def run(save=True):
-    global coef,mesh,used_intervals
+    global coef,mesh,used_intervals,loaded_path
     try:
         settings=parameters()
         points=[]
@@ -83,25 +85,10 @@ def run(save=True):
             selected,ranges[p]=analyze(p,settings)
             points.extend(selected)
         model=fit(points,settings[3])
-        sums=np.zeros((2,3))
-        counts=np.zeros((2,3),dtype=np.int64)
-        table_rows=[]
-        labels=dataset_labels()
-        for p,intervals in ranges.items():
-            qref=float(files.set(p,'q'))
-            pred,truth=compare_samples(logs[p],qref,model)
-            ss,n=error_totals(pred,truth,intervals)
-            table_rows.extend(rmse_values(labels[p],qref,ss,n))
-            sums+=ss
-            counts+=n
-        if len(ranges)>1:
-            table_rows.extend(rmse_values('全CSV','—',sums,counts))
-        mesh=surface_mesh(points,model)
-        used_intervals=ranges
-        rmse_table.delete(*rmse_table.get_children())
-        for row in table_rows:
-            rmse_table.insert('','end',values=row)
-        coef=model
+        next_mesh=surface_mesh(points,model)
+        update_rmse(model,ranges)
+        loaded_path=None
+        coef,mesh,used_intervals=model,next_mesh,ranges
         result.set(f'{len(points)} 静定区間を使用。3D較正曲面を表示できます。')
         if not save:
             tabs.select(surfaces)
@@ -109,20 +96,55 @@ def run(save=True):
         for point in points:
             vals=estimate(model,*[point[k] for k in ('total_Pa','aoa_Pa','aos_Pa')])
             point.update(zip(('alpha_fit_deg','beta_fit_deg','q_fit_Pa'),vals))
-        rows=[dict(power_aoa=i,power_aos=j,alpha_deg=c[0],beta_deg=c[1],q_factor=c[2])
-              for (i,j),c in zip(TERMS,model)]
-        out=filedialog.asksaveasfilename(title='係数CSVの保存',defaultextension='.csv',initialfile='coefficients.csv')
-        if not out:return
-        points_file=Path(out).with_name(Path(out).stem+'_points.csv')
-        if points_file.exists() and not messagebox.askyesno('静定点CSVの上書き',str(points_file)):return
-        write_rows(points_file,points);write_rows(out,rows)
-        coef=model
-        result.set(f'{len(points)} 静定区間を使用。係数と静定点CSVを保存しました。')
+        digest=calibration_digest(((logs[p],float(files.set(p,'q'))) for p in ranges),settings)
+        out=save_calibration(OUTPUT_DIR,model,points,digest)
+        result.set(f'保存先：output/{out.name}')
     except Exception as exc: messagebox.showerror('較正',str(exc))
+def update_rmse(model,ranges):
+    sums=np.zeros((2,3))
+    counts=np.zeros((2,3),dtype=np.int64)
+    table_rows=[]
+    labels=dataset_labels()
+    for p,intervals in ranges.items():
+        qref=float(files.set(p,'q'))
+        pred,truth=compare_samples(logs[p],qref,model)
+        ss,n=error_totals(pred,truth,intervals)
+        table_rows.extend(rmse_values(labels[p],qref,ss,n))
+        sums+=ss
+        counts+=n
+    if len(ranges)>1:
+        table_rows.extend(rmse_values('全CSV','—',sums,counts))
+    rmse_table.delete(*rmse_table.get_children())
+    for row in table_rows:
+        rmse_table.insert('','end',values=row)
+
+def load_result():
+    global coef,mesh,used_intervals,loaded_path
+    filename=filedialog.askopenfilename(title='較正結果読込',initialdir=OUTPUT_DIR if OUTPUT_DIR.is_dir() else OUTPUT_DIR.parent,
+                                        filetypes=[('係数CSV','*.csv')])
+    if not filename:
+        return
+    try:
+        path=Path(filename)
+        model=read_coefficients(path)
+        companion=path.with_name(path.stem+'_points.csv')
+        points=read_surface_points(companion) if companion.exists() else []
+        next_mesh=surface_mesh(points,model)
+        settings=parameters() if logs else None
+        ranges={p:analyze(p,settings)[1] for p in logs}
+        update_rmse(model,ranges)
+        coef,mesh,used_intervals,loaded_path=model,next_mesh,ranges,path
+        result.set(f'読込：{path.name}')
+        tabs.select(surfaces)
+        show_surface()
+    except Exception as exc:
+        messagebox.showerror('較正結果読込',str(exc))
+
 actions=ttk.Frame(frame)
 actions.pack(anchor='w',pady=7)
 ttk.Button(actions,text='較正して曲面を表示',command=lambda: run(False)).pack(side='left')
 ttk.Button(actions,text='較正して係数CSVを保存',command=run).pack(side='left')
+ttk.Button(actions,text='較正結果読込',command=load_result).pack(side='left')
 def dataset_labels():
     names=[Path(p).name for p in logs]
     return {p: Path(p).name if names.count(Path(p).name)==1 else str(Path(p)) for p in logs}
@@ -228,7 +250,7 @@ def show_comparison(event=None):
     else:
         pred,truth=compare_samples(logs[p],float(files.set(p,'q')),coef)
         comparison_history(cfig,logs[p][:,0],pred,truth,used_intervals[p])
-        compare_note.set(f'{Path(p).name}（{files.set(p,"q")} Pa）　青実線：推定値　橙破線：真値　緑の帯：較正に採用した静定区間')
+        compare_note.set(f'{Path(p).name}（{files.set(p,"q")} Pa）　青実線：推定値　橙破線：真値　緑の帯：選択ログの静定区間')
     ctool.update()
     ccanvas.draw_idle()
 
@@ -253,18 +275,30 @@ def show_surface(event=None):
         surface_note.set('入力・較正タブで「較正して曲面を表示」を押してください。')
     else:
         draw_surface(sfig,mesh,surface_choice.current())
-        surface_note.set('赤点：静定区間の実測値　左ドラッグ：回転　右ドラッグ：拡大・縮小')
+        domain='赤点：静定区間の実測値' if len(mesh[3]) else '静定点CSVなし：仮の表示範囲（各差圧比 ±1）'
+        source=f'{loaded_path.name}　' if loaded_path else ''
+        surface_note.set(source+domain+'　左ドラッグ：回転　右ドラッグ：拡大・縮小')
     stool.update()
     scanvas.draw_idle()
 
 def inputs_changed(*_):
     global coef,mesh
-    coef=mesh=None
     used_intervals.clear()
     rmse_table.delete(*rmse_table.get_children())
     labels=dataset_labels()
     for group in (history_files,comparison_files):
         group.update_files(labels)
+    if loaded_path is not None:
+        try:
+            settings=parameters() if logs else None
+            ranges={p:analyze(p,settings)[1] for p in logs}
+            update_rmse(coef,ranges)
+            used_intervals.update(ranges)
+            result.set(f'読込：{loaded_path.name}')
+        except ValueError as exc:
+            result.set(str(exc))
+        return
+    coef=mesh=None
     result.set('入力・設定を反映しました。較正を実行してください。')
 
 def tab_changed(event):

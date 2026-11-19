@@ -1,5 +1,6 @@
 """5孔ピトー管の静定点抽出、流れ角への変換、TM765型の較正。"""
 import csv
+import hashlib
 from pathlib import Path
 import numpy as np
 from scipy.spatial import Delaunay
@@ -154,3 +155,86 @@ def error_totals(predicted, truth, intervals):
     valid = np.isfinite(residual)
     return (np.stack((squares.sum(axis=0),squares[accepted].sum(axis=0))),
             np.stack((valid.sum(axis=0),valid[accepted].sum(axis=0))))
+
+
+def read_coefficients(path):
+    """指数で10項を照合し、従来形式の係数CSVも行順に依存せず復元する。"""
+    columns = ('alpha_deg', 'beta_deg', 'q_factor')
+    terms = {}
+    with Path(path).open(encoding='utf-8-sig', newline='') as stream:
+        reader = csv.DictReader(stream)
+        required = {'power_aoa', 'power_aos', *columns}
+        if not required.issubset(reader.fieldnames or ()):
+            raise ValueError('較正係数CSVを選択してください。必要な列が不足しています。')
+        for row in reader:
+            term = int(row['power_aoa']), int(row['power_aos'])
+            values = [float(row[key]) for key in columns]
+            if term not in TERMS or term in terms or not np.isfinite(values).all():
+                raise ValueError('係数CSVに不正な指数、重複項、または非有限値があります。')
+            terms[term] = values
+    if len(terms) != len(TERMS):
+        raise ValueError('3次較正式の10項が揃っていません。')
+    return np.array([terms[t] for t in TERMS])
+
+
+def read_surface_points(path):
+    """係数に付属する静定点のうち、曲面の表示に必要な列を読む。"""
+    columns = ('aoa_Pa', 'aos_Pa', 'total_Pa', 'qref_Pa', 'alpha_deg', 'beta_deg')
+    with Path(path).open(encoding='utf-8-sig', newline='') as stream:
+        reader = csv.DictReader(stream)
+        if not set(columns).issubset(reader.fieldnames or ()):
+            raise ValueError('静定点CSVの列が不足しています。')
+        points = [{k: float(row[k]) for k in columns} for row in reader]
+    if not points or any(p['total_Pa'] <= 0 or not np.isfinite(list(p.values())).all() for p in points):
+        raise ValueError('静定点CSVの値を確認してください。')
+    return points
+
+
+def calibration_digest(datasets, settings):
+    """較正に使う6列と基準動圧、設定を照合する。パスやログの選択順には依存しない。"""
+    parts = []
+    for raw, qref in datasets:
+        h = hashlib.sha256(np.asarray([qref], dtype='<f8').tobytes())
+        h.update(np.asarray(raw, dtype='<f8', order='C').tobytes())
+        parts.append(h.digest())
+    digest = hashlib.sha256(b'AirDataCalibration-v1\0')
+    digest.update(np.asarray(settings, dtype='<f8').tobytes())
+    for part in sorted(parts):
+        digest.update(part)
+    return digest.hexdigest()
+
+
+def save_calibration(directory, model, points, digest):
+    """通常はハッシュの先頭4桁で保存する。既存結果と衝突した場合だけ2桁ずつ延長する。"""
+    directory.mkdir(parents=True, exist_ok=True)
+    rows = [dict(power_aoa=i, power_aos=j, alpha_deg=a, beta_deg=b, q_factor=k,
+                 input_sha256=digest)
+            for (i,j), (a,b,k) in zip(TERMS, model)]
+    for length in range(4, len(digest)+1, 2):
+        stem = f'cal_{digest[:length]}'
+        out = directory / f'{stem}.csv'
+        companion = directory / f'{stem}_points.csv'
+        if out.exists():
+            with out.open(encoding='utf-8-sig', newline='') as stream:
+                saved = list(csv.DictReader(stream))
+            if len(saved)==len(TERMS) and all(row.get('input_sha256')==digest for row in saved) and companion.is_file():
+                if np.allclose(read_coefficients(out), model, rtol=1e-12, atol=1e-12):
+                    return out
+            continue
+        created = []
+        try:
+            for path, data in ((companion, points), (out, rows)):
+                with path.open('x', encoding='utf-8-sig', newline='') as stream:
+                    created.append(path)
+                    writer = csv.DictWriter(stream, fieldnames=list(data[0]))
+                    writer.writeheader()
+                    writer.writerows(data)
+            return out
+        except FileExistsError:
+            for path in created:
+                path.unlink(missing_ok=True)
+        except Exception:
+            for path in created:
+                path.unlink(missing_ok=True)
+            raise
+    raise FileExistsError('同じ識別子のファイルが既にあります。output フォルダを確認してください。')
