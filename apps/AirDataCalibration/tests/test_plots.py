@@ -167,6 +167,8 @@ class TestPlots(unittest.TestCase):
                     app.remove()
                     model.with_name(model.stem+'_points.csv').unlink()
                     app.load_result()
+                    app.generate_c()
+                    self.assertTrue((app.OUTPUT_DIR/'C'/model.with_suffix('.h').name).is_file())
                     self.assertEqual(len(app.mesh[3]),0)
                     np.testing.assert_array_equal(app.coef,original)
         finally:

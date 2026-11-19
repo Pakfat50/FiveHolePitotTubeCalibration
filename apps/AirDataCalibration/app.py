@@ -5,6 +5,7 @@ import numpy as np
 from matplotlib.figure import Figure
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg, NavigationToolbar2Tk
 from calibration import calibration_digest, read_coefficients, read_surface_points, save_calibration, read_log, analyze_intervals, fit, estimate, compare_samples, error_totals
+from c_export import export_c
 from charts import SURFACES, time_history, surface_mesh, draw_surface, comparison_history
 
 root=tk.Tk()
@@ -23,6 +24,8 @@ used_intervals={}
 coef=None
 mesh=None
 loaded_path=None
+saved_csv=None
+preview_points=[]
 OUTPUT_DIR=Path(__file__).resolve().parent / 'output'
 files=ttk.Treeview(frame,columns=('file','q'),show='headings',height=7)
 for col,title,width in [('file','計測CSV',510),('q','基準動圧 [Pa]',120)]:
@@ -76,7 +79,7 @@ def analyze(p,settings):
     return analyze_intervals(logs[p],p,float(files.set(p,'q')),*settings[:3])
 
 def run(save=True):
-    global coef,mesh,used_intervals,loaded_path
+    global coef,mesh,used_intervals,loaded_path,saved_csv,preview_points
     try:
         settings=parameters()
         points=[]
@@ -87,19 +90,36 @@ def run(save=True):
         model=fit(points,settings[3])
         next_mesh=surface_mesh(points,model)
         update_rmse(model,ranges)
-        loaded_path=None
+        loaded_path=saved_csv=None
+        preview_points=points
         coef,mesh,used_intervals=model,next_mesh,ranges
         result.set(f'{len(points)} 静定区間を使用。3D較正曲面を表示できます。')
         if not save:
             tabs.select(surfaces)
             return
-        for point in points:
-            vals=estimate(model,*[point[k] for k in ('total_Pa','aoa_Pa','aos_Pa')])
-            point.update(zip(('alpha_fit_deg','beta_fit_deg','q_fit_Pa'),vals))
-        digest=calibration_digest(((logs[p],float(files.set(p,'q'))) for p in ranges),settings)
-        out=save_calibration(OUTPUT_DIR,model,points,digest)
-        result.set(f'保存先：output/{out.name}')
+        saved_csv=save_current()
+        result.set(f'保存先：output/{saved_csv.name}')
     except Exception as exc: messagebox.showerror('較正',str(exc))
+
+def save_current():
+    for point in preview_points:
+        vals=estimate(coef,*[point[k] for k in ('total_Pa','aoa_Pa','aos_Pa')])
+        point.update(zip(('alpha_fit_deg','beta_fit_deg','q_fit_Pa'),vals))
+    digest=calibration_digest(((logs[p],float(files.set(p,'q'))) for p in used_intervals),parameters())
+    return save_calibration(OUTPUT_DIR,coef,preview_points,digest)
+
+def generate_c():
+    global saved_csv
+    try:
+        if coef is None:
+            raise ValueError('先に較正を実行するか、較正結果を読み込んでください。')
+        if loaded_path is None and saved_csv is None:
+            saved_csv=save_current()
+        header=export_c(OUTPUT_DIR/'C',coef,loaded_path or saved_csv)
+        result.set(f'Cコード保存先：output/C/{header.name}')
+    except Exception as exc:
+        messagebox.showerror('Cコード生成',str(exc))
+
 def update_rmse(model,ranges):
     sums=np.zeros((2,3))
     counts=np.zeros((2,3),dtype=np.int64)
@@ -145,6 +165,7 @@ actions.pack(anchor='w',pady=7)
 ttk.Button(actions,text='較正して曲面を表示',command=lambda: run(False)).pack(side='left')
 ttk.Button(actions,text='較正して係数CSVを保存',command=run).pack(side='left')
 ttk.Button(actions,text='較正結果読込',command=load_result).pack(side='left')
+ttk.Button(actions,text='Cコード生成',command=generate_c).pack(side='left')
 def dataset_labels():
     names=[Path(p).name for p in logs]
     return {p: Path(p).name if names.count(Path(p).name)==1 else str(Path(p)) for p in logs}

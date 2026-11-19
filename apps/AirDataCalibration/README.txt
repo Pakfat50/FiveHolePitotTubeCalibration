@@ -55,3 +55,20 @@ z=sin(Pitch)cos(Roll) と置きます。α=atan2(z,x), β=atan2(y,hypot(x,z))。
   係数CSVだけの場合は、差圧比の両軸を仮に −1～1 として表示します。較正の有効範囲は不明です。
   計測ログがなくても曲面表示と手入力推定ができます。ログと基準動圧を入力すると、
   読み込んだ係数で推定値と真値を比較し、各ログのRMSEを表示します。
+
+Cコード生成（RP2040等、C99 / float）
+  入力・較正で較正または係数CSVの読込を行い、「Cコード生成」を押します。
+  曲面表示のみで未保存の場合は、先に対応する係数・静定点CSVを output に保存します。
+  output/C に共通の airdata.c、airdata.h と、係数専用の cal_XXXX.h が揃います。
+  共通2ファイルは全較正で同一です。cal_XXXX.csv の識別子をヘッダーに引き継ぎ、
+  従来の任意名CSVでは係数から短い識別子を計算します。同名で係数の内容が異なる場合は識別子を延長します。
+  対象の3ファイルを組込みプロジェクトにコピーし、airdata.c をCとしてビルドに含めます。
+  例（XXXX は実際の識別子 2f67 の場合）
+    #include "cal_2f67.h"
+    AirDataResult flow;
+    if (airdata_estimate(&cal_2f67, dp_aoa, dp_aos, dp_total, &flow)) {
+        /* flow.alpha_deg, flow.beta_deg, flow.q_ref_pa を使用 */
+    }
+  引数の順番はAoA差圧、AoS差圧、Total差圧（すべてPa）です。迎角・横滑り角は度です。
+  Totalが0以下、入力・出力が非有限、ポインタがNULLの場合はfalseを返し、出力先を変更しません。
+  同じプログラムで複数の係数ヘッダーをincludeし、第1引数で使用する較正を選べます。
