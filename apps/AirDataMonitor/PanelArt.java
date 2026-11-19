@@ -14,6 +14,7 @@ public class PanelArt {
   public static final Rectangle RAW_TAB=new Rectangle(288,9,108,34);
   public static final Rectangle CAL_TAB=new Rectangle(401,9,118,34);
   public static final Rectangle LOAD=new Rectangle(535,9,142,34);
+  public static final Rectangle FILTER=new Rectangle(779,696,223,33);
   public final boolean calibrated;
   private final String[] plots;
   public String unit(int k){ return calibrated && k!=0?"°":"Pa"; }
@@ -88,7 +89,12 @@ public class PanelArt {
     row(g,534,"差圧計温度 [°C]",NAMES,v.current,3,1,false);
     label(g,"BMP280 温度 [°C]",796,620,16,MUTED,false);num(g,fmt(v.current[15],1,false),1162,620,23,INK);
     label(g,"BMP280 気圧 [hPa]",796,666,16,MUTED,false);num(g,fmt(v.current[16],1,false),1162,666,23,INK);
-    label(g,status,18,724,14,MUTED,false);num(g,"形式不正 "+invalid,1180,724,14,MUTED);
+    Graphics2D note=(Graphics2D)g.create();
+    note.clipRect(16,692,747,46);
+    label(note,status,18,724,14,MUTED,false);
+    note.dispose();
+    button(g,FILTER,v.filterGain==1?"表示LPF：オフ":"表示LPF：k="+Double.toString(v.filterGain),!busy,false);
+    num(g,"形式不正 "+invalid,1180,724,14,MUTED);
   }
   private void row(Graphics2D g,int y,String title,String[] names,float[] data,int off,int digits,boolean sign){
     label(g,title,796,y,14,MUTED,false);

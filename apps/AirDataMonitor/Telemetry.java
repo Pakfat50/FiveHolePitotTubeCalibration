@@ -10,6 +10,8 @@ public class Telemetry {
   private static final int SIZE = (HISTORY_SECONDS + 1) * 100;
   private final long[] times = new long[SIZE];
   private final float[][] pressure = new float[3][SIZE];
+  private final float[][] displayPressure = new float[3][SIZE];
+  private double filterGain = 1.0;
   private final StringBuilder line = new StringBuilder();
   private boolean oversized;
   private int next, count;
@@ -70,6 +72,7 @@ public class Telemetry {
     latest = values;
     times[next] = elapsed;
     for (int i = 0; i < 3; i++) pressure[i][next] = values[i];
+    filterSample(next, count > 0);
     next = (next + 1) % SIZE;
     count = Math.min(count + 1, SIZE);
     received++;
@@ -89,6 +92,30 @@ public class Telemetry {
           lastFlush = System.nanoTime();
         }
       } catch (IOException ex) { error = "記録エラー: " + ex.getMessage(); stop(); }
+    }
+  }
+
+  /** 生の履歴は保持し、係数変更時には表示履歴だけを古い順に再計算する。 */
+  public synchronized void setFilterGain(double gain) {
+    if (!(gain > 0 && gain <= 1)) throw new IllegalArgumentException("係数は0より大きく1以下です。");
+    if (gain == filterGain) return;
+    filterGain = gain;
+    int slot = (next - count + SIZE) % SIZE;
+    for (int i=0; i<count; i++) {
+      filterSample(slot, i>0);
+      slot = (slot+1) % SIZE;
+    }
+  }
+
+  public synchronized double getFilterGain() { return filterGain; }
+
+  private void filterSample(int slot, boolean hasPrevious) {
+    int previous = (slot + SIZE - 1) % SIZE;
+    boolean continuous = hasPrevious && times[slot] - times[previous] <= 50;
+    for (int k=0; k<3; k++) {
+      float raw = pressure[k][slot], prior = displayPressure[k][previous];
+      displayPressure[k][slot] = continuous && filterGain < 1 && Float.isFinite(raw) && Float.isFinite(prior)
+          ? (float)(prior + filterGain * ((double)raw - prior)) : raw;
     }
   }
 
@@ -141,6 +168,7 @@ public class Telemetry {
 
   public static class View {
     public float[] current;
+    public double filterGain;
     public long tick;
     public int fromSecond, toSecond;
     public long[] ageMs;
@@ -160,6 +188,11 @@ public class Telemetry {
   public synchronized View snapshot(int fromSecond, int toSecond) {
     View v = new View();
     v.current = latest.clone();
+    v.filterGain = filterGain;
+    if (count > 0) {
+      int newest = (next + SIZE - 1) % SIZE;
+      for (int k=0; k<3; k++) v.current[k] = displayPressure[k][newest];
+    }
     v.tick = timestamp;
     int first = (next - count + SIZE) % SIZE;
     v.fromSecond = fromSecond;
@@ -173,7 +206,7 @@ public class Telemetry {
     for (int i = 0; i < n; i++) {
       int j = (first + i) % SIZE;
       v.ageMs[i] = times[j] - elapsed;
-      for (int k = 0; k < 3; k++) v.dp[k][i] = pressure[k][j];
+      for (int k = 0; k < 3; k++) v.dp[k][i] = displayPressure[k][j];
     }
     return v;
   }

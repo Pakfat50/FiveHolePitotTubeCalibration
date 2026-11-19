@@ -45,6 +45,7 @@ public class Monitor {
   public void click(int x,int y) {
     EventQueue.invokeLater(()->{
       if(busy || closing) return;
+      if(PanelArt.FILTER.contains(x,y)){editFilter();return;}
       if(PanelArt.RAW_TAB.contains(x,y)){activePanel=rawPanel;return;}
       if(PanelArt.CAL_TAB.contains(x,y)){activePanel=calibratedPanel;return;}
       PanelArt art=activePanel;
@@ -154,6 +155,20 @@ public class Monitor {
         }
       }catch(NumberFormatException ignored){}
       JOptionPane.showMessageDialog(parent,"縦軸は最小 < 最大、時間は -600 ≦ 開始 < 終了 ≦ 0 の整数秒で入力してください。");
+    }
+  }
+
+  private void editFilter(){
+    String value=Double.toString(data.getFilterGain());
+    while(true){
+      value=JOptionPane.showInputDialog(parent,"表示用ローパス係数 k（0 < k ≦ 1）\n小さいほど滑らかになります。1 はオフです。",value);
+      if(value==null)return;
+      try{
+        data.setFilterGain(Double.parseDouble(value.trim()));
+        return;
+      }catch(IllegalArgumentException ex){
+        JOptionPane.showMessageDialog(parent,"0より大きく1以下の数値を入力してください。");
+      }
     }
   }
 
