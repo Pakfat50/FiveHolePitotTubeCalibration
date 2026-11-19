@@ -41,9 +41,16 @@ public class PanelArt {
     g.setFont(new Font(Font.MONOSPACED,Font.BOLD,size));g.setColor(c);
     g.drawString(s,right-g.getFontMetrics().stringWidth(s),y);
   }
-  private String fmt(float v,int digits,boolean sign){
+  private static String fmt(float v,int digits,boolean sign){
     if(!Float.isFinite(v)) return "—";
     return String.format(Locale.ROOT,"%"+(sign?"+":"")+"."+digits+"f",v);
+  }
+  private static final float ANGLE_LIMIT=180f, PRESSURE_LIMIT=500f;
+
+  static String reading(float value, boolean angle, boolean signed, String suffix){
+    if(!Float.isFinite(value)) return "—";
+    if(Math.abs(value)>(angle?ANGLE_LIMIT:PRESSURE_LIMIT)) return "ovf";
+    return fmt(value,1,signed)+suffix;
   }
   private void card(Graphics2D g,int x,int y,int w,int h){
     g.setColor(Color.WHITE);g.fillRoundRect(x,y,w,h,12,12);
@@ -106,7 +113,7 @@ public class PanelArt {
   private void plot(Graphics2D g,Telemetry.View v,int k){
     int y=122+181*k, left=215,right=745,top=y+16,bottom=y+142;
     card(g,16,y,747,175);label(g,title(k),29,y+37,calibrated?19:23,INK,true);
-    num(g,fmt(v.current[k],1,k!=0),147,y+82,29,COLORS[k]);
+    num(g,reading(v.current[k],calibrated && k!=0,k!=0,""),147,y+82,29,COLORS[k]);
     label(g,unit(k),31,y+104,15,MUTED,false);button(g,buttons[5+k],"範囲設定…",true,false);
     double lo=low[k], span=(double)high[k]-lo;
     for(int i=0;i<=2;i++){
@@ -156,12 +163,12 @@ public class PanelArt {
     int ty=k==0?cy+18:cy+71;
     num(g,k==0?"−90":"−180",cx-(k==0?48:23),ty,12,MUTED);
     num(g,k==0?"+90":"+180",cx+(k==0?82:56),ty,12,MUTED);
-    if(Float.isFinite(value)){
+    if(Float.isFinite(value) && Math.abs(value)<=ANGLE_LIMIT){
       double a=Math.toRadians(Math.max(-max,Math.min(max,value))*sweep/max);
       g.setColor(COLORS[k]);g.setStroke(new BasicStroke(4,BasicStroke.CAP_ROUND,BasicStroke.JOIN_ROUND));
       g.draw(new Line2D.Double(cx,cy,cx+(r-12)*Math.sin(a),cy-(r-12)*Math.cos(a)));
       g.fillOval(cx-5,cy-5,10,10);g.setStroke(new BasicStroke(1));
     }
-    num(g,fmt(value,1,true)+"°",x+159,y+221,27,COLORS[k]);
+    num(g,reading(value,true,true,"°"),x+159,y+221,27,COLORS[k]);
   }
 }
