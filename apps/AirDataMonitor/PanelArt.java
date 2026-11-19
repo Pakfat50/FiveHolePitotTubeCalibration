@@ -11,6 +11,14 @@ public class PanelArt {
   public static final String[] NAMES={"Total","AoA","AoS"};
   public final float[] low={0,-20,-20}, high={150,20,20};
   public final Rectangle[] buttons=new Rectangle[8];
+  public static final Rectangle RAW_TAB=new Rectangle(288,9,108,34);
+  public static final Rectangle CAL_TAB=new Rectangle(401,9,118,34);
+  public static final Rectangle LOAD=new Rectangle(535,9,142,34);
+  public static final Rectangle FILTER=new Rectangle(779,696,223,33);
+  public final boolean calibrated;
+  private final String[] plots;
+  public String unit(int k){ return calibrated && k!=0?"°":"Pa"; }
+  public String title(int k){ return plots[k]; }
   private static final String UI=chooseFont();
 
   private static String chooseFont() {
@@ -18,7 +26,10 @@ public class PanelArt {
       if(new Font(s,0,12).canDisplay('録')) return s;
     return "Dialog";
   }
-  public PanelArt(){
+  public PanelArt(boolean calibrated){
+    this.calibrated=calibrated;
+    plots=calibrated ? new String[]{"推定動圧 q_ref","迎角 α","横滑り角 β"} :
+                       new String[]{"Total Δp","AoA Δp","AoS Δp"};
     int[] x={18,172,333,451,569}, w={146,153,110,110,133};
     for(int i=0;i<5;i++) buttons[i]=new Rectangle(x[i],70,w[i],36);
     for(int i=0;i<3;i++) buttons[i+5]=new Rectangle(29,241+181*i,105,27);
@@ -44,10 +55,19 @@ public class PanelArt {
     label(g,s,r.x+10,r.y+r.height/2+5,r.height<30?13:15,!on?new Color(139,151,159):accent?Color.WHITE:INK,true);
   }
   public void paint(Graphics2D g,Telemetry.View v,String port,boolean connected,boolean rec,
-                    boolean pending,boolean busy,long rows,long invalid,String status){
+                    boolean pending,boolean busy,long rows,long invalid,String status,String coefficientFile){
     g.setRenderingHint(RenderingHints.KEY_ANTIALIASING,RenderingHints.VALUE_ANTIALIAS_ON);
     g.setColor(BG);g.fillRect(0,0,W,H);g.setColor(INK);g.fillRect(0,0,W,53);
     label(g,"エアデータモニター",20,35,24,Color.WHITE,true);
+    button(g,RAW_TAB,"生データ",true,!calibrated);
+    button(g,CAL_TAB,"較正データ",true,calibrated);
+    if(calibrated){
+      button(g,LOAD,"較正係数CSV読込",!busy,false);
+      Graphics2D clipped=(Graphics2D)g.create();
+      clipped.clipRect(687,0,310,53);
+      label(clipped,coefficientFile,687,33,16,Color.WHITE,true);
+      clipped.dispose();
+    }
     num(g,(v.tick<0?"—":Long.toString(v.tick))+" ms",W-22,34,18,Color.WHITE);
     String[] titles={port.isEmpty()?"COMポート":port,connected?"シリアルを閉じる":"シリアルを開く","記録開始","記録停止","ログを保存"};
     boolean[] active={!connected,!rec && (connected||!port.isEmpty()),connected&&!pending,rec,pending&&!rec};
@@ -69,7 +89,12 @@ public class PanelArt {
     row(g,534,"差圧計温度 [°C]",NAMES,v.current,3,1,false);
     label(g,"BMP280 温度 [°C]",796,620,16,MUTED,false);num(g,fmt(v.current[15],1,false),1162,620,23,INK);
     label(g,"BMP280 気圧 [hPa]",796,666,16,MUTED,false);num(g,fmt(v.current[16],1,false),1162,666,23,INK);
-    label(g,status,18,724,14,MUTED,false);num(g,"形式不正 "+invalid,1180,724,14,MUTED);
+    Graphics2D note=(Graphics2D)g.create();
+    note.clipRect(16,692,747,46);
+    label(note,status,18,724,14,MUTED,false);
+    note.dispose();
+    button(g,FILTER,v.filterGain==1?"表示LPF：オフ":"表示LPF：k="+Double.toString(v.filterGain),!busy,false);
+    num(g,"形式不正 "+invalid,1180,724,14,MUTED);
   }
   private void row(Graphics2D g,int y,String title,String[] names,float[] data,int off,int digits,boolean sign){
     label(g,title,796,y,14,MUTED,false);
@@ -80,9 +105,9 @@ public class PanelArt {
   }
   private void plot(Graphics2D g,Telemetry.View v,int k){
     int y=122+181*k, left=215,right=745,top=y+16,bottom=y+142;
-    card(g,16,y,747,175);label(g,NAMES[k]+" Δp",29,y+37,23,INK,true);
+    card(g,16,y,747,175);label(g,title(k),29,y+37,calibrated?19:23,INK,true);
     num(g,fmt(v.current[k],1,k!=0),147,y+82,29,COLORS[k]);
-    label(g,"Pa",31,y+104,15,MUTED,false);button(g,buttons[5+k],"範囲設定…",true,false);
+    label(g,unit(k),31,y+104,15,MUTED,false);button(g,buttons[5+k],"範囲設定…",true,false);
     double lo=low[k], span=(double)high[k]-lo;
     for(int i=0;i<=2;i++){
       int gy=bottom-(bottom-top)*i/2;
