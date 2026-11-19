@@ -85,11 +85,17 @@ class TestPlots(unittest.TestCase):
         with patch('tkinter.Tk.mainloop'):
             import app
         try:
-            p='sample.csv'
-            app.logs[p]=samples()
-            app.files.insert('','end',iid=p,values=(p,100))
-            app.files.selection_set(p)
-            app.inputs_changed()
+            p,q='first/run.csv','second/run.csv'
+            first=samples()
+            second=first.copy()
+            second[:,3:6]*=2
+            with patch.object(app.filedialog,'askopenfilenames',return_value=(p,q)), \
+                 patch.object(app,'ask_q',side_effect=[100,220]), \
+                 patch.object(app,'read_log',side_effect=[first,second]):
+                app.add()
+            app.root.update()
+            self.assertEqual(set(app.history_files.pages),{p,q})
+            self.assertNotEqual(app.dataset_labels()[p],app.dataset_labels()[q])
             app.tabs.select(app.history)
             app.root.update()
             self.assertEqual(len(app.hfig.axes[0].patches),25)
@@ -103,8 +109,21 @@ class TestPlots(unittest.TestCase):
             app.tabs.select(app.comparison)
             app.root.update()
             self.assertEqual(len(app.cfig.axes),3)
-            self.assertIn('0.000 Pa',app.rmse_rows[1].get())
-            app.inputs_changed()
-            self.assertEqual(app.rmse_rows[1].get(),'—')
+            app.comparison_files.select(q)
+            app.root.update()
+            np.testing.assert_allclose(app.cfig.axes[2].lines[1].get_ydata()[0],220)
+            self.assertEqual(app.history_files.current(),q)
+            app.comparison_files.select(p)
+            app.root.update()
+            self.assertAlmostEqual(app.cfig.axes[2].lines[1].get_ydata()[0],100)
+            rows=[app.rmse_table.item(item,'values') for item in app.rmse_table.get_children()]
+            self.assertEqual(len(rows),6)
+            self.assertEqual([float(row[-1]) for row in rows[:4]],[5,5,10,10])
+            self.assertAlmostEqual(float(rows[-1][-1]),np.sqrt(62.5),places=3)
+            app.files.selection_set(q)
+            app.remove()
+            self.assertIsNone(app.coef)
+            self.assertFalse(app.rmse_table.get_children())
+            self.assertEqual(list(app.comparison_files.pages),[p])
         finally:
             app.root.destroy()
