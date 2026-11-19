@@ -16,6 +16,9 @@ concurrency:
 jobs:
   capture:
     if: github.actor != 'github-actions[bot]'
+    defaults:
+      run:
+        working-directory: apps/gcode_generator
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:
