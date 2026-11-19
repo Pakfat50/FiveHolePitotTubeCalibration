@@ -89,11 +89,17 @@ public class PanelArt {
     num(g,rows+" rows",1180,94,17,INK);
     for(int k=0;k<3;k++)plot(g,v,k);
     gauge(g,779,122,0,v.current[7]);gauge(g,988,122,1,v.current[8]);
-    card(g,779,367,405,319);
-    label(g,"センサー値",796,397,18,INK,true);
-    row(g,430,"加速度 [m/s²]",new String[]{"X","Y","Z"},v.current,9,2,true);
-    row(g,482,"角速度 [rad/s]",new String[]{"X","Y","Z"},v.current,12,2,true);
-    row(g,534,"差圧計温度 [°C]",NAMES,v.current,3,1,false);
+    float[] angles=attitudeFlowAngles(v.current[7],v.current[8]);
+    card(g,779,363,405,44);
+    label(g,"姿勢 α",792,392,17,INK,true);
+    num(g,reading(angles[0],true,true,"°"),961,393,23,COLORS[0]);
+    label(g,"姿勢 β",1001,392,17,INK,true);
+    num(g,reading(angles[1],true,true,"°"),1169,393,23,COLORS[1]);
+    card(g,779,416,405,270);
+    label(g,"センサー値",796,441,18,INK,true);
+    row(g,463,"加速度 [m/s²]",new String[]{"X","Y","Z"},v.current,9,2,true);
+    row(g,511,"角速度 [rad/s]",new String[]{"X","Y","Z"},v.current,12,2,true);
+    row(g,559,"差圧計温度 [°C]",NAMES,v.current,3,1,false);
     label(g,"BMP280 温度 [°C]",796,620,16,MUTED,false);num(g,fmt(v.current[15],1,false),1162,620,23,INK);
     label(g,"BMP280 気圧 [hPa]",796,666,16,MUTED,false);num(g,fmt(v.current[16],1,false),1162,666,23,INK);
     Graphics2D note=(Graphics2D)g.create();
@@ -102,6 +108,15 @@ public class PanelArt {
     note.dispose();
     button(g,FILTER,v.filterGain==1?"表示LPF：オフ":"表示LPF：k="+Double.toString(v.filterGain),!busy,false);
     num(g,"形式不正 "+invalid,1180,724,14,MUTED);
+  }
+  /** AirDataCalibrationの参照角と同じ軸・符号で、装置姿勢からα、βを求める。 */
+  static float[] attitudeFlowAngles(float pitch,float roll){
+    if(!Float.isFinite(pitch) || Math.abs(pitch)>=90 || !Float.isFinite(roll) || Math.abs(roll)>ANGLE_LIMIT)
+      return new float[]{Float.NaN,Float.NaN};
+    double theta=Math.toRadians(pitch), phi=Math.toRadians(roll);
+    double x=Math.cos(theta), y=Math.sin(theta)*Math.sin(phi), z=Math.sin(theta)*Math.cos(phi);
+    return new float[]{(float)Math.toDegrees(Math.atan2(z,x)),
+                       (float)Math.toDegrees(Math.atan2(y,Math.hypot(x,z)))};
   }
   private void row(Graphics2D g,int y,String title,String[] names,float[] data,int off,int digits,boolean sign){
     label(g,title,796,y,14,MUTED,false);
