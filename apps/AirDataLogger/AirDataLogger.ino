@@ -48,6 +48,13 @@ static constexpr uint8_t dpAddresses[] = {
     SDP3X_I2C_ADDRESS_1   // AoS
 };
 
+// ポートの向きに合わせた差圧の出力倍率。dpAddressesと同じ順序。
+static constexpr float dpScale[] = {
+    -1.0f,  // Total
+     1.0f,  // AoA
+     1.0f   // AoS
+};
+
 // SDKが起動時に初期化する、コア間共有用のミューテックス。
 auto_init_mutex(imuSampleMutex);
 static ImuSample sharedImuSample{};
@@ -229,8 +236,8 @@ void loop1() {
     const ImuSample sample = sharedImuSample;
     mutex_exit(&imuSampleMutex);
 
-    for (float value : differentialPressure) {
-        printTsvField(value);
+    for (size_t i = 0; i < sizeof(dpScale) / sizeof(dpScale[0]); ++i) {
+        printTsvField(differentialPressure[i] * dpScale[i]);
     }
     for (float value : temperature) {
         printTsvField(value);

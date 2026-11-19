@@ -9,10 +9,12 @@ Arduino IDEで同じフォルダの `AirDataLogger.ino` を開き、Arduino-Pico
 
 USBシリアルを115200で開くと初期化を開始します。起動診断に続いて、各行に以下の18列をタブ区切りで送信します。最後の時刻は差圧を読み取る直前の `millis()` です。
 
-1. Total・AoA・AoSの差圧3列
+1. ポートの向きを補正したTotal・AoA・AoSの差圧3列
 2. 同じ順の差圧計温度3列
 3. Yaw・Pitch・Rollの3列
 4. 加速度XYZ、角速度XYZの6列
 5. BMP温度、BMP気圧、時刻の3列
+
+差圧の出力倍率は `AirDataLogger.ino` の `dpScale` で個別に設定します。初期値は Total が −1、AoA と AoS が +1 です。配管に合わせて変更した場合はスケッチを再度書き込んでください。
 
 記録と表示には [AirDataMonitor](../AirDataMonitor/) を使用します。
