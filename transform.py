@@ -20,8 +20,8 @@ class AngleTransformer:
         """1つのAoA/AoS点から実ピッチZと実ロールAを算出する。
 
         Args:
-            aoa: 要求AoA [deg]
-            aos: 要求AoS [deg]
+            aoa: 対称面に投影した流速が前方軸となす迎角 [deg]
+            aos: 流速が対称面から横に外れる横滑り角 [deg]
             previous: 前回選択した``(z, a)``指令。先頭点ではNone。
             limits: 軸可動範囲。
 
@@ -33,8 +33,10 @@ class AngleTransformer:
         """
         # AoA/AoSは度で入力されるため、tanを計算する前にラジアンへ変換する。
         # u, vは要求流れ方向をX軸に対する傾きとして表す無次元量である。
-        u = math.tan(math.radians(aoa))
-        v = math.tan(math.radians(aos))
+        alpha = math.radians(aoa)
+        u = math.tan(alpha)
+        # TM765式（3-13）の横成分／前方成分は sinβ / (cosα cosβ)。
+        v = math.tan(math.radians(aos)) / math.cos(alpha)
 
         # u-v平面での傾きの大きさrからピッチ角thetaを求める。
         r = math.hypot(u, v)

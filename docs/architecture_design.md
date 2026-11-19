@@ -92,6 +92,7 @@ sequenceDiagram
         Scan-->>Service: CalibrationPoint[]
         loop 各較正点
             Service->>Transform: transform(aoa, aos, previous, limits)
+            Note over Transform: TM765の迎角・横滑り角を前方軸に対する縦横の傾きに変換
             Transform-->>Service: Z, A
             Service->>Position: calculate_xy(Z, Lx, Ly)
             Position-->>Service: X, Y

@@ -105,7 +105,7 @@
 | <a id="test-unit-026"></a>TEST-UNIT-026 | REQ-TRANS-002 | AoA正、AoS=0 | AoA=10°, AoS=0 | Z=10°, A=0°に絶対誤差0.001 deg以内で一致 | [[TESTCODE_SHORT:tests.test_transform.TestAngleTransformer.test_positive_aoa_zero_aos]] |
 | <a id="test-unit-027"></a>TEST-UNIT-027 | REQ-TRANS-002 | AoA負、AoS=0 | AoA=-10°, AoS=0 | 指定変換式に対応する等価Z/Aを絶対誤差0.001 deg以内で返す | [[TESTCODE_SHORT:tests.test_transform.TestAngleTransformer.test_negative_aoa_zero_aos_reproduces_input]] |
 | <a id="test-unit-028"></a>TEST-UNIT-028 | REQ-TRANS-002 | AoA=0、AoS正 | AoA=0, AoS=10° | 基本式に絶対誤差0.001 deg以内で一致 | [[TESTCODE_SHORT:tests.test_transform.TestAngleTransformer.test_zero_aoa_positive_aos]] |
-| <a id="test-unit-029"></a>TEST-UNIT-029 | REQ-TRANS-002 | AoA/AoS両方正 | 代表値 | tan式、atan2式の期待値に絶対誤差0.001 deg以内で一致 | [[TESTCODE_SHORT:tests.test_transform.TestAngleTransformer.test_general_solution_matches_formula]] |
+| <a id="test-unit-029"></a>TEST-UNIT-029 | REQ-TRANS-002 | AoA/AoS両方正 | ±30°の複合角と非対称な代表値 | Z/Aから復元したTM765の迎角・横滑り角が各指令値に絶対誤差0.001 deg以内で一致し、初期点は正ピッチ基本解 | [[TESTCODE_SHORT:tests.test_transform.TestAngleTransformer.test_general_solution_matches_formula]] |
 | <a id="test-unit-030"></a>TEST-UNIT-030 | REQ-TRANS-002 | 象限II | u<0, v>0となる条件 | atan2の象限が正しい | [[TESTCODE_SHORT:tests.test_transform.TestAngleTransformer.test_quadrant_ii]] |
 | <a id="test-unit-031"></a>TEST-UNIT-031 | REQ-TRANS-002 | 象限III | u<0, v<0となる条件 | atan2の象限が正しい | [[TESTCODE_SHORT:tests.test_transform.TestAngleTransformer.test_quadrant_iii]] |
 | <a id="test-unit-032"></a>TEST-UNIT-032 | REQ-TRANS-002 | 象限IV | u>0, v<0となる条件 | atan2の象限が正しい | [[TESTCODE_SHORT:tests.test_transform.TestAngleTransformer.test_quadrant_iv]] |
@@ -364,7 +364,7 @@
 | <a id="test-uc-01-09"></a>TEST-UC-01-09 | UC-01 | AoA/AoS=0を含む格子 | 中央点あり、走査順の直前点あり | 原点Z=0、原点Aは直前点Aを保持し、不要なロール角不連続なし | [[TESTCODE_SHORT:tests.test_use_cases.TestUseCases.test_uc01_grid_origin_is_deterministic]] |
 | <a id="test-uc-01-10"></a>TEST-UC-01-10 | UC-01 | ±180近傍の連続性を伴う走査 | ロールunwrapが必要な点列 | 走査点間で不要な±360°ジャンプがない | [[TESTCODE_SHORT:tests.test_use_cases.TestUseCases.test_uc01_roll_has_no_unnecessary_360_jump]] |
 | <a id="test-uc-01-11"></a>TEST-UC-01-11 | UC-01 | Lx/Ly負値 | LxまたはLyを0未満へ変更 | 該当入力欄を背景色で強調し既存固定メッセージ領域へ理由表示、plan更新停止、Sim/G-code無効 | [[TESTCODE_SHORT:tests.test_use_cases.TestUseCases.test_uc01_negative_offsets_block_plan]] |
-| <a id="test-uc-01-13"></a>TEST-UC-01-13 | UC-01 | Lx/Lyゼロ境界 | LxまたはLyを0.0 mmへ変更 | 入力を有効としplanを生成、Sim/G-codeを許可 | [[TESTCODE_SHORT:tests.test_use_cases.TestUseCases.test_uc01_zero_offsets_allow_plan]] |
+| <a id="test-uc-01-13"></a>TEST-UC-01-13 | UC-01 | Lx/Lyゼロ境界 | 片方または両方を0.0 mmへ変更 | 全点のGコードを生成でき、両方ゼロでは全点のX/Y指令がゼロ | [[TESTCODE_SHORT:tests.test_use_cases.TestUseCases.test_uc01_zero_offsets_allow_plan]] |
 | <a id="test-uc-01-12"></a>TEST-UC-01-12 | UC-01 | 保持時間/Feed下限境界 | hold=0.1, F=1→各下限未満へ変更 | 下限値は有効、下限未満では該当入力欄を背景色で強調し既存固定メッセージ領域へ理由表示、生成不可 | [[TESTCODE_SHORT:tests.test_use_cases.TestUseCases.test_uc01_hold_and_feed_boundaries]] |
 
 ## 7.2 UC-02 初期化Gコードを読み込む

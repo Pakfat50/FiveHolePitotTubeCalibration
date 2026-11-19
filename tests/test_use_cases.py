@@ -312,17 +312,24 @@ class TestUseCases(unittest.TestCase):
             3. 検証結果と生成可否を確認する。
 
         パスクライテリア:
-            Lx=0.0 mmまたはLy=0.0 mmは有効であり、planが生成されcan_generate=Trueとなること。
+            片方または両方がゼロでも全点を出力でき、両方ゼロの場合は全点の並進指令がゼロとなること。
 
         検証根拠:
             GUI入力からController、Validator、CalibrationServiceへ至る実経路で許容境界を確認するため、単体検証だけでは確認できないユースケース成立性を判定できる。
         """
-        for field in ("tip_offset_x", "tip_offset_y"):
-            with self.subTest(field=field):
-                result = self.h.controller.on_settings_changed(make_settings(**{field: 0.0}))
+        for lx, ly in ((0, 10), (100, 0), (0, 0)):
+            with self.subTest(lx=lx, ly=ly):
+                settings = make_settings(tip_offset_x=lx, tip_offset_y=ly)
+                result = self.h.controller.on_settings_changed(settings)
                 self.assertTrue(result.is_valid)
-                self.assertIsNotNone(self.h.controller.get_current_plan())
                 self.assertTrue(self.h.controller.can_generate())
+                plan = self.h.controller.get_current_plan()
+                code = self.h.generator.generate(plan, settings, "")
+                moves = [line.split() for line in code.splitlines() if line.startswith("G01 ")]
+                self.assertEqual(len(moves), settings.aoa_points * settings.aos_points)
+                if lx == ly == 0:
+                    for move in moves:
+                        self.assertEqual([float(word[1:]) for word in move if word[0] in "XY"], [0, 0])
 
     # TEST-UC-01-12
     # UseCase: UC-01
