@@ -38,7 +38,7 @@ class GCodeGenerator:
 
     # 対応要求: REQ-GCODE-002
     def _format_header(self, initialization_text: str) -> list[str]:
-        """初期化コード、原点復帰、G21、G90、G94のヘッダ行を整形する。
+        """初期化コード、G21、G90、G94のヘッダ行を整形する。
 
         Args:
             initialization_text: ユーザーが読み込んだ初期化Gコード。
@@ -56,12 +56,9 @@ class GCodeGenerator:
         if initialization_text:
             lines.extend(initialization_text.splitlines())
 
-        # 初期化処理後にGRBLのホーミングを行い、その後の較正点指令を
+        # 初期化コードに続く較正点指令を
         # mm・絶対座標・毎分送り(G94)として明示する。
         lines.extend([
-            "",
-            "; Homing",
-            "$H",
             "",
             "G21",
             "G90",

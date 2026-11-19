@@ -43,14 +43,17 @@ class TestGCodeGenerator(unittest.TestCase):
             3. 取得した結果を期待値と比較する。
 
         パスクライテリア:
-            初期化見出し、$H、G21、G90、G94を含むこと。
+            初期化コードの後にG21、G90、G94が続き、自動ホームがないこと。
 
         検証根拠:
             仕様で列挙された必須トークンを生成文字列から直接検索するため、各必須ヘッダ要素の欠落を検出できる。
         """
-        text = self._generate()
-        for token in ("; User initialization G-code", "$H", "G21", "G90", "G94"):
-            self.assertIn(token, text)
+        for init in ("", "G92 X0"):
+            with self.subTest(init=init):
+                lines = self._generate(init=init).splitlines()
+                expected = ["; User initialization G-code", *init.splitlines(), "G21", "G90", "G94"]
+                self.assertEqual([line for line in lines if line][:len(expected)], expected)
+                self.assertNotIn("$H", lines)
 
     def test_initialization_text_preserved_in_order(self):
         """TEST-UNIT-067
@@ -69,7 +72,7 @@ class TestGCodeGenerator(unittest.TestCase):
         検証根拠:
             入力した複数行文字列全体の一致を確認するため、個別行の存在だけでなく行順と改行保持も検証できる。
         """
-        init = ";a\nG92 X0\nM5\n"
+        init = ";a\n$H\nG92 X0\nM5\n"
         text = self._generate(init=init)
         self.assertIn(init, text)
 

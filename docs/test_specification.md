@@ -162,7 +162,7 @@
 
 | テストID | 要求ID | テスト内容 | 入力/条件 | 期待結果 | 対象テスト |
 |---|---|---|---|---|---|
-| <a id="test-unit-066"></a>TEST-UNIT-066 | REQ-GCODE-002 | ヘッダ基本構成 | init textあり | init text、`$H`,`G21`,`G90`,`G94`を含む | [[TESTCODE_SHORT:tests.test_gcode.TestGCodeGenerator.test_header_contains_required_commands]] |
+| <a id="test-unit-066"></a>TEST-UNIT-066 | REQ-GCODE-002 | ヘッダ基本構成 | init textあり | 自動ホームなし。初期化の後にG21/G90/G94を順に出力 | [[TESTCODE_SHORT:tests.test_gcode.TestGCodeGenerator.test_header_contains_required_commands]] |
 | <a id="test-unit-067"></a>TEST-UNIT-067 | REQ-INPUT-006, REQ-GCODE-002 | 初期化Gコード保持 | 複数行init text | 行順と内容を保持して挿入 | [[TESTCODE_SHORT:tests.test_gcode.TestGCodeGenerator.test_initialization_text_preserved_in_order]] |
 | <a id="test-unit-068"></a>TEST-UNIT-068 | REQ-GCODE-003 | 同時4軸指令 | 1点 | 1行にX,Y,Z,A,Fを出力 | [[TESTCODE_SHORT:tests.test_gcode.TestGCodeGenerator.test_each_move_has_four_axes_and_feed]] |
 | <a id="test-unit-069"></a>TEST-UNIT-069 | REQ-GCODE-003 | G番号ゼロ埋め | 1点 | `G01` と `G04` を使用 | [[TESTCODE_SHORT:tests.test_gcode.TestGCodeGenerator.test_g_numbers_are_zero_padded]] |
@@ -446,7 +446,7 @@
 
 | テストID | トレースUC | シナリオ | 操作/条件 | 期待結果 | 対象テスト |
 |---|---|---|---|---|---|
-| <a id="test-uc-06-01"></a>TEST-UC-06-01 | UC-06 | 正常Gコード生成 | valid plan、init textあり | `.nc`へ正しいヘッダと全点を保存 | [[TESTCODE_SHORT:tests.test_use_cases.TestUseCases.test_uc06_generate_valid_nc]] |
+| <a id="test-uc-06-01"></a>TEST-UC-06-01 | UC-06 | 正常Gコード生成 | GUI初期値（Ly=0、F=1000）、2×2点、init textあり | 自動ホームなし、全4点にF1000を出力 | [[TESTCODE_SHORT:tests.test_use_cases.TestUseCases.test_uc06_generate_valid_nc]] |
 | <a id="test-uc-06-02"></a>TEST-UC-06-02 | UC-06 | コメントON | output_comments=True | 各点コメント付き | [[TESTCODE_SHORT:tests.test_use_cases.TestUseCases.test_uc06_comments_on]] |
 | <a id="test-uc-06-03"></a>TEST-UC-06-03 | UC-06 | コメントOFF | output_comments=False | 点コメントなし | [[TESTCODE_SHORT:tests.test_use_cases.TestUseCases.test_uc06_comments_off]] |
 | <a id="test-uc-06-04"></a>TEST-UC-06-04 | UC-06 | XY飽和付き生成 | XY warningのみ | 生成可能、飽和後X/Yを出力、コメントONなら飽和状態記載 | [[TESTCODE_SHORT:tests.test_use_cases.TestUseCases.test_uc06_xy_saturated_values_are_written]] |
