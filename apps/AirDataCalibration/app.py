@@ -11,6 +11,11 @@ from charts import SURFACES, time_history, surface_mesh, draw_surface, compariso
 root=tk.Tk()
 root.title('5孔ピトー管 較正')
 root.geometry(f"{min(1000,root.winfo_screenwidth()-45)}x{min(760,root.winfo_screenheight()-95)}")
+identity_bar=ttk.Frame(root,padding=(10,5))
+identity_bar.pack(fill='x')
+ttk.Label(identity_bar,text='使用中の較正データ：').pack(side='left')
+calibration_identity=tk.StringVar(value='未選択')
+ttk.Label(identity_bar,textvariable=calibration_identity).pack(side='left')
 tabs=ttk.Notebook(root)
 tabs.pack(fill='both',expand=True)
 frame=ttk.Frame(tabs,padding=10)
@@ -78,6 +83,17 @@ def parameters():
 def analyze(p,settings):
     return analyze_intervals(logs[p],p,float(files.set(p,'q')),*settings[:3])
 
+def refresh_calibration_identity():
+    if coef is None:
+        text='未選択'
+    elif loaded_path is not None:
+        text=f'読込済み　{loaded_path.name}'
+    elif saved_csv is not None:
+        text=f'保存済み　{saved_csv.name}'
+    else:
+        text='未保存（一時）'
+    calibration_identity.set(text)
+
 def run(save=True):
     global coef,mesh,used_intervals,loaded_path,saved_csv,preview_points
     try:
@@ -93,11 +109,13 @@ def run(save=True):
         loaded_path=saved_csv=None
         preview_points=points
         coef,mesh,used_intervals=model,next_mesh,ranges
+        refresh_calibration_identity()
         result.set(f'{len(points)} 静定区間を使用。3D較正曲面を表示できます。')
         if not save:
             tabs.select(surfaces)
             return
         saved_csv=save_current()
+        refresh_calibration_identity()
         result.set(f'保存先：output/{saved_csv.name}')
     except Exception as exc: messagebox.showerror('較正',str(exc))
 
@@ -115,6 +133,7 @@ def generate_c():
             raise ValueError('先に較正を実行するか、較正結果を読み込んでください。')
         if loaded_path is None and saved_csv is None:
             saved_csv=save_current()
+            refresh_calibration_identity()
         header=export_c(OUTPUT_DIR/'C',coef,loaded_path or saved_csv)
         result.set(f'Cコード保存先：output/C/{header.name}')
     except Exception as exc:
@@ -154,6 +173,7 @@ def load_result():
         ranges={p:analyze(p,settings)[1] for p in logs}
         update_rmse(model,ranges)
         coef,mesh,used_intervals,loaded_path=model,next_mesh,ranges,path
+        refresh_calibration_identity()
         result.set(f'読込：{path.name}')
         tabs.select(surfaces)
         show_surface()
@@ -320,6 +340,7 @@ def inputs_changed(*_):
             result.set(str(exc))
         return
     coef=mesh=None
+    refresh_calibration_identity()
     result.set('入力・設定を反映しました。較正を実行してください。')
 
 def tab_changed(event):
