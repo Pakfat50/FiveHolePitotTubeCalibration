@@ -114,10 +114,20 @@ class TestPlots(unittest.TestCase):
             first=samples()
             second=first.copy()
             second[:,3:6]*=2
-            with patch.object(app.filedialog,'askopenfilenames',return_value=(p,q)), \
-                 patch.object(app,'ask_q',side_effect=[100,220]), \
+            app.root.update()
+            answers=iter(('100','220'))
+            owners=[]
+            def answer_dialog(dialog, window):
+                owners.append((str(dialog.transient()),dialog.grab_current()))
+                dialog.entry.insert(0,next(answers))
+                dialog.ok()
+            with patch.object(app.filedialog,'askopenfilenames',return_value=(p,q)) as choose, \
+                 patch.object(app.tk.Toplevel,'wait_window',answer_dialog), \
                  patch.object(app,'read_log',side_effect=[first,second]):
                 app.add()
+            self.assertIs(choose.call_args.kwargs['parent'],app.root)
+            self.assertEqual([owner for owner,_ in owners],[str(app.root)]*2)
+            self.assertTrue(all(isinstance(grab,app.simpledialog.Dialog) for _,grab in owners))
             app.root.update()
             self.assertEqual(set(app.history_files.pages),{p,q})
             self.assertNotEqual(app.dataset_labels()[p],app.dataset_labels()[q])

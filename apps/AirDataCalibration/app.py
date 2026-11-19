@@ -37,16 +37,16 @@ for col,title,width in [('file','計測CSV',510),('q','基準動圧 [Pa]',120)]:
     files.heading(col,text=title);files.column(col,width=width)
 files.pack(fill='both',expand=True)
 def ask_q(path,value=None):
-    return simpledialog.askfloat('基準動圧',f'{path}\n基準動圧 [Pa]',initialvalue=value,minvalue=0.000001)
+    return simpledialog.askfloat('基準動圧',f'{path}\n基準動圧 [Pa]',parent=root,initialvalue=value,minvalue=0.000001)
 def add():
-    for p in filedialog.askopenfilenames(filetypes=[('計測CSV','*.csv')]):
+    for p in filedialog.askopenfilenames(parent=root,filetypes=[('計測CSV','*.csv')]):
         if files.exists(p): continue
         q=ask_q(p)
         if q is not None:
             try:
                 logs[p]=read_log(p)
             except Exception as exc:
-                messagebox.showerror('CSV読込',str(exc))
+                messagebox.showerror('CSV読込',str(exc),parent=root)
                 continue
             files.insert('','end',iid=p,values=(p,q))
             files.selection_set(p)
@@ -117,7 +117,7 @@ def run(save=True):
         saved_csv=save_current()
         refresh_calibration_identity()
         result.set(f'保存先：output/{saved_csv.name}')
-    except Exception as exc: messagebox.showerror('較正',str(exc))
+    except Exception as exc: messagebox.showerror('較正',str(exc),parent=root)
 
 def save_current():
     for point in preview_points:
@@ -137,7 +137,7 @@ def generate_c():
         header=export_c(OUTPUT_DIR/'C',coef,loaded_path or saved_csv)
         result.set(f'Cコード保存先：output/C/{header.name}')
     except Exception as exc:
-        messagebox.showerror('Cコード生成',str(exc))
+        messagebox.showerror('Cコード生成',str(exc),parent=root)
 
 def update_rmse(model,ranges):
     sums=np.zeros((2,3))
@@ -159,7 +159,7 @@ def update_rmse(model,ranges):
 
 def load_result():
     global coef,mesh,used_intervals,loaded_path
-    filename=filedialog.askopenfilename(title='較正結果読込',initialdir=OUTPUT_DIR if OUTPUT_DIR.is_dir() else OUTPUT_DIR.parent,
+    filename=filedialog.askopenfilename(parent=root,title='較正結果読込',initialdir=OUTPUT_DIR if OUTPUT_DIR.is_dir() else OUTPUT_DIR.parent,
                                         filetypes=[('係数CSV','*.csv')])
     if not filename:
         return
@@ -178,7 +178,7 @@ def load_result():
         tabs.select(surfaces)
         show_surface()
     except Exception as exc:
-        messagebox.showerror('較正結果読込',str(exc))
+        messagebox.showerror('較正結果読込',str(exc),parent=root)
 
 actions=ttk.Frame(frame)
 actions.pack(anchor='w',pady=7)
@@ -215,7 +215,7 @@ def predict():
         if not np.isfinite(v).all():raise ValueError('有限の数値を入力してください。')
         a,b,q=estimate(coef,*v)
         result.set(f'迎角 α = {a:.2f}°　 横滑り角 β = {b:.2f}°　 動圧 = {q:.2f} Pa')
-    except ValueError as exc:messagebox.showerror('推定',str(exc))
+    except ValueError as exc:messagebox.showerror('推定',str(exc),parent=root)
 ttk.Button(test,text='推定',command=predict).grid(row=1,column=2,padx=12)
 ttk.Label(frame,textvariable=result).pack(anchor='w',pady=8)
 class DatasetTabs:
