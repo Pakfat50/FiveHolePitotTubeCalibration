@@ -1,0 +1,21 @@
+name: Calibration GUI plots
+on:
+  pull_request:
+    branches: [develop]
+    paths:
+      - 'apps/AirDataCalibration/**'
+      - '.github/workflows/calibration-plots.yml'
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: apps/AirDataCalibration
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: sudo apt-get update && sudo apt-get install -y xvfb python3-tk
+      - run: python -m pip install numpy scipy matplotlib
+      - run: xvfb-run -a python -m unittest discover -s tests -v

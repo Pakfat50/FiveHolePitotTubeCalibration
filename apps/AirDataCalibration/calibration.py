@@ -25,14 +25,22 @@ def read_log(path):
 
 def stable_points(path, qref, width, min_sec, trim):
     """両軸の全振幅が許容幅以内の連続区間を検出し、前後を除いて平均する。"""
-    data = read_log(path)
+    return analyze_intervals(read_log(path), path, qref, width, min_sec, trim)[0]
+
+
+def analyze_intervals(raw, path, qref, width, min_sec, trim):
+    """平均値と使用した行の半開区間を返す。角度の展開は作業コピーで行う。"""
+    data = raw.copy()
     points = []
+    intervals = []
     start = 0
     def finish(end):
         block = data[start:end]
         if len(block)<2 or block[-1,0]-block[0,0] < 1000*min_sec:
             return
-        b = block[(block[:,0]>=block[0,0]+1000*trim)&(block[:,0]<=block[-1,0]-1000*trim)]
+        first = np.searchsorted(block[:,0], block[0,0]+1000*trim)
+        last = np.searchsorted(block[:,0], block[-1,0]-1000*trim, side='right')
+        b = block[first:last]
         if len(b)<2:
             return
         pitch,roll,total,aoa,aos = b[:,1:].mean(axis=0)
@@ -41,6 +49,7 @@ def stable_points(path, qref, width, min_sec, trim):
         th,ph = np.deg2rad([pitch,roll])
         x,y,z = np.cos(th),np.sin(th)*np.sin(ph),np.sin(th)*np.cos(ph)
         alpha,beta = np.rad2deg([np.arctan2(z,x),np.arctan2(y,np.hypot(x,z))])
+        intervals.append((start+first,start+last))
         points.append(dict(file=str(path),start_ms=b[0,0],end_ms=b[-1,0],n=len(b),
                            pitch_deg=pitch,roll_deg=(roll+180)%360-180,alpha_deg=alpha,beta_deg=beta,
                            total_Pa=total,aoa_Pa=aoa,aos_Pa=aos,qref_Pa=qref))
@@ -65,7 +74,7 @@ def stable_points(path, qref, width, min_sec, trim):
         else:
             low,high=lo,hi
     finish(len(data))
-    return points
+    return points, intervals
 
 
 def basis(a,s):
