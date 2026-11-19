@@ -26,12 +26,12 @@ files=ttk.Treeview(frame,columns=('file','q'),show='headings',height=7)
 for col,title,width in [('file','計測CSV',510),('q','基準動圧 [Pa]',120)]:
     files.heading(col,text=title);files.column(col,width=width)
 files.pack(fill='both',expand=True)
-def ask_q(value=None):
-    return simpledialog.askfloat('基準動圧','このCSVの基準動圧 [Pa]',initialvalue=value,minvalue=0.000001)
+def ask_q(path,value=None):
+    return simpledialog.askfloat('基準動圧',f'{path}\n基準動圧 [Pa]',initialvalue=value,minvalue=0.000001)
 def add():
     for p in filedialog.askopenfilenames(filetypes=[('計測CSV','*.csv')]):
         if files.exists(p): continue
-        q=ask_q()
+        q=ask_q(p)
         if q is not None:
             try:
                 logs[p]=read_log(p)
@@ -43,7 +43,7 @@ def add():
             inputs_changed()
 def edit():
     for item in files.selection():
-        q=ask_q(float(files.set(item,'q')))
+        q=ask_q(item,float(files.set(item,'q')))
         if q is not None:
             files.set(item,'q',q)
             inputs_changed()
@@ -53,7 +53,7 @@ def remove():
         files.delete(item)
     inputs_changed()
 bar=ttk.Frame(frame);bar.pack(anchor='w',pady=5)
-for title,fn in [('CSV追加',add),('基準動圧を変更',edit),('選択を除外',remove)]:
+for title,fn in [('CSV追加（複数選択可）',add),('基準動圧を変更',edit),('選択を除外',remove)]:
     ttk.Button(bar,text=title,command=fn).pack(side='left')
 settings=ttk.LabelFrame(frame,text='静定区間・格子設定',padding=8);settings.pack(fill='x')
 def entry(parent,i,title,default):
@@ -85,17 +85,22 @@ def run(save=True):
         model=fit(points,settings[3])
         sums=np.zeros((2,3))
         counts=np.zeros((2,3),dtype=np.int64)
+        table_rows=[]
+        labels=dataset_labels()
         for p,intervals in ranges.items():
-            pred,truth=compare_samples(logs[p],float(files.set(p,'q')),model)
+            qref=float(files.set(p,'q'))
+            pred,truth=compare_samples(logs[p],qref,model)
             ss,n=error_totals(pred,truth,intervals)
+            table_rows.extend(rmse_values(labels[p],qref,ss,n))
             sums+=ss
             counts+=n
-        rmse=np.sqrt(np.divide(sums,counts,out=np.full_like(sums,np.nan),where=counts>0))
+        if len(ranges)>1:
+            table_rows.extend(rmse_values('全CSV','—',sums,counts))
         mesh=surface_mesh(points,model)
         used_intervals=ranges
-        for var,row in zip(rmse_rows,rmse):
-            var.set('     '.join(f'{name}  {v:.3f} {unit}' if np.isfinite(v) else f'{name}  —'
-                                 for name,v,unit in zip(('AoA','AoS','動圧'),row,('°','°','Pa'))))
+        rmse_table.delete(*rmse_table.get_children())
+        for row in table_rows:
+            rmse_table.insert('','end',values=row)
         coef=model
         result.set(f'{len(points)} 静定区間を使用。3D較正曲面を表示できます。')
         if not save:
@@ -118,14 +123,26 @@ actions=ttk.Frame(frame)
 actions.pack(anchor='w',pady=7)
 ttk.Button(actions,text='較正して曲面を表示',command=lambda: run(False)).pack(side='left')
 ttk.Button(actions,text='較正して係数CSVを保存',command=run).pack(side='left')
-rmse_box=ttk.LabelFrame(frame,text='RMSE（読み込んだ全CSV・各サンプルを等重みで集計）',padding=4)
+def dataset_labels():
+    names=[Path(p).name for p in logs]
+    return {p: Path(p).name if names.count(Path(p).name)==1 else str(Path(p)) for p in logs}
+
+def rmse_values(label,qref,sums,counts):
+    values=np.sqrt(np.divide(sums,counts,out=np.full_like(sums,np.nan),where=counts>0))
+    for scope,row in zip(('全有効区間','採用静定区間'),values):
+        yield (label,qref,scope,*[f'{v:.3f}' if np.isfinite(v) else '—' for v in row])
+
+rmse_box=ttk.LabelFrame(frame,text='データ別RMSE',padding=4)
 rmse_box.pack(fill='x')
-rmse_rows=[]
-for i,name in enumerate(('全有効区間','採用した静定区間')):
-    var=tk.StringVar(value='—')
-    rmse_rows.append(var)
-    ttk.Label(rmse_box,text=name).grid(row=i,column=0,sticky='w',padx=4)
-    ttk.Label(rmse_box,textvariable=var).grid(row=i,column=1,sticky='w',padx=8)
+rmse_table=ttk.Treeview(rmse_box,columns=('file','q','scope','alpha','beta','dp'),show='headings',height=4)
+for key,title,width in [('file','CSV',190),('q','基準動圧 [Pa]',100),('scope','評価区間',110),
+                        ('alpha','AoA [°]',80),('beta','AoS [°]',80),('dp','動圧 [Pa]',90)]:
+    rmse_table.heading(key,text=title)
+    rmse_table.column(key,width=width,anchor='w' if key in ('file','scope') else 'e')
+rmse_scroll=ttk.Scrollbar(rmse_box,command=rmse_table.yview)
+rmse_table.configure(yscrollcommand=rmse_scroll.set)
+rmse_scroll.pack(side='right',fill='y')
+rmse_table.pack(fill='x',expand=True)
 test=ttk.LabelFrame(frame,text='作成した係数で推定',padding=8);test.pack(fill='x')
 inputs=[entry(test,i,n,'') for i,n in enumerate(('Total [Pa]','AoA [Pa]','AoS [Pa]'))]
 def predict():
@@ -138,12 +155,43 @@ def predict():
     except ValueError as exc:messagebox.showerror('推定',str(exc))
 ttk.Button(test,text='推定',command=predict).grid(row=1,column=2,padx=12)
 ttk.Label(frame,textvariable=result).pack(anchor='w',pady=8)
-history_bar=ttk.Frame(history)
-history_bar.pack(fill='x')
-ttk.Label(history_bar,text='表示するCSV').pack(side='left')
-selected_csv=tk.StringVar()
-file_choice=ttk.Combobox(history_bar,state='readonly',textvariable=selected_csv)
-file_choice.pack(side='left',expand=True,fill='x',padx=6)
+class DatasetTabs:
+    """横に収まらない数のCSVでも矢印で移動できるタブ。グラフは一枚を再利用する。"""
+    def __init__(self,parent):
+        bar=ttk.Frame(parent)
+        bar.pack(fill='x')
+        self.pages={}
+        self.notebook=ttk.Notebook(bar,height=1)
+        for label,delta in (('▶',1),('◀',-1)):
+            ttk.Button(bar,text=label,width=3,command=lambda d=delta:self.step(d)).pack(side='right')
+        self.notebook.pack(side='left',fill='x',expand=True)
+
+    def step(self,delta):
+        keys=list(self.pages)
+        if keys:
+            index=keys.index(self.current())
+            self.select(keys[max(0,min(len(keys)-1,index+delta))])
+
+    def current(self):
+        selected=self.notebook.select()
+        return next((p for p,page in self.pages.items() if str(page)==selected),None)
+
+    def select(self,p):
+        if p in self.pages and self.current()!=p:
+            self.notebook.select(self.pages[p])
+
+    def update_files(self,labels):
+        for p in list(self.pages):
+            if p not in labels:
+                self.pages.pop(p).destroy()
+        for p,label in labels.items():
+            if p not in self.pages:
+                self.pages[p]=ttk.Frame(self.notebook)
+                self.notebook.add(self.pages[p],text=label)
+            else:
+                self.notebook.tab(self.pages[p],text=label)
+
+history_files=DatasetTabs(history)
 history_note=tk.StringVar()
 ttk.Label(history,textvariable=history_note).pack(anchor='w')
 
@@ -155,11 +203,7 @@ surface_choice.pack(side='left')
 surface_note=tk.StringVar()
 ttk.Label(surface_bar,textvariable=surface_note).pack(side='left',padx=10)
 
-comparison_bar=ttk.Frame(comparison)
-comparison_bar.pack(fill='x')
-ttk.Label(comparison_bar,text='表示するCSV').pack(side='left')
-compare_choice=ttk.Combobox(comparison_bar,state='readonly',textvariable=selected_csv)
-compare_choice.pack(side='left',expand=True,fill='x',padx=6)
+comparison_files=DatasetTabs(comparison)
 compare_note=tk.StringVar()
 ttk.Label(comparison,textvariable=compare_note).pack(anchor='w')
 
@@ -177,25 +221,25 @@ sfig,scanvas,stool=make_canvas(surfaces)
 cfig,ccanvas,ctool=make_canvas(comparison)
 
 def show_comparison(event=None):
-    p=selected_csv.get()
+    p=comparison_files.current()
     cfig.clear()
     if coef is None or p not in used_intervals:
         compare_note.set('入力・較正タブで較正を実行してください。')
     else:
         pred,truth=compare_samples(logs[p],float(files.set(p,'q')),coef)
         comparison_history(cfig,logs[p][:,0],pred,truth,used_intervals[p])
-        compare_note.set('青実線：推定値　橙破線：真値　緑の帯：較正に採用した静定区間')
+        compare_note.set(f'{Path(p).name}（{files.set(p,"q")} Pa）　青実線：推定値　橙破線：真値　緑の帯：較正に採用した静定区間')
     ctool.update()
     ccanvas.draw_idle()
 
 def show_history(event=None):
     hfig.clear()
-    p=file_choice.get()
+    p=history_files.current()
     if p in logs:
         try:
             points,intervals=analyze(p,parameters())
             time_history(hfig,logs[p],intervals)
-            history_note.set(f'緑の帯は平均に使用する区間（{len(points)} 区間）です。')
+            history_note.set(f'{Path(p).name}（{files.set(p,"q")} Pa）　緑の帯は平均に使用する区間（{len(points)} 区間）です。')
         except ValueError as exc:
             history_note.set(str(exc))
     else:
@@ -217,16 +261,10 @@ def inputs_changed(*_):
     global coef,mesh
     coef=mesh=None
     used_intervals.clear()
-    for var in rmse_rows:
-        var.set('—')
-    choices=files.get_children()
-    compare_choice.configure(values=choices)
-    file_choice.configure(values=choices)
-    selected=files.selection()
-    if selected:
-        file_choice.set(selected[0])
-    elif file_choice.get() not in choices:
-        file_choice.set(choices[0] if choices else '')
+    rmse_table.delete(*rmse_table.get_children())
+    labels=dataset_labels()
+    for group in (history_files,comparison_files):
+        group.update_files(labels)
     result.set('入力・設定を反映しました。較正を実行してください。')
 
 def tab_changed(event):
@@ -241,11 +279,17 @@ def tab_changed(event):
 def select_history_file(event):
     selected=files.selection()
     if selected:
-        file_choice.set(selected[0])
+        history_files.select(selected[0])
+        comparison_files.select(selected[0])
+
+def dataset_changed(group,other,view,draw):
+    if tabs.select()==str(view):
+        other.select(group.current())
+        draw()
 
 files.bind('<<TreeviewSelect>>',select_history_file)
-file_choice.bind('<<ComboboxSelected>>',show_history)
-compare_choice.bind('<<ComboboxSelected>>',show_comparison)
+history_files.notebook.bind('<<NotebookTabChanged>>',lambda e:dataset_changed(history_files,comparison_files,history,show_history))
+comparison_files.notebook.bind('<<NotebookTabChanged>>',lambda e:dataset_changed(comparison_files,history_files,comparison,show_comparison))
 surface_choice.bind('<<ComboboxSelected>>',show_surface)
 tabs.bind('<<NotebookTabChanged>>',tab_changed)
 for param in params:
